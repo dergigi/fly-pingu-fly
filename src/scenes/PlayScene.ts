@@ -136,10 +136,6 @@ export class PlayScene extends Phaser.Scene {
       "/assets/sprites/ice-watchtower-spire.webp",
     );
     this.load.image("igloo", "/assets/sprites/igloo-snow-block-dome.webp");
-    this.load.image(
-      "lantern-post",
-      "/assets/sprites/lantern-post-snow-capped.webp",
-    );
     this.load.image("village-flag", "/assets/sprites/village-flag.png");
     this.load.image(
       "snow-crystal",
@@ -732,7 +728,6 @@ export class PlayScene extends Phaser.Scene {
       "snow-pile": 206 / 256,
       igloo: 206 / 256,
       "wood-pile": 207 / 256,
-      "lantern-post": 238 / 256,
       "snow-village": 214 / 256,
       "snow-storage": 205 / 256,
       "hot-spring": 224 / 256,
@@ -757,13 +752,11 @@ export class PlayScene extends Phaser.Scene {
         // Deep in the snow fill and above the penguin so it reads as foreground.
         anchorX: 6400,
         props: [
-          { key: "lantern-post", dx: -360, scale: 0.58, sink: 110, depth: 14 },
           { key: "igloo", dx: -180, scale: 0.72, sink: 125, depth: 14 },
           { key: "snow-village", dx: 60, scale: 0.95, sink: 140, depth: 14 },
           { key: "snow-storage", dx: 320, scale: 0.68, sink: 128, depth: 14 },
           { key: "wood-pile", dx: 520, scale: 0.55, sink: 118, depth: 13 },
           { key: "hot-spring", dx: 700, scale: 0.64, sink: 132, depth: 13 },
-          { key: "lantern-post", dx: 880, scale: 0.56, sink: 108, depth: 14 },
         ],
       },
       {
