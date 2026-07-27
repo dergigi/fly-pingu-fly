@@ -166,7 +166,7 @@ export class PlayScene extends Phaser.Scene {
           this.takeoffPosePending = true;
         }
       }
-      this.maybeRecordScore(nextState);
+      this.maybeRecordScore(previousPhase, nextState);
       this.accumulator -= FIXED_STEP;
       steps += 1;
     }
@@ -341,14 +341,14 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(10);
   }
 
-  private maybeRecordScore(state: JumpState): void {
-    if (this.scoreRecorded) {
+  private maybeRecordScore(
+    previousPhase: JumpState["phase"],
+    state: JumpState,
+  ): void {
+    if (this.scoreRecorded || previousPhase !== "flight") {
       return;
     }
-    const finished =
-      state.phase === "resting" ||
-      (state.phase === "crashed" && state.speed === 0);
-    if (!finished) {
+    if (state.phase !== "slide" && state.phase !== "crashed") {
       return;
     }
 
