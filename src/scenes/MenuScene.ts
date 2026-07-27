@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-import { PENGUIN_FRAMES } from "../game/penguinFrames";
+import { PENGUIN_FRAMES, type PenguinPose } from "../game/penguinFrames";
 import { formatLeaderboard, readLeaderboard } from "../game/leaderboard";
 
 const PIXEL_FONT =
@@ -13,6 +13,13 @@ const SKY = 0x8ed8f8;
 const SNOW_FILL = 0xffffff;
 const SNOW_EDGE = 0xd9f5ff;
 const PINE_ORIGIN_Y = 233 / 256;
+const PENGUIN_SCALE = 0.72;
+const GRAVITY = 1400;
+const JUMP_VY = -380;
+const JUMP_VX = 300;
+const SLIDE_FRICTION = 280;
+const STOP_SPEED = 12;
+const FLAG_TOUCH_RADIUS = 48;
 
 function browserStorage(): Storage | null {
   try {
@@ -30,10 +37,20 @@ function forestNoise(x: number, salt: number): number {
 export class MenuScene extends Phaser.Scene {
   private backdrop!: Phaser.GameObjects.Graphics;
   private penguin!: Phaser.GameObjects.Sprite;
+  private flag!: Phaser.GameObjects.Image;
+  private flagMark!: Phaser.GameObjects.Graphics;
   private playPrompt!: Phaser.GameObjects.Text;
-  private animTimer = 0;
   private started = false;
   private groundY = 0;
+  private penguinX = 0;
+  private penguinY = 0;
+  private vx = 0;
+  private vy = 0;
+  private facing = 1;
+  private grounded = true;
+  private leftKeys: Phaser.Input.Keyboard.Key[] = [];
+  private rightKeys: Phaser.Input.Keyboard.Key[] = [];
+  private jumpKeys: Phaser.Input.Keyboard.Key[] = [];
   private readonly flakes: Phaser.GameObjects.Image[] = [];
   private readonly clouds: Phaser.GameObjects.Image[] = [];
   private readonly forest: Phaser.GameObjects.Image[] = [];
@@ -59,10 +76,15 @@ export class MenuScene extends Phaser.Scene {
     this.load.image("snow-flakes", "/assets/sprites/snow-fall-flakes.webp");
     this.load.image("cloud-solid", "/assets/sprites/cloud-solid.webp");
     this.load.image("cloud-thin", "/assets/sprites/cloud-thin.webp");
+    this.load.image("village-flag", "/assets/sprites/village-flag.png");
   }
 
   create(): void {
     this.started = false;
+    this.vx = 0;
+    this.vy = 0;
+    this.facing = 1;
+    this.grounded = true;
     this.cameras.main.setBackgroundColor(SKY);
     this.registerPenguinFrames();
     this.ensureFogTexture();
@@ -73,6 +95,7 @@ export class MenuScene extends Phaser.Scene {
     this.placeForegroundPines();
     this.spawnSnow();
     this.createTitle();
+    this.createFlag();
     this.createPenguin();
     this.createPlayPrompt();
     this.createLeaderboard();
@@ -90,8 +113,18 @@ export class MenuScene extends Phaser.Scene {
       return;
     }
 
-    this.animTimer += delta;
     const dt = Math.min(delta, 50) / 1000;
+    this.updateScenery(dt);
+    this.handleTurnInput();
+    this.handleJumpInput();
+    this.stepPenguin(dt);
+    this.renderPenguin();
+    if (this.touchesFlag()) {
+      this.startGame();
+    }
+  }
+
+  private updateScenery(dt: number): void {
     const h = this.cameras.main.height;
     const w = this.cameras.main.width;
 
@@ -135,6 +168,94 @@ export class MenuScene extends Phaser.Scene {
         wisp.baseAlpha * (0.75 + 0.25 * Math.sin(wisp.phase * 1.4)),
       );
     }
+  }
+
+  private handleTurnInput(): void {
+    if (this.leftKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
+      this.facing = -1;
+    }
+    if (this.rightKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
+      this.facing = 1;
+    }
+  }
+
+  private handleJumpInput(): void {
+    const pressed = this.jumpKeys.some((key) =>
+      Phaser.Input.Keyboard.JustDown(key),
+    );
+    if (pressed) {
+      this.tryJump();
+    }
+  }
+
+  private tryJump(): void {
+    if (!this.grounded || this.started) {
+      return;
+    }
+    this.grounded = false;
+    this.vy = JUMP_VY;
+    this.vx = this.facing * JUMP_VX;
+  }
+
+  private stepPenguin(dt: number): void {
+    const w = this.cameras.main.width;
+    const margin = 36;
+
+    if (!this.grounded) {
+      this.vy += GRAVITY * dt;
+    }
+
+    this.penguinX += this.vx * dt;
+    this.penguinY += this.vy * dt;
+
+    if (this.penguinX < margin) {
+      this.penguinX = margin;
+      this.vx = Math.abs(this.vx) * 0.35;
+      this.facing = 1;
+    } else if (this.penguinX > w - margin) {
+      this.penguinX = w - margin;
+      this.vx = -Math.abs(this.vx) * 0.35;
+      this.facing = -1;
+    }
+
+    if (this.penguinY >= this.groundY) {
+      this.penguinY = this.groundY;
+      this.vy = 0;
+      this.grounded = true;
+      if (Math.abs(this.vx) > STOP_SPEED) {
+        const sign = Math.sign(this.vx);
+        this.vx -= sign * SLIDE_FRICTION * dt;
+        if (Math.sign(this.vx) !== sign) {
+          this.vx = 0;
+        }
+      } else {
+        this.vx = 0;
+      }
+    } else {
+      this.grounded = false;
+    }
+  }
+
+  private renderPenguin(): void {
+    let pose: PenguinPose = "ready";
+    if (!this.grounded) {
+      pose = this.vy < 0 ? "takeoff" : "flight";
+    } else if (Math.abs(this.vx) > STOP_SPEED) {
+      pose = "slide";
+    }
+    const frame = PENGUIN_FRAMES[pose];
+    this.penguin
+      .setFrame(pose)
+      .setOrigin(frame.contactX / frame.width, frame.contactY / frame.height)
+      .setPosition(this.penguinX, this.penguinY)
+      // Sheet faces left; flipX true shows facing right.
+      .setFlipX(this.facing > 0);
+  }
+
+  private touchesFlag(): boolean {
+    const dx = this.penguinX - this.flag.x;
+    const dy = this.penguinY - this.groundY;
+    return Math.hypot(dx, dy) <= FLAG_TOUCH_RADIUS;
   }
 
   private registerPenguinFrames(): void {
@@ -376,12 +497,23 @@ export class MenuScene extends Phaser.Scene {
       .setName("title");
   }
 
+  private createFlag(): void {
+    const flagScale = (PENGUIN_FRAMES.ready.height * PENGUIN_SCALE) / 128;
+    this.flagMark = this.add.graphics().setDepth(9).setScrollFactor(0);
+    this.flag = this.add
+      .image(0, 0, "village-flag")
+      .setOrigin(0.2, 1)
+      .setScale(flagScale)
+      .setDepth(10)
+      .setScrollFactor(0);
+  }
+
   private createPenguin(): void {
     const frame = PENGUIN_FRAMES.ready;
     this.penguin = this.add
       .sprite(0, 0, "penguin-sheet", "ready")
       .setOrigin(frame.contactX / frame.width, frame.contactY / frame.height)
-      .setScale(0.72)
+      .setScale(PENGUIN_SCALE)
       .setFlipX(true)
       .setDepth(12)
       .setScrollFactor(0);
@@ -389,7 +521,7 @@ export class MenuScene extends Phaser.Scene {
 
   private createPlayPrompt(): void {
     this.playPrompt = this.add
-      .text(0, 0, "press any key to play", {
+      .text(0, 0, "touch the flag to start", {
         fontFamily: PIXEL_FONT,
         fontSize: "14px",
         color: "#0b4f73",
@@ -425,19 +557,14 @@ export class MenuScene extends Phaser.Scene {
 
   private createControlsHint(): void {
     this.add
-      .text(
-        0,
-        0,
-        "TAP / SPACE JUMP   ·   DOWN CROUCH   ·   ESC PAUSE",
-        {
-          fontFamily: PIXEL_FONT,
-          fontSize: "9px",
-          color: "#3a6f8a",
-          align: "center",
-          stroke: "#f4fbff",
-          strokeThickness: 3,
-        },
-      )
+      .text(0, 0, "← → turn   ·   ↑ / SPACE jump", {
+        fontFamily: PIXEL_FONT,
+        fontSize: "9px",
+        color: "#3a6f8a",
+        align: "center",
+        stroke: "#f4fbff",
+        strokeThickness: 3,
+      })
       .setOrigin(0.5)
       .setDepth(12)
       .setScrollFactor(0)
@@ -445,8 +572,39 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private bindInput(): void {
-    this.input.keyboard?.on("keydown", this.startGame, this);
-    this.input.on("pointerdown", this.startGame, this);
+    this.game.canvas.setAttribute("tabindex", "0");
+    this.game.canvas.style.outline = "none";
+    this.input.on("pointerdown", () => {
+      this.game.canvas.focus();
+      const x = this.input.activePointer.x;
+      const w = this.cameras.main.width;
+      if (x < w * 0.33) {
+        this.facing = -1;
+      } else if (x > w * 0.66) {
+        this.facing = 1;
+      } else {
+        this.tryJump();
+      }
+    });
+
+    const keyboard = this.input.keyboard;
+    if (keyboard === null) {
+      return;
+    }
+    this.leftKeys = [
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+    ];
+    this.rightKeys = [
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+    ];
+    this.jumpKeys = [
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+    ];
   }
 
   private startGame = (): void => {
@@ -454,8 +612,6 @@ export class MenuScene extends Phaser.Scene {
       return;
     }
     this.started = true;
-    this.input.keyboard?.off("keydown", this.startGame, this);
-    this.input.off("pointerdown", this.startGame, this);
     this.cameras.main.fadeOut(220, 142, 216, 248);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start("play");
@@ -499,9 +655,36 @@ export class MenuScene extends Phaser.Scene {
     }
     leaderboard?.setPosition(w - 28, 18);
 
-    this.penguin.setPosition(cx, this.groundY);
+    const flagX = cx + Math.min(220, w * 0.22);
+    this.flag.setPosition(flagX, this.groundY + 4);
+    this.flagMark.clear();
+    this.flagMark.lineStyle(8, 0xf0b400, 1);
+    this.flagMark.beginPath();
+    this.flagMark.moveTo(flagX - 28, this.groundY + 4);
+    this.flagMark.lineTo(flagX + 28, this.groundY + 4);
+    this.flagMark.strokePath();
 
-    const playY = Math.min(this.groundY - 120, h * 0.68);
+    const spawnX = cx - Math.min(200, w * 0.2);
+    const needsReset =
+      this.penguinX === 0 ||
+      this.penguinX < 20 ||
+      this.penguinX > w - 20;
+    if (needsReset) {
+      this.penguinX = spawnX;
+      this.vx = 0;
+      this.vy = 0;
+      this.grounded = true;
+      this.facing = 1;
+    }
+    this.penguinY = this.groundY;
+    this.grounded = this.vy === 0 || this.penguinY >= this.groundY;
+    if (this.grounded) {
+      this.penguinY = this.groundY;
+      this.vy = 0;
+    }
+    this.renderPenguin();
+
+    const playY = Math.min(this.groundY - 130, h * 0.64);
     const promptSize = Math.round(Phaser.Math.Clamp(w * 0.018, 10, 16));
     this.playPrompt.setFontSize(promptSize);
     this.playPrompt.setPosition(cx, playY);
