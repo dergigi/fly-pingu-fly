@@ -493,21 +493,23 @@ export class PlayScene extends Phaser.Scene {
       forestX += 28 + Math.floor(n * 34);
     }
 
-    // Sparse pines before the village; end rocks get their own foreground trees.
+    // Singular pines on the late landing hill, sunk into the snow as foreground.
     const runoutPines = [
-      { x: hillEndX + 180, scale: 0.42 },
-      { x: hillEndX + 520, scale: 0.36 },
+      { x: hillEndX + 180, scale: 0.78, sink: 155 },
+      { x: hillEndX + 380, scale: 0.72, sink: 148 },
+      { x: hillEndX + 580, scale: 0.82, sink: 162 },
     ] as const;
+    const pineOriginY = 233 / 256;
     for (const pine of runoutPines) {
       const n = this.forestNoise(pine.x, 2);
       const surfaceY = this.forestSurfaceY(pine.x);
       this.add
-        .image(pine.x + (n - 0.5) * 12, surfaceY + 8, "pine-tree")
-        .setOrigin(0.5, 1)
+        .image(pine.x + (n - 0.5) * 12, surfaceY + pine.sink, "pine-tree")
+        .setOrigin(0.5, pineOriginY)
         .setScale(pine.scale)
         .setFlipX(n > 0.5)
-        .setAlpha(0.88)
-        .setDepth(-2);
+        .setAlpha(0.94)
+        .setDepth(15);
     }
 
     const bankX = [hillEndX + 260] as const;
@@ -515,11 +517,11 @@ export class PlayScene extends Phaser.Scene {
       const n = this.forestNoise(x, 5);
       const surfaceY = this.forestSurfaceY(x);
       this.add
-        .image(x, surfaceY + 6, "snow-packed")
-        .setOrigin(0.5, 1)
-        .setScale(0.22 + n * 0.12)
-        .setAlpha(0.82)
-        .setDepth(-3);
+        .image(x, surfaceY + 40, "snow-packed")
+        .setOrigin(0.5, 206 / 256)
+        .setScale(0.32 + n * 0.12)
+        .setAlpha(0.88)
+        .setDepth(12);
     }
   }
 
