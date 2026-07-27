@@ -114,14 +114,15 @@ function stepDrop(
       const contactX = state.x + (nextX - state.x) * fraction;
       const contact = sampleRamp(contactX, config);
       const tangentLength = Math.hypot(1, contact.slope);
+      const rampSpeed = Math.max(config.initialSpeed, state.vx);
 
       return {
         phase: "ramp",
         x: contactX,
         y: contact.y,
-        vx: config.initialSpeed / tangentLength,
-        vy: (config.initialSpeed * contact.slope) / tangentLength,
-        speed: config.initialSpeed,
+        vx: rampSpeed / tangentLength,
+        vy: (rampSpeed * contact.slope) / tangentLength,
+        speed: rampSpeed,
         elapsed: state.elapsed + dt * fraction,
         airtime: 0,
       };

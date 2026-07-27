@@ -142,6 +142,20 @@ describe("jump tracer", () => {
     expect(hopping.vy).toBe(jumpConfig.startHopVy);
   });
 
+  it("carries hop speed onto the ramp without slowing down", () => {
+    let state = createInitialJumpState(jumpConfig);
+    state = stepJump(state, { pressedAtMs: 0 }, FIXED_STEP, jumpConfig);
+    expect(state.phase).toBe("drop");
+
+    const hopSpeed = state.vx;
+    for (let step = 0; step < 240 && state.phase === "drop"; step += 1) {
+      state = stepJump(state, null, FIXED_STEP, jumpConfig);
+    }
+
+    expect(state.phase).toBe("ramp");
+    expect(state.speed).toBeGreaterThanOrEqual(hopSpeed);
+  });
+
   it("moves one start press and one takeoff press through the full jump", () => {
     const result = trace(60, 1_200);
 
