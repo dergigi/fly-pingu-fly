@@ -15,9 +15,6 @@ const PALETTE = {
   snowShade: 0xb8d4e8,
   ice: 0x7ec8ff,
   title: 0xffe566,
-  titleStroke: 0x1a0a40,
-  play: 0xff6b4a,
-  playStroke: 0x4a1020,
   cream: 0xfff6e0,
   star: 0xffffff,
 } as const;
