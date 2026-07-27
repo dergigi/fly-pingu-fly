@@ -314,6 +314,7 @@ export class PlayScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor("#8ed8f8");
 
     this.placeBackgroundTrees();
+    this.placeRampFog();
     this.placeJumpGapScenery();
 
     const scenery = this.add.graphics();
@@ -366,6 +367,30 @@ export class PlayScene extends Phaser.Scene {
 
     this.placeRunoutScenery();
     this.placeFarLandingFlag();
+  }
+
+  private placeRampFog(): void {
+    // Soft mist behind the inrun so the penguin reads against the forest.
+    const fog = this.add.graphics();
+    fog.setDepth(6);
+
+    const points = [
+      { x: jumpConfig.readyX, y: jumpConfig.readyY },
+      { x: jumpConfig.startX, y: jumpConfig.startY },
+      ...sampleRampCurve(jumpConfig, 5),
+    ];
+
+    for (const point of points) {
+      if (point.x > jumpConfig.lipX) {
+        continue;
+      }
+      fog.fillStyle(0xffffff, 0.1);
+      fog.fillEllipse(point.x, point.y - 58, 170, 100);
+      fog.fillStyle(0xeaf6ff, 0.12);
+      fog.fillEllipse(point.x + 18, point.y - 34, 130, 72);
+      fog.fillStyle(0xffffff, 0.08);
+      fog.fillEllipse(point.x - 24, point.y - 78, 150, 86);
+    }
   }
 
   private placeBackgroundTrees(): void {
