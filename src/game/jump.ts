@@ -79,7 +79,7 @@ export function stepJump(
     case "flight":
       return stepFlight(state, dt, config, crouching);
     case "slide":
-      return stepSlide(state, dt, config);
+      return stepSlide(state, dt, config, crouching);
     case "crashed":
       return stepCrashed(state, dt, config);
     case "resting":
@@ -330,15 +330,16 @@ function stepSlide(
   state: JumpState & { phase: "slide" },
   dt: number,
   config: JumpConfig,
+  crouching: boolean,
 ): JumpState {
   const surface = sampleLanding(state.x, config);
   const tangentLength = Math.hypot(1, surface.slope);
   const slopeAcceleration =
     (config.gravity * surface.slope) / tangentLength;
-  const speed = Math.max(
-    0,
-    state.speed + (slopeAcceleration - config.slideDeceleration) * dt,
-  );
+  const drive = crouching
+    ? slopeAcceleration + config.crouchSlideAcceleration
+    : slopeAcceleration - config.slideDeceleration;
+  const speed = Math.max(0, state.speed + drive * dt);
   const averageSpeed = (state.speed + speed) / 2;
   const x = state.x + (averageSpeed / tangentLength) * dt;
   const nextSurface = sampleLanding(x, config);
