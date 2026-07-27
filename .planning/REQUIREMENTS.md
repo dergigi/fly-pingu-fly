@@ -24,7 +24,7 @@
 
 - [x] **PRES-01**: The game displays a bright snowy side-scrolling scene with a visible ramp edge and takeoff zone.
 - [x] **PRES-02**: The camera keeps the penguin, upcoming ramp edge, flight, and landing area readable during their relevant phases.
-- [ ] **PRES-03**: The penguin uses the provided sprite art with stable animation alignment and a consistent ground-contact point.
+- [x] **PRES-03**: The penguin uses the provided sprite art with stable animation alignment and a consistent ground-contact point.
 - [ ] **PRES-04**: The game communicates all instructions, outcomes, and records visually without relying on audio or color alone.
 
 ### Results
@@ -86,7 +86,7 @@
 | INPT-04 | Phase 2 | Pending |
 | PRES-01 | Phase 1 | Complete |
 | PRES-02 | Phase 1 | Complete |
-| PRES-03 | Phase 1 | Pending |
+| PRES-03 | Phase 1 | Complete |
 | PRES-04 | Phase 2 | Pending |
 | RSLT-01 | Phase 3 | Pending |
 | RSLT-02 | Phase 3 | Pending |

@@ -30,7 +30,7 @@ Fly Pingu Fly reaches its MVP through three playable vertical slices: first the 
   3. The same accepted takeoff produces the same flight regardless of display size or refresh rate, while the camera keeps the relevant ramp, flight, and landing area readable.
   4. The provided penguin sprite stays visually aligned with the terrain through descent, takeoff, flight, safe landing, and the final slide to rest.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans executed
 Plans:
 **Wave 1**
 
@@ -42,7 +42,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Integrate approved character art and finish readable snow presentation.
+- [x] 01-03-PLAN.md — Integrate approved character art and finish readable snow presentation.
 
 **UI hint:** yes
 
@@ -86,6 +86,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Playable Jump | 2/3 | In Progress|  |
+| 1. Playable Jump | 3/3 | In Progress|  |
 | 2. Child-Ready Browser Play | 0/TBD | Not started | - |
 | 3. Results and Replay Loop | 0/TBD | Not started | - |
