@@ -10,6 +10,11 @@ const ASSET_DIR = "public/assets/sprites";
 const REQUIRED_ASSETS = [
   "sprite_penguin.png",
   "winter-forest.webp",
+  "pine-tree-snow-heavy.webp",
+  "birch-tree-white.webp",
+  "dead-tree.webp",
+  "twisted-dead-tree.webp",
+  "snow-covered-tree-stump.webp",
   "snow-pile.webp",
   "snow-covered-fallen-log.webp",
   "snow-village.webp",

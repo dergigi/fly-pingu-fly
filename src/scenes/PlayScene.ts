@@ -77,6 +77,23 @@ export class PlayScene extends Phaser.Scene {
       "winter-forest",
       "/assets/sprites/winter-forest.webp",
     );
+    this.load.image(
+      "pine-tree",
+      "/assets/sprites/pine-tree-snow-heavy.webp",
+    );
+    this.load.image(
+      "birch-tree",
+      "/assets/sprites/birch-tree-white.webp",
+    );
+    this.load.image("dead-tree", "/assets/sprites/dead-tree.webp");
+    this.load.image(
+      "twisted-dead-tree",
+      "/assets/sprites/twisted-dead-tree.webp",
+    );
+    this.load.image(
+      "snow-stump",
+      "/assets/sprites/snow-covered-tree-stump.webp",
+    );
     this.load.image("snow-pile", "/assets/sprites/snow-pile.webp");
     this.load.image(
       "fallen-log",
@@ -237,13 +254,10 @@ export class PlayScene extends Phaser.Scene {
   private drawWorld(): void {
     this.cameras.main.setBackgroundColor("#8ed8f8");
 
-    this.add
-      .image(255, 215, "winter-forest")
-      .setScale(0.76)
-      .setAlpha(0.88)
-      .setDepth(-3);
+    this.placeBackgroundTrees();
 
     const scenery = this.add.graphics();
+    scenery.setDepth(0);
     scenery.fillStyle(0xffffff);
     scenery.beginPath();
     scenery.moveTo(0, jumpConfig.readyY + LOG_READY_OFFSET_Y + 1);
@@ -291,6 +305,52 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(4);
 
     this.placeRunoutScenery();
+  }
+
+  private placeBackgroundTrees(): void {
+    this.add
+      .image(220, 200, "winter-forest")
+      .setScale(0.82)
+      .setAlpha(0.9)
+      .setDepth(-4);
+    this.add
+      .image(520, 255, "winter-forest")
+      .setScale(0.7)
+      .setAlpha(0.82)
+      .setDepth(-4);
+    this.add
+      .image(820, 310, "winter-forest")
+      .setScale(0.64)
+      .setAlpha(0.78)
+      .setDepth(-4);
+
+    const trees = [
+      { key: "pine-tree", x: 40, scale: 0.55, sink: 70, alpha: 0.92, depth: -2 },
+      { key: "birch-tree", x: 110, scale: 0.42, sink: 58, alpha: 0.88, depth: -2 },
+      { key: "pine-tree", x: 175, scale: 0.62, sink: 78, alpha: 0.95, depth: -1 },
+      { key: "dead-tree", x: 250, scale: 0.4, sink: 55, alpha: 0.85, depth: -2 },
+      { key: "pine-tree", x: 320, scale: 0.48, sink: 64, alpha: 0.9, depth: -2 },
+      { key: "birch-tree", x: 390, scale: 0.5, sink: 66, alpha: 0.9, depth: -1 },
+      { key: "pine-tree", x: 455, scale: 0.58, sink: 74, alpha: 0.93, depth: -1 },
+      { key: "twisted-dead-tree", x: 520, scale: 0.38, sink: 52, alpha: 0.84, depth: -2 },
+      { key: "pine-tree", x: 580, scale: 0.45, sink: 62, alpha: 0.9, depth: -2 },
+      { key: "birch-tree", x: 640, scale: 0.36, sink: 50, alpha: 0.86, depth: -2 },
+      { key: "pine-tree", x: 700, scale: 0.52, sink: 70, alpha: 0.92, depth: -1 },
+      { key: "dead-tree", x: 755, scale: 0.34, sink: 48, alpha: 0.82, depth: -2 },
+      { key: "pine-tree", x: 810, scale: 0.4, sink: 56, alpha: 0.88, depth: -2 },
+      { key: "snow-stump", x: 860, scale: 0.28, sink: 22, alpha: 0.9, depth: -1 },
+      { key: "pine-tree", x: 900, scale: 0.46, sink: 64, alpha: 0.9, depth: -1 },
+    ] as const;
+
+    for (const tree of trees) {
+      const x = Math.min(tree.x, jumpConfig.lipX);
+      const surface = sampleRamp(x, jumpConfig);
+      this.add
+        .image(tree.x, surface.y - tree.sink, tree.key)
+        .setScale(tree.scale)
+        .setAlpha(tree.alpha)
+        .setDepth(tree.depth);
+    }
   }
 
   private placeRunoutScenery(): void {
