@@ -279,9 +279,7 @@ export class PlayScene extends Phaser.Scene {
     const pose = poseForJumpPhase(state, this.takeoffPosePending);
     this.applyPose(pose);
     this.penguin.setPosition(state.x, state.y);
-    this.hudText.setText(
-      formatJumpHud(jumpHudStats(state, jumpConfig.lipX)),
-    );
+    this.hudText.setText(formatJumpHud(jumpHudStats(state)));
     this.takeoffPosePending = false;
 
     const rotation =

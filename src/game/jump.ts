@@ -19,6 +19,7 @@ type MotionState = Readonly<{
   speed: number;
   elapsed: number;
   airtime: number;
+  distance: number;
 }>;
 
 export type ReadyState = MotionState & { phase: "ready" };
@@ -46,6 +47,7 @@ export function createInitialJumpState(config: JumpConfig): JumpState {
     speed: 0,
     elapsed: 0,
     airtime: 0,
+    distance: 0,
   };
 }
 
@@ -125,6 +127,7 @@ function stepDrop(
         speed: rampSpeed,
         elapsed: state.elapsed + dt * fraction,
         airtime: 0,
+        distance: 0,
       };
     }
   }
@@ -178,6 +181,7 @@ function stepFlight(
   const nextX = state.x + state.vx * dt;
   const nextY = state.y + state.vy * dt + 0.5 * config.gravity * dt * dt;
   const nextAirtime = state.airtime + dt;
+  const nextDistance = Math.max(0, nextX - config.lipX);
 
   if (nextVy > 0) {
     const previousSurface = sampleLanding(state.x, config);
@@ -205,6 +209,7 @@ function stepFlight(
         speed: slideSpeed,
         elapsed: state.elapsed + dt * fraction,
         airtime: state.airtime + dt * fraction,
+        distance: Math.max(0, contactX - config.lipX),
       };
     }
   }
@@ -216,6 +221,7 @@ function stepFlight(
     vy: nextVy,
     elapsed: state.elapsed + dt,
     airtime: nextAirtime,
+    distance: nextDistance,
   };
 }
 
@@ -241,5 +247,6 @@ function stepSlide(
     speed: resting ? 0 : speed,
     elapsed: state.elapsed + dt,
     airtime: state.airtime,
+    distance: state.distance,
   };
 }

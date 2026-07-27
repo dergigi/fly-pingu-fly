@@ -113,6 +113,7 @@ describe("terrain sampling", () => {
       speed: 0,
       elapsed: 1,
       airtime: 0.5,
+      distance: 0,
     };
 
     expect(stepJump(state, null, 1 / 120, jumpConfig).phase).toBe("flight");
@@ -130,6 +131,7 @@ describe("terrain sampling", () => {
       speed: 0,
       elapsed: 1,
       airtime: 0.5,
+      distance: Math.max(0, jumpConfig.landingStartX - jumpConfig.lipX),
     };
     const nextY =
       state.y + state.vy * dt + 0.5 * jumpConfig.gravity * dt * dt;

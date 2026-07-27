@@ -4,18 +4,10 @@ export type JumpHudStats = Readonly<{
 }>;
 
 export function jumpHudStats(
-  state: Readonly<{ x: number; airtime: number; phase: string }>,
-  lipX: number,
+  state: Readonly<{ distance: number; airtime: number }>,
 ): JumpHudStats {
-  const distance =
-    state.phase === "ready" ||
-    state.phase === "drop" ||
-    state.phase === "ramp"
-      ? 0
-      : Math.max(0, state.x - lipX);
-
   return {
-    distance,
+    distance: Math.max(0, state.distance),
     airtime: Math.max(0, state.airtime),
   };
 }

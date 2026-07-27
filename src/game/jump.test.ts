@@ -131,7 +131,7 @@ describe("jump tracer", () => {
     expect(first.phase).toBe("ready");
     expect(first.x).toBe(jumpConfig.readyX);
     expect(first.y).toBe(jumpConfig.readyY);
-    expect(Object.values(first).filter(Number.isFinite)).toHaveLength(7);
+    expect(Object.values(first).filter(Number.isFinite)).toHaveLength(8);
 
     const waiting = stepJump(first, null, FIXED_STEP, jumpConfig);
     expect(waiting).toEqual(first);
@@ -171,6 +171,19 @@ describe("jump tracer", () => {
     expect(result.takeoffVelocity.vx).toBeGreaterThan(0);
     expect(result.takeoffVelocity.vy).toBeLessThan(0);
     expect(result.firstContact.airtime).toBeGreaterThan(0);
+  });
+
+  it("freezes jump distance at landing instead of counting the slide", () => {
+    const result = trace(60, 1_200);
+
+    expect(result.firstContact.x - jumpConfig.lipX).toBeCloseTo(
+      result.resting.distance,
+      8,
+    );
+    expect(result.resting.distance).toBeLessThan(
+      result.resting.x - jumpConfig.lipX,
+    );
+    expect(result.resting.airtime).toBe(result.firstContact.airtime);
   });
 
   it("accepts an early press immediately at minimum quality", () => {
