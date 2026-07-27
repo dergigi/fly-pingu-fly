@@ -762,7 +762,7 @@ export class PlayScene extends Phaser.Scene {
         // Deep in the snow fill and above the penguin so it reads as foreground.
         anchorX: 6400,
         props: [
-          { key: "snowman", dx: -125, scale: 0.34, sink: 138, depth: 14 },
+          { key: "snowman", dx: -200, scale: 0.34, sink: 130, depth: 14 },
           { key: "pine-tree", dx: -100, scale: 0.72, sink: 155, depth: 15 },
           { key: "snow-village", dx: 60, scale: 0.95, sink: 140, depth: 14 },
           // Soft overlap with the first house.
