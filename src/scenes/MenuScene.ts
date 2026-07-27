@@ -256,23 +256,26 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5, 1)
       .setScale(0.42)
       .setDepth(4)
+      .setScrollFactor(0)
       .setName("crystal");
     this.add
       .image(0, 0, "menu-pine")
       .setOrigin(0.5, 1)
       .setScale(0.28)
       .setDepth(5)
+      .setScrollFactor(0)
       .setName("pine-left");
     this.add
       .image(0, 0, "menu-pine")
       .setOrigin(0.5, 1)
       .setScale(0.34)
       .setDepth(5)
+      .setScrollFactor(0)
       .setName("pine-right");
   }
 
   private createTitle(): void {
-    const shadow = this.add
+    this.add
       .text(0, 0, "FLY PINGU\nFLY", {
         fontFamily: PIXEL_FONT,
         fontSize: "52px",
@@ -282,9 +285,10 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(10)
+      .setScrollFactor(0)
       .setName("title-shadow");
 
-    const title = this.add
+    this.add
       .text(0, 0, "FLY PINGU\nFLY", {
         fontFamily: PIXEL_FONT,
         fontSize: "52px",
@@ -293,22 +297,11 @@ export class MenuScene extends Phaser.Scene {
         stroke: "#ff6b4a",
         strokeThickness: 6,
         lineSpacing: 18,
-        shadow: {
-          offsetX: 0,
-          offsetY: 0,
-          color: "#7ec8ff",
-          blur: 0,
-          stroke: true,
-          fill: true,
-        },
       })
       .setOrigin(0.5)
       .setDepth(11)
+      .setScrollFactor(0)
       .setName("title");
-
-    // Keep references via names for layout; silence unused if lint cares
-    void shadow;
-    void title;
 
     this.add
       .text(0, 0, "SKI JUMP", {
@@ -319,6 +312,7 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(11)
+      .setScrollFactor(0)
       .setName("subtitle");
   }
 
@@ -327,14 +321,16 @@ export class MenuScene extends Phaser.Scene {
       .sprite(0, 0, "penguin-sheet", "ready")
       .setScale(0.72)
       .setFlipX(true)
-      .setDepth(12);
+      .setDepth(12)
+      .setScrollFactor(0);
   }
 
   private createPlayPrompt(): void {
-    const plate = this.add
+    this.add
       .rectangle(0, 0, 320, 56, PALETTE.play, 1)
       .setStrokeStyle(4, PALETTE.cream, 1)
       .setDepth(13)
+      .setScrollFactor(0)
       .setName("play-plate");
 
     this.playPrompt = this.add
@@ -345,9 +341,8 @@ export class MenuScene extends Phaser.Scene {
         align: "center",
       })
       .setOrigin(0.5)
-      .setDepth(14);
-
-    void plate;
+      .setDepth(14)
+      .setScrollFactor(0);
   }
 
   private createBestScore(): void {
@@ -368,6 +363,7 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(12)
+      .setScrollFactor(0)
       .setName("best");
   }
 
@@ -386,13 +382,17 @@ export class MenuScene extends Phaser.Scene {
       )
       .setOrigin(0.5)
       .setDepth(12)
+      .setScrollFactor(0)
       .setName("controls");
   }
 
   private createScanlines(): void {
-    const g = this.add.graphics().setDepth(30).setAlpha(0.08).setName("scanlines");
-    // Drawn in layout so they track the viewport.
-    void g;
+    this.add
+      .graphics()
+      .setDepth(30)
+      .setAlpha(0.08)
+      .setScrollFactor(0)
+      .setName("scanlines");
   }
 
   private bindInput(): void {
