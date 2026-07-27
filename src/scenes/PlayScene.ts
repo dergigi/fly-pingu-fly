@@ -353,50 +353,83 @@ export class PlayScene extends Phaser.Scene {
   private placeBackgroundTrees(): void {
     const endX = jumpConfig.landingRunoutEndX + 200;
 
-    for (let x = 60; x < endX; x += 170) {
-      const surfaceY = this.forestSurfaceY(x);
-      const wave = (x * 13) % 70;
+    let forestX = 40;
+    while (forestX < endX) {
+      const n = this.forestNoise(forestX, 1);
+      const surfaceY = this.forestSurfaceY(forestX);
+      const near = n > 0.45;
       this.add
-        .image(x + (wave - 35) * 0.15, surfaceY - 250 - (x % 50), "winter-forest")
-        .setScale(0.62 + ((x * 7) % 40) / 100)
-        .setAlpha(0.72 + ((x * 3) % 20) / 100)
-        .setDepth(-5);
+        .image(
+          forestX + (n - 0.5) * 40,
+          surfaceY - (near ? 120 + n * 50 : 160 + n * 70),
+          "winter-forest",
+        )
+        .setScale(0.42 + n * 0.55)
+        .setAlpha(0.68 + n * 0.22)
+        .setDepth(near ? -4 : -5);
+      forestX += 110 + Math.floor(n * 160);
     }
 
-    for (let x = 130; x < endX; x += 210) {
-      const surfaceY = this.forestSurfaceY(x);
-      const wave = (x * 19) % 90;
-      this.add
-        .image(x + (wave - 45) * 0.2, surfaceY - 190 - (x % 40), "winter-forest")
-        .setScale(0.52 + ((x * 11) % 35) / 100)
-        .setAlpha(0.78 + ((x * 5) % 15) / 100)
-        .setDepth(-4);
-    }
-
-    for (let x = 55; x < endX; x += 72) {
-      if (x > jumpConfig.lipX - 30 && x < jumpConfig.landingStartX + 50) {
+    let pineX = 35;
+    while (pineX < endX) {
+      const n = this.forestNoise(pineX, 2);
+      const step = 28 + Math.floor(n * 95);
+      if (pineX > jumpConfig.lipX - 30 && pineX < jumpConfig.landingStartX + 50) {
+        pineX += step;
         continue;
       }
-      const surfaceY = this.forestSurfaceY(x);
-      const tall = x % 144 < 72;
-      this.add
-        .image(x + ((x * 9) % 24) - 12, surfaceY - (tall ? 78 : 62), "pine-tree")
-        .setScale(tall ? 0.5 + ((x * 3) % 18) / 100 : 0.38 + ((x * 5) % 14) / 100)
-        .setAlpha(0.88 + ((x * 2) % 10) / 100)
-        .setDepth(tall ? -1 : -2);
-    }
-
-    for (let x = 90; x < endX; x += 140) {
-      if (x > jumpConfig.lipX - 20 && x < jumpConfig.landingStartX + 40) {
+      // Leave occasional clearings so the belt does not read as a fence.
+      if (n < 0.18) {
+        pineX += step + 40;
         continue;
       }
-      const surfaceY = this.forestSurfaceY(x);
+
+      const surfaceY = this.forestSurfaceY(pineX);
+      const cluster = n > 0.72 ? 2 + Math.floor(this.forestNoise(pineX, 3) * 2) : 1;
+      for (let i = 0; i < cluster; i += 1) {
+        const cn = this.forestNoise(pineX + i * 17, 4 + i);
+        const scale = 0.22 + cn * 0.58;
+        const sink = 36 + scale * 55;
+        this.add
+          .image(
+            pineX + i * (18 + cn * 22) + (cn - 0.5) * 16,
+            surfaceY - sink,
+            "pine-tree",
+          )
+          .setScale(scale)
+          .setFlipX(cn > 0.55)
+          .setAlpha(0.82 + cn * 0.16)
+          .setDepth(scale > 0.48 ? -1 : -2);
+      }
+      pineX += step + (cluster > 1 ? 20 : 0);
+    }
+
+    let bankX = 70;
+    while (bankX < endX) {
+      const n = this.forestNoise(bankX, 5);
+      const step = 90 + Math.floor(n * 160);
+      if (bankX > jumpConfig.lipX - 20 && bankX < jumpConfig.landingStartX + 40) {
+        bankX += step;
+        continue;
+      }
+      if (n < 0.28) {
+        bankX += step;
+        continue;
+      }
+      const surfaceY = this.forestSurfaceY(bankX);
       this.add
-        .image(x + ((x * 5) % 20) - 10, surfaceY - 26, "snow-packed")
-        .setScale(0.26 + ((x * 7) % 16) / 100)
-        .setAlpha(0.84 + ((x * 3) % 12) / 100)
+        .image(bankX + (n - 0.5) * 28, surfaceY - (18 + n * 16), "snow-packed")
+        .setScale(0.18 + n * 0.28)
+        .setAlpha(0.78 + n * 0.16)
         .setDepth(-3);
+      bankX += step;
     }
+  }
+
+  /** Deterministic 0..1 noise from world x and a salt. */
+  private forestNoise(x: number, salt: number): number {
+    const n = Math.sin(x * 0.017 + salt * 12.9898) * 43758.5453;
+    return n - Math.floor(n);
   }
 
   private forestSurfaceY(x: number): number {
