@@ -27,6 +27,7 @@ is not the selected character and must not be used as a substitute.
   `ice-watchtower-spire.webp`, plus `snow-pile.webp`,
   `igloo-snow-block-dome.webp`, `snowman-carrot-nose-coal.webp`, and
   `lantern-post-snow-capped.webp`.
+- `village-flag.png` marks the far end of the landing hill before the runout.
 
 All other raster scenery in this directory remains unused. Fantasy crystal
 trees, autumn maples, and decorated holiday trees stay out of the first level.

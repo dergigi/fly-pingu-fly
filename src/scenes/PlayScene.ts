@@ -134,6 +134,7 @@ export class PlayScene extends Phaser.Scene {
       "lantern-post",
       "/assets/sprites/lantern-post-snow-capped.webp",
     );
+    this.load.image("village-flag", "/assets/sprites/village-flag.png");
     this.load.image(
       "snow-crystal",
       "/assets/sprites/snow-ice-crystal.png",
@@ -368,6 +369,7 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(4);
 
     this.placeRunoutScenery();
+    this.placeFarLandingFlag();
   }
 
   private placeBackgroundTrees(): void {
@@ -594,6 +596,17 @@ export class PlayScene extends Phaser.Scene {
     for (const piece of anchors) {
       plant(piece.x, piece.y, piece.key, piece.scale, piece.depth);
     }
+  }
+
+  private placeFarLandingFlag(): void {
+    // Marks the far end of the landing hill before the village runout.
+    const x = jumpConfig.landingEndX;
+    const surface = sampleLanding(x, jumpConfig);
+    this.add
+      .image(x, surface.y + 6, "village-flag")
+      .setOrigin(0.2, 1)
+      .setScale(2.1)
+      .setDepth(5);
   }
 
   private placeRunoutScenery(): void {
