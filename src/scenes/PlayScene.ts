@@ -396,7 +396,7 @@ export class PlayScene extends Phaser.Scene {
       for (let layer = 0; layer < 2; layer += 1) {
         const n = this.forestNoise(point.x + layer * 37, 9 + layer);
         const baseX = point.x + (n - 0.5) * 40;
-        const baseY = point.y - (42 + layer * 18 + n * 16);
+        const baseY = point.y - (18 + layer * 10 + n * 10);
         const baseAlpha = 0.1 + n * 0.08;
         const image = this.add
           .image(baseX, baseY, "ramp-fog-wisp")
@@ -408,9 +408,9 @@ export class PlayScene extends Phaser.Scene {
           baseX,
           baseY,
           phase: n * Math.PI * 2,
-          drift: (6 + n * 8) * (layer === 0 ? 1 : -1),
-          bob: 3 + n * 5,
-          range: 14 + n * 18,
+          drift: (14 + n * 16) * (layer === 0 ? 1 : -1),
+          bob: 6 + n * 8,
+          range: 28 + n * 30,
           baseAlpha,
         });
       }
@@ -433,14 +433,14 @@ export class PlayScene extends Phaser.Scene {
   private updateRampFog(deltaMs: number): void {
     const dt = Math.min(deltaMs, 50) / 1000;
     for (const wisp of this.fogWisps) {
-      wisp.phase = (wisp.phase + dt * 0.35) % (Math.PI * 2);
+      wisp.phase = (wisp.phase + dt * 0.7) % (Math.PI * 2);
       wisp.image.x =
         wisp.baseX +
         Math.sin(wisp.phase) * wisp.range +
-        wisp.drift * Math.sin(wisp.phase * 0.45);
-      wisp.image.y = wisp.baseY + Math.cos(wisp.phase * 0.8) * wisp.bob;
+        wisp.drift * Math.sin(wisp.phase * 0.55);
+      wisp.image.y = wisp.baseY + Math.cos(wisp.phase * 0.9) * wisp.bob;
       wisp.image.setAlpha(
-        wisp.baseAlpha * (0.82 + 0.18 * Math.sin(wisp.phase * 1.3)),
+        wisp.baseAlpha * (0.75 + 0.25 * Math.sin(wisp.phase * 1.4)),
       );
     }
   }
