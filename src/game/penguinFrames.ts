@@ -96,9 +96,10 @@ export function poseForJumpPhase(
     case "drop":
       return "drop";
     case "ramp":
-      return "ramp";
     case "flight":
-      return state.airtime === 0 ? "takeoff" : "flight";
+      return state.phase === "flight" && state.airtime === 0
+        ? "takeoff"
+        : "flight";
     case "slide":
       return "flight";
     case "resting":

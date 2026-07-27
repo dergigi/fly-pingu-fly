@@ -79,7 +79,7 @@ describe("penguin frame manifest", () => {
 
     expect(poseForJumpPhase(ready)).toBe("ready");
     expect(poseForJumpPhase(drop)).toBe("drop");
-    expect(poseForJumpPhase(ramp)).toBe("ramp");
+    expect(poseForJumpPhase(ramp)).toBe("flight");
     expect(poseForJumpPhase(accepted)).toBe("takeoff");
     expect(poseForJumpPhase(flight)).toBe("flight");
     expect(poseForJumpPhase(landing)).toBe("flight");
