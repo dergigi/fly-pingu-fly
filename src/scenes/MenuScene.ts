@@ -84,11 +84,6 @@ export class MenuScene extends Phaser.Scene {
 
     this.animTimer += delta;
 
-    const bob = Math.sin(this.animTimer / 380) * 8;
-    this.penguin.y =
-      this.cameras.main.height * 0.58 + bob;
-    this.penguin.setAngle(Math.sin(this.animTimer / 520) * 4);
-
     for (const star of this.stars) {
       star.rect.setAlpha(
         0.35 + 0.65 * (0.5 + 0.5 * Math.sin(this.animTimer * star.speed + star.phase)),
@@ -295,8 +290,10 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private createPenguin(): void {
+    const frame = PENGUIN_FRAMES.ready;
     this.penguin = this.add
       .sprite(0, 0, "penguin-sheet", "ready")
+      .setOrigin(frame.contactX / frame.width, frame.contactY / frame.height)
       .setScale(0.72)
       .setFlipX(true)
       .setDepth(12)
@@ -419,7 +416,8 @@ export class MenuScene extends Phaser.Scene {
     subtitle?.setPosition(cx, titleY + titleSize * 1.55);
     best?.setPosition(cx, titleY + titleSize * 1.95);
 
-    this.penguin.setPosition(cx, h * 0.58);
+    const groundY = h * 0.86;
+    this.penguin.setPosition(cx, groundY);
 
     const playY = Math.min(h * 0.78, h - 110);
     const promptSize = Math.round(Phaser.Math.Clamp(w * 0.018, 10, 16));
@@ -428,7 +426,6 @@ export class MenuScene extends Phaser.Scene {
 
     controls?.setPosition(cx, Math.min(h - 28, playY + 42));
 
-    const groundY = h * 0.88;
     pineLeft?.setPosition(cx - Math.min(420, w * 0.4), groundY + 6);
     pineRight?.setPosition(cx + Math.min(360, w * 0.34), groundY + 6);
 
