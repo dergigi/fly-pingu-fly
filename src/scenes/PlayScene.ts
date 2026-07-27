@@ -401,9 +401,9 @@ export class PlayScene extends Phaser.Scene {
             Math.max(1, jumpConfig.lipY - jumpConfig.startY),
         ),
       );
-      // Keep mist lighter at the deepest part of the inrun.
-      const density = 1 - dropT * 0.72;
-      const layers = dropT > 0.55 ? 1 : 2;
+      // Keep mist a bit lighter at the deepest part of the inrun, not bare.
+      const density = 1 - dropT * 0.42;
+      const layers = dropT > 0.75 ? 1 : 2;
       for (let layer = 0; layer < layers; layer += 1) {
         const n = this.forestNoise(point.x + layer * 37, 9 + layer);
         const baseX = point.x + (n - 0.5) * 40;
