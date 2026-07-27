@@ -762,7 +762,7 @@ export class PlayScene extends Phaser.Scene {
           // Soft overlap with the first house.
           { key: "pine-tree", dx: 150, scale: 0.68, sink: 162, depth: 15 },
           { key: "snow-storage", dx: 320, scale: 0.82, sink: 128, depth: 14 },
-          { key: "wood-pile", dx: 520, scale: 1.1, sink: 118, depth: 13 },
+          { key: "wood-pile", dx: 520, scale: 0.73, sink: 118, depth: 13 },
           { key: "pine-tree", dx: 640, scale: 0.76, sink: 158, depth: 15 },
           { key: "hot-spring", dx: 920, scale: 0.64, sink: 132, depth: 13 },
           { key: "pine-tree", dx: 1080, scale: 0.7, sink: 150, depth: 15 },
