@@ -11,7 +11,7 @@ import {
   stepJump,
   type JumpState,
 } from "../game/jump";
-import { formatAirtimeHud, formatDistanceHud, jumpHudStats, worldDistanceToMeters } from "../game/hudStats";
+import { formatDistanceHud, jumpHudStats, worldDistanceToMeters } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
 import {
   formatLeaderboard,
@@ -61,7 +61,6 @@ export class PlayScene extends Phaser.Scene {
   private simulationTimeMs = 0;
   private penguin!: Phaser.GameObjects.Sprite;
   private distanceText!: Phaser.GameObjects.Text;
-  private airtimeText!: Phaser.GameObjects.Text;
   private leaderboardText!: Phaser.GameObjects.Text;
   private leaderboard: number[] = [];
   private scoreRecorded = false;
@@ -156,7 +155,6 @@ export class PlayScene extends Phaser.Scene {
     const storage = browserStorage();
     this.leaderboard = storage === null ? [] : readLeaderboard(storage);
     this.distanceText = this.createDistanceHud();
-    this.airtimeText = this.createAirtimeHud();
     this.leaderboardText = this.createLeaderboardHud();
     this.pauseText = this.createPauseHud();
     this.bindInput();
@@ -971,22 +969,6 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(100);
   }
 
-  private createAirtimeHud(): Phaser.GameObjects.Text {
-    return this.add
-      .text(0, 78, "", {
-        fontFamily: "Trebuchet MS, Arial, sans-serif",
-        fontSize: "28px",
-        fontStyle: "bold",
-        color: "#0b4f73",
-        align: "center",
-        stroke: "#f4fbff",
-        strokeThickness: 7,
-      })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(100);
-  }
-
   private createLeaderboardHud(): Phaser.GameObjects.Text {
     return this.add
       .text(0, 18, formatLeaderboard(this.leaderboard), {
@@ -1026,7 +1008,6 @@ export class PlayScene extends Phaser.Scene {
     const centerY = this.cameras.main.height * 0.5;
     const right = this.cameras.main.width - 28;
     this.distanceText.setPosition(centerX, 18);
-    this.airtimeText.setPosition(centerX, 78);
     this.leaderboardText.setPosition(right, 18);
     this.pauseText.setPosition(centerX, centerY);
     this.cameras.main.setFollowOffset(
@@ -1055,7 +1036,6 @@ export class PlayScene extends Phaser.Scene {
     );
     const stats = jumpHudStats(state);
     this.distanceText.setText(formatDistanceHud(stats));
-    this.airtimeText.setText(formatAirtimeHud(stats));
     this.leaderboardText.setText(formatLeaderboard(this.leaderboard));
     this.takeoffPosePending = false;
 
