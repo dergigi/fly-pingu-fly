@@ -94,6 +94,18 @@ export class PlayScene extends Phaser.Scene {
       "snow-stump",
       "/assets/sprites/snow-covered-tree-stump.webp",
     );
+    this.load.image(
+      "waterfall",
+      "/assets/sprites/snow-covered-waterfall-mini.webp",
+    );
+    this.load.image(
+      "hot-spring",
+      "/assets/sprites/snow-covered-hot-spring.webp",
+    );
+    this.load.image(
+      "geyser",
+      "/assets/sprites/snow-covered-geyser.webp",
+    );
     this.load.image("snow-pile", "/assets/sprites/snow-pile.webp");
     this.load.image(
       "fallen-log",
@@ -255,6 +267,7 @@ export class PlayScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor("#8ed8f8");
 
     this.placeBackgroundTrees();
+    this.placeJumpGapScenery();
 
     const scenery = this.add.graphics();
     scenery.setDepth(0);
@@ -351,6 +364,33 @@ export class PlayScene extends Phaser.Scene {
         .setAlpha(tree.alpha)
         .setDepth(tree.depth);
     }
+  }
+
+  private placeJumpGapScenery(): void {
+    const gapCenterX =
+      (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
+    const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
+
+    this.add
+      .image(gapCenterX - 8, lip.y + 95, "waterfall")
+      .setScale(0.72)
+      .setAlpha(0.95)
+      .setDepth(1);
+    this.add
+      .image(gapCenterX + 28, lip.y + 210, "waterfall")
+      .setScale(0.48)
+      .setAlpha(0.85)
+      .setDepth(1);
+    this.add
+      .image(gapCenterX - 18, lip.y + 320, "hot-spring")
+      .setScale(0.42)
+      .setAlpha(0.92)
+      .setDepth(1);
+    this.add
+      .image(gapCenterX + 22, lip.y + 430, "geyser")
+      .setScale(0.38)
+      .setAlpha(0.9)
+      .setDepth(1);
   }
 
   private placeRunoutScenery(): void {
