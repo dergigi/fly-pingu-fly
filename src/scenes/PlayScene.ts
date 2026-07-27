@@ -355,34 +355,44 @@ export class PlayScene extends Phaser.Scene {
     const runoutEndX = jumpConfig.landingRunoutEndX + 200;
     const canopyFloorY = jumpConfig.startY + 8;
 
-    let forestX = 40;
+    let forestX = 30;
     while (forestX < hillEndX) {
+      // Leave the jump gap clear; fill everywhere else densely.
+      if (forestX > jumpConfig.lipX - 50 && forestX < jumpConfig.landingStartX + 40) {
+        forestX = jumpConfig.landingStartX + 40;
+        continue;
+      }
+
       const n = this.forestNoise(forestX, 1);
-      const surfaceY = this.forestSurfaceY(forestX);
-      const near = n > 0.45;
-      const scale = 0.48 + n * 0.5;
-      // Bottom-origin: sink the snow base into the white ramp fill.
-      const baseY = surfaceY + (18 + n * 22);
-      if (baseY - 256 * scale >= canopyFloorY) {
-        this.add
-          .image(forestX + (n - 0.5) * 28, baseY, "winter-forest")
-          .setOrigin(0.5, 1)
-          .setScale(scale)
-          .setAlpha(0.74 + n * 0.2)
-          .setDepth(near ? -4 : -5);
-      }
+      this.plantWinterForest(
+        forestX + (n - 0.5) * 18,
+        0.42 + n * 0.48,
+        0.76 + n * 0.18,
+        n > 0.5 ? -4 : -5,
+        28 + n * 24,
+        canopyFloorY,
+      );
       const n2 = this.forestNoise(forestX, 7);
-      const scale2 = 0.38 + n2 * 0.42;
-      const baseY2 = surfaceY + (12 + n2 * 18);
-      if (n2 > 0.22 && baseY2 - 256 * scale2 >= canopyFloorY) {
-        this.add
-          .image(forestX + 55 + (n2 - 0.5) * 30, baseY2, "winter-forest")
-          .setOrigin(0.5, 1)
-          .setScale(scale2)
-          .setAlpha(0.7 + n2 * 0.18)
-          .setDepth(-4);
+      this.plantWinterForest(
+        forestX + 36 + (n2 - 0.5) * 22,
+        0.34 + n2 * 0.4,
+        0.72 + n2 * 0.16,
+        -4,
+        22 + n2 * 20,
+        canopyFloorY,
+      );
+      const n3 = this.forestNoise(forestX, 11);
+      if (n3 > 0.28) {
+        this.plantWinterForest(
+          forestX + 18 + (n3 - 0.5) * 16,
+          0.28 + n3 * 0.36,
+          0.7 + n3 * 0.14,
+          -5,
+          34 + n3 * 18,
+          canopyFloorY,
+        );
       }
-      forestX += 55 + Math.floor(n * 70);
+      forestX += 28 + Math.floor(n * 34);
     }
 
     let pineX = hillEndX + 40;
@@ -438,6 +448,36 @@ export class PlayScene extends Phaser.Scene {
       }
       bankX += step;
     }
+  }
+
+  /**
+   * Plant a winter-forest strip with its base under the highest ramp point
+   * across the sprite width, so curved slopes do not leave floating snow pads.
+   */
+  private plantWinterForest(
+    x: number,
+    scale: number,
+    alpha: number,
+    depth: number,
+    sink: number,
+    canopyFloorY: number,
+  ): void {
+    const halfW = 128 * scale * 0.9;
+    const baseY =
+      Math.max(
+        this.forestSurfaceY(x - halfW),
+        this.forestSurfaceY(x),
+        this.forestSurfaceY(x + halfW),
+      ) + sink;
+    if (baseY - 256 * scale < canopyFloorY) {
+      return;
+    }
+    this.add
+      .image(x, baseY, "winter-forest")
+      .setOrigin(0.5, 1)
+      .setScale(scale)
+      .setAlpha(alpha)
+      .setDepth(depth);
   }
 
   /** Deterministic 0..1 noise from world x and a salt. */
