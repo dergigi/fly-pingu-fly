@@ -135,7 +135,6 @@ export class PlayScene extends Phaser.Scene {
       "watchtower",
       "/assets/sprites/ice-watchtower-spire.webp",
     );
-    this.load.image("igloo", "/assets/sprites/igloo-snow-block-dome.webp");
     this.load.image("village-flag", "/assets/sprites/village-flag.png");
     this.load.image(
       "snow-crystal",
@@ -733,7 +732,6 @@ export class PlayScene extends Phaser.Scene {
     const originY: Record<string, number> = {
       "rock-cluster": 204 / 256,
       "snow-pile": 206 / 256,
-      igloo: 206 / 256,
       "wood-pile": 207 / 256,
       "snow-village": 214 / 256,
       "snow-storage": 205 / 256,
@@ -760,7 +758,6 @@ export class PlayScene extends Phaser.Scene {
         // Deep in the snow fill and above the penguin so it reads as foreground.
         anchorX: 6400,
         props: [
-          { key: "igloo", dx: -180, scale: 0.72, sink: 125, depth: 14 },
           { key: "snow-village", dx: 60, scale: 0.95, sink: 140, depth: 14 },
           { key: "snow-storage", dx: 320, scale: 0.82, sink: 128, depth: 14 },
           { key: "wood-pile", dx: 520, scale: 0.55, sink: 118, depth: 13 },

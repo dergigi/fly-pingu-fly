@@ -25,7 +25,6 @@ const REQUIRED_ASSETS = [
   "snow-covered-rock-cluster.webp",
   "snow-covered-hot-spring.webp",
   "ice-watchtower-spire.webp",
-  "igloo-snow-block-dome.webp",
   "village-flag.png",
 ] as const;
 const fixtureRoots: string[] = [];
@@ -83,11 +82,10 @@ describe("required art readiness", () => {
       "not a webp",
     );
     await writeFile(assetPath(root, "ice-watchtower-spire.webp"), "not a webp");
-    await writeFile(assetPath(root, "igloo-snow-block-dome.webp"), "not a webp");
     await writeFile(assetPath(root, "village-flag.png"), "not a png");
 
     expect(() => checkRequiredAssets(root)).toThrowError(
-      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp[\s\S]*snow-covered-fallen-log\.webp[\s\S]*snow-village\.webp[\s\S]*snow-walled-storage\.webp[\s\S]*wood-pile-snow-capped\.webp[\s\S]*snow-covered-rock-cluster\.webp[\s\S]*snow-covered-hot-spring\.webp[\s\S]*ice-watchtower-spire\.webp[\s\S]*igloo-snow-block-dome\.webp[\s\S]*village-flag\.png/,
+      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp[\s\S]*snow-covered-fallen-log\.webp[\s\S]*snow-village\.webp[\s\S]*snow-walled-storage\.webp[\s\S]*wood-pile-snow-capped\.webp[\s\S]*snow-covered-rock-cluster\.webp[\s\S]*snow-covered-hot-spring\.webp[\s\S]*ice-watchtower-spire\.webp[\s\S]*village-flag\.png/,
     );
   });
 
