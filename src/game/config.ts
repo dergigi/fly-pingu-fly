@@ -34,6 +34,7 @@ export type JumpConfig = Readonly<
   startHopVy: number;
   initialSpeed: number;
   rampAcceleration: number;
+  crouchRampAcceleration: number;
   lateBoundaryX: number;
   minimumLaunchX: number;
   maximumLaunchX: number;
@@ -54,6 +55,7 @@ export const jumpConfig: JumpConfig = Object.freeze({
   startY: 48,
   initialSpeed: 110,
   rampAcceleration: 80,
+  crouchRampAcceleration: 170,
   rampStartSlope: 1.35,
   takeoffStartX: 820,
   lipX: 980,
@@ -89,6 +91,7 @@ const finiteFields = [
 const positiveFields = [
   "initialSpeed",
   "rampAcceleration",
+  "crouchRampAcceleration",
   "minimumLaunchX",
   "maximumLaunchX",
   "minimumLaunchY",

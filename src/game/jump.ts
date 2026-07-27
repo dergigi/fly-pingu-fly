@@ -56,6 +56,7 @@ export function stepJump(
   command: PressCommand,
   dt: number,
   config: JumpConfig,
+  crouching = false,
 ): JumpState {
   assertValidJumpConfig(config);
   if (!Number.isFinite(dt) || dt <= 0) {
@@ -68,7 +69,7 @@ export function stepJump(
     case "drop":
       return stepDrop(state, dt, config);
     case "ramp":
-      return stepRamp(state, command, dt, config);
+      return stepRamp(state, command, dt, config, crouching);
     case "flight":
       return stepFlight(state, dt, config);
     case "slide":
@@ -146,6 +147,7 @@ function stepRamp(
   command: PressCommand,
   dt: number,
   config: JumpConfig,
+  crouching: boolean,
 ): JumpState {
   if (
     command !== null &&
@@ -155,7 +157,10 @@ function stepRamp(
     return launchFromQuality(state, takeoffQuality(state.x, config), config);
   }
 
-  const speed = state.speed + config.rampAcceleration * dt;
+  const acceleration = crouching
+    ? config.crouchRampAcceleration
+    : config.rampAcceleration;
+  const speed = state.speed + acceleration * dt;
   const x = Math.min(state.x + speed * dt, config.lateBoundaryX);
   const ramp = sampleRamp(x, config);
   const tangentLength = Math.hypot(1, ramp.slope);

@@ -190,6 +190,25 @@ describe("jump tracer", () => {
     expect(result.resting.airtime).toBe(result.firstContact.airtime);
   });
 
+  it("accelerates faster down the ramp while crouching", () => {
+    const initial = {
+      ...createInitialJumpState(jumpConfig),
+      phase: "ramp",
+      x: jumpConfig.startX,
+      y: jumpConfig.startY,
+      speed: jumpConfig.initialSpeed,
+      distance: 0,
+    } as RampState;
+
+    const upright = stepJump(initial, null, FIXED_STEP, jumpConfig, false);
+    const crouched = stepJump(initial, null, FIXED_STEP, jumpConfig, true);
+
+    expect(upright.phase).toBe("ramp");
+    expect(crouched.phase).toBe("ramp");
+    expect(crouched.speed).toBeGreaterThan(upright.speed);
+    expect(crouched.x).toBeGreaterThan(upright.x);
+  });
+
   it("ignores takeoff presses before the takeoff zone", () => {
     const initial = {
       ...createInitialJumpState(jumpConfig),

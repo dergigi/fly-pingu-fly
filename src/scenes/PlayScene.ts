@@ -30,6 +30,7 @@ const WORLD_WIDTH = 4700;
 const WORLD_HEIGHT = 1000;
 const CAMERA_TOP_PAD = 140;
 const PENGUIN_SCALE = 0.3825;
+const PENGUIN_CROUCH_SCALE_Y = 0.72;
 const LOG_SCALE = 0.36;
 
 export class PlayScene extends Phaser.Scene {
@@ -40,6 +41,7 @@ export class PlayScene extends Phaser.Scene {
   private penguin!: Phaser.GameObjects.Sprite;
   private hudText!: Phaser.GameObjects.Text;
   private takeoffKeys: Phaser.Input.Keyboard.Key[] = [];
+  private crouchKey: Phaser.Input.Keyboard.Key | null = null;
   private takeoffPosePending = false;
 
   constructor() {
@@ -114,6 +116,7 @@ export class PlayScene extends Phaser.Scene {
         command,
         FIXED_STEP,
         jumpConfig,
+        this.isCrouching(),
       );
       this.jumpState = nextState;
       if (previousPhase === "ramp" && nextState.phase === "flight") {
@@ -149,6 +152,7 @@ export class PlayScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.SPACE,
       Phaser.Input.Keyboard.KeyCodes.ENTER,
       Phaser.Input.Keyboard.KeyCodes.UP,
+      Phaser.Input.Keyboard.KeyCodes.DOWN,
     ]);
 
     this.takeoffKeys = [
@@ -156,6 +160,15 @@ export class PlayScene extends Phaser.Scene {
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
     ];
+    this.crouchKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+  }
+
+  private isCrouching(): boolean {
+    return (
+      this.jumpState.phase === "ramp" &&
+      this.crouchKey !== null &&
+      this.crouchKey.isDown
+    );
   }
 
   private queuePress(): void {
@@ -299,6 +312,12 @@ export class PlayScene extends Phaser.Scene {
     const pose = poseForJumpPhase(state, this.takeoffPosePending);
     this.applyPose(pose);
     this.penguin.setPosition(state.x, state.y);
+    this.penguin.setScale(
+      PENGUIN_SCALE,
+      this.isCrouching()
+        ? PENGUIN_SCALE * PENGUIN_CROUCH_SCALE_Y
+        : PENGUIN_SCALE,
+    );
     this.hudText.setText(formatJumpHud(jumpHudStats(state)));
     this.takeoffPosePending = false;
 
