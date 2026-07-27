@@ -584,14 +584,10 @@ export class PlayScene extends Phaser.Scene {
     const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
     const gapLine = Math.min(lip.y, land.y);
     const tipX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
-    // All-black rock pyramid with the peak filling into the jump gap.
-    const tipScale = 1.05;
-    const tipBaseY = gapLine - 20 + 256 * tipScale;
-    const rockCeiling = tipBaseY - 10;
-    const tipY = rockCeiling;
+    const tipY = gapLine + 70;
     const baseY = WORLD_HEIGHT + 20;
-    const tipHalfW = 28;
-    const baseHalfW = 560;
+    const tipHalfW = 36;
+    const baseHalfW = 520;
 
     const plantRock = (
       x: number,
@@ -600,37 +596,32 @@ export class PlayScene extends Phaser.Scene {
       depth: number,
       flipX = false,
     ): void => {
-      const base = Math.max(y, rockCeiling + 256 * scale);
       this.add
-        .image(x, base, "rock-cluster")
+        .image(x, y, "rock-cluster")
         .setOrigin(0.5, 1)
         .setScale(scale)
         .setFlipX(flipX)
         .setDepth(depth);
     };
 
-    // Black peak first so the pyramid points into the gap.
-    this.add
-      .image(tipX, tipBaseY, "rock-cluster")
-      .setOrigin(0.5, 1)
-      .setScale(tipScale)
-      .setDepth(4);
+    // Continuous black-rock pyramid from tip into the gap down to the floor.
+    plantRock(tipX, tipY, 1.15, 4);
 
     let i = 0;
-    for (let y = tipY + 40; y <= baseY; y += 44) {
+    for (let y = tipY + 55; y <= baseY; y += 58) {
       const t = (y - tipY) / Math.max(1, baseY - tipY);
       const halfW = tipHalfW + (baseHalfW - tipHalfW) * t;
-      const step = 48 + Math.floor(t * 10);
+      const step = 70 + Math.floor(t * 20);
       for (let x = tipX - halfW; x <= tipX + halfW; x += step) {
         const n = this.forestNoise(x * 2 + y, 20 + (i % 9));
-        if (n < 0.14 + t * 0.04) {
+        if (n < 0.2) {
           i += 1;
           continue;
         }
         plantRock(
-          x + (n - 0.5) * 14,
-          y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 16,
-          0.5 + n * 0.45 + t * 0.25,
+          x + (n - 0.5) * 18,
+          y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 14,
+          0.55 + n * 0.4 + t * 0.2,
           n > 0.55 ? 2 : 1,
           n > 0.5,
         );
@@ -639,42 +630,20 @@ export class PlayScene extends Phaser.Scene {
     }
 
     const anchors = [
-      { x: tipX - 40, y: tipY + 180, scale: 0.95, depth: 2 },
-      { x: tipX + 45, y: tipY + 210, scale: 1.0, depth: 2 },
-      { x: tipX - 90, y: tipY + 380, scale: 1.15, depth: 2 },
-      { x: tipX + 20, y: tipY + 420, scale: 1.2, depth: 3 },
-      { x: tipX + 100, y: tipY + 460, scale: 1.1, depth: 2 },
-      { x: tipX - 160, y: tipY + 620, scale: 1.25, depth: 2 },
-      { x: tipX + 40, y: tipY + 660, scale: 1.3, depth: 3 },
-      { x: tipX + 180, y: tipY + 700, scale: 1.15, depth: 2 },
-      { x: tipX - 260, y: baseY - 100, scale: 1.45, depth: 2 },
-      { x: tipX - 80, y: baseY - 40, scale: 1.5, depth: 3 },
-      { x: tipX + 90, y: baseY - 60, scale: 1.4, depth: 3 },
-      { x: tipX + 260, y: baseY - 120, scale: 1.35, depth: 2 },
-      { x: tipX + 20, y: baseY - 20, scale: 1.55, depth: 3 },
+      { x: tipX - 30, y: tipY + 90, scale: 0.95, depth: 3 },
+      { x: tipX + 35, y: tipY + 110, scale: 0.9, depth: 3 },
+      { x: tipX, y: tipY + 200, scale: 1.15, depth: 3 },
+      { x: tipX - 80, y: tipY + 320, scale: 1.1, depth: 2 },
+      { x: tipX + 70, y: tipY + 350, scale: 1.05, depth: 2 },
+      { x: tipX - 140, y: tipY + 520, scale: 1.25, depth: 2 },
+      { x: tipX + 40, y: tipY + 560, scale: 1.3, depth: 3 },
+      { x: tipX + 150, y: tipY + 600, scale: 1.15, depth: 2 },
+      { x: tipX - 220, y: baseY - 80, scale: 1.4, depth: 2 },
+      { x: tipX, y: baseY - 30, scale: 1.5, depth: 3 },
+      { x: tipX + 220, y: baseY - 90, scale: 1.35, depth: 2 },
     ];
     for (const piece of anchors) {
       plantRock(piece.x, piece.y, piece.scale, piece.depth);
-    }
-
-    for (let y = tipY + 100; y <= baseY; y += 38) {
-      const t = (y - tipY) / Math.max(1, baseY - tipY);
-      const halfW = (tipHalfW + (baseHalfW - tipHalfW) * t) * 0.92;
-      for (let x = tipX - halfW; x <= tipX + halfW; x += 40) {
-        const n = this.forestNoise(x + y, 40 + (i % 6));
-        if (n < 0.18) {
-          i += 1;
-          continue;
-        }
-        plantRock(
-          x + (n - 0.5) * 10,
-          y + (n - 0.5) * 10,
-          0.55 + n * 0.48 + t * 0.15,
-          3,
-          n > 0.5,
-        );
-        i += 1;
-      }
     }
   }
 
