@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 import { PENGUIN_FRAMES } from "../game/penguinFrames";
-import { readLeaderboard } from "../game/leaderboard";
+import { formatLeaderboard, readLeaderboard } from "../game/leaderboard";
 
 const PIXEL_FONT =
   '"Press Start 2P", "Courier New", Courier, monospace';
@@ -75,7 +75,7 @@ export class MenuScene extends Phaser.Scene {
     this.createTitle();
     this.createPenguin();
     this.createPlayPrompt();
-    this.createBestScore();
+    this.createLeaderboard();
     this.createControlsHint();
     this.bindInput();
     this.scale.on("resize", this.layout, this);
@@ -418,28 +418,25 @@ export class MenuScene extends Phaser.Scene {
       .setScrollFactor(0);
   }
 
-  private createBestScore(): void {
+  private createLeaderboard(): void {
     const storage = browserStorage();
     const entries = storage === null ? [] : readLeaderboard(storage);
-    const best = entries[0];
-    const label =
-      best !== undefined && best > 0
-        ? `BEST  ${best.toFixed(2)} m`
-        : "BEST  --.-- m";
 
     this.add
-      .text(0, 0, label, {
-        fontFamily: PIXEL_FONT,
-        fontSize: "12px",
+      .text(0, 18, formatLeaderboard(entries), {
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
+        fontSize: "22px",
+        fontStyle: "bold",
         color: "#0b4f73",
-        align: "center",
+        align: "right",
         stroke: "#f4fbff",
-        strokeThickness: 4,
+        strokeThickness: 6,
+        lineSpacing: 4,
       })
-      .setOrigin(0.5)
-      .setDepth(12)
+      .setOrigin(1, 0)
       .setScrollFactor(0)
-      .setName("best");
+      .setDepth(100)
+      .setName("leaderboard");
   }
 
   private createControlsHint(): void {
@@ -498,7 +495,9 @@ export class MenuScene extends Phaser.Scene {
     const subtitle = this.children.getByName(
       "subtitle",
     ) as Phaser.GameObjects.Text | null;
-    const best = this.children.getByName("best") as Phaser.GameObjects.Text | null;
+    const leaderboard = this.children.getByName(
+      "leaderboard",
+    ) as Phaser.GameObjects.Text | null;
     const controls = this.children.getByName(
       "controls",
     ) as Phaser.GameObjects.Text | null;
@@ -518,7 +517,7 @@ export class MenuScene extends Phaser.Scene {
       shadow.setPosition(cx + 4, titleY + 4);
     }
     subtitle?.setPosition(cx, titleY + titleSize * 1.55);
-    best?.setPosition(cx, titleY + titleSize * 1.95);
+    leaderboard?.setPosition(w - 28, 18);
 
     this.penguin.setPosition(cx, this.groundY);
 
