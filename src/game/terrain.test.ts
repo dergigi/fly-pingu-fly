@@ -2,19 +2,62 @@ import { describe, expect, it } from "vitest";
 
 import { jumpConfig } from "./config";
 import { stepJump, type FlightState } from "./jump";
-import { crossingFraction, sampleLanding, sampleRamp } from "./terrain";
+import {
+  crossingFraction,
+  sampleLanding,
+  sampleRamp,
+  sampleRampCurve,
+} from "./terrain";
 
 describe("terrain sampling", () => {
-  it("samples ramp and landing surfaces in world units", () => {
+  it("ends the rounded ramp at the exact takeoff lip", () => {
     const ramp = sampleRamp(jumpConfig.lipX, jumpConfig);
     expect(ramp).toEqual({
       x: jumpConfig.lipX,
-      y:
-        jumpConfig.startY +
-        (jumpConfig.lipX - jumpConfig.startX) * jumpConfig.rampSlope,
-      slope: jumpConfig.rampSlope,
+      y: jumpConfig.lipY,
+      slope: jumpConfig.lipSlope,
     });
+  });
 
+  it("uses a smooth rounded downhill profile and clear takeoff section", () => {
+    const start = sampleRamp(jumpConfig.startX, jumpConfig);
+    const middle = sampleRamp(
+      (jumpConfig.startX + jumpConfig.takeoffStartX) / 2,
+      jumpConfig,
+    );
+    const takeoff = sampleRamp(jumpConfig.takeoffStartX, jumpConfig);
+    const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
+
+    expect(start.slope).toBeCloseTo(jumpConfig.rampStartSlope, 12);
+    expect(start.slope).toBeGreaterThan(middle.slope);
+    expect(middle.slope).toBeGreaterThan(takeoff.slope);
+    expect(takeoff.slope).toBeCloseTo(jumpConfig.lipSlope, 12);
+    expect(lip.slope).toBeCloseTo(jumpConfig.lipSlope, 12);
+    expect(lip.y).toBeLessThan(takeoff.y);
+  });
+
+  it("keeps the rendered curve on the authoritative terrain query", () => {
+    const points = sampleRampCurve(jumpConfig, 8);
+    expect(points.at(0)).toEqual(sampleRamp(jumpConfig.startX, jumpConfig));
+    expect(points.at(-1)).toEqual(sampleRamp(jumpConfig.lipX, jumpConfig));
+
+    for (const point of points) {
+      expect(point).toEqual(sampleRamp(point.x, jumpConfig));
+    }
+
+    const seam = jumpConfig.takeoffStartX;
+    const epsilon = 1e-4;
+    expect(sampleRamp(seam - epsilon, jumpConfig).y).toBeCloseTo(
+      sampleRamp(seam + epsilon, jumpConfig).y,
+      3,
+    );
+    expect(sampleRamp(seam - epsilon, jumpConfig).slope).toBeCloseTo(
+      sampleRamp(seam + epsilon, jumpConfig).slope,
+      3,
+    );
+  });
+
+  it("samples landing surfaces in world units", () => {
     const landing = sampleLanding(
       jumpConfig.landingStartX + 100,
       jumpConfig,
