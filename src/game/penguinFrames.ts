@@ -100,7 +100,7 @@ export function poseForJumpPhase(
     case "flight":
       return state.airtime === 0 ? "takeoff" : "flight";
     case "slide":
-      return state.speed > 220 ? "landing" : "slide";
+      return "flight";
     case "resting":
       return "resting";
   }
