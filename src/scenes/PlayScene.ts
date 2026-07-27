@@ -741,6 +741,7 @@ export class PlayScene extends Phaser.Scene {
     };
 
     // Compact village shortly after the far-landing mark, then stones at the end.
+    // Sink into the snow fill and scale up a bit so they read as foreground.
     const clusters: ReadonlyArray<{
       anchorX: number;
       props: ReadonlyArray<{
@@ -755,28 +756,28 @@ export class PlayScene extends Phaser.Scene {
         // Small village, a bit further into the runout.
         anchorX: 6400,
         props: [
-          { key: "lantern-post", dx: -140, scale: 0.34, sink: 4, depth: 3 },
-          { key: "igloo", dx: -70, scale: 0.4, sink: 6, depth: 3 },
-          { key: "snow-village", dx: 40, scale: 0.55, sink: 12, depth: 3 },
-          { key: "snow-storage", dx: 150, scale: 0.38, sink: 10, depth: 3 },
-          { key: "wood-pile", dx: 220, scale: 0.3, sink: 8, depth: 2 },
-          { key: "hot-spring", dx: 290, scale: 0.36, sink: 12, depth: 2 },
-          { key: "lantern-post", dx: 350, scale: 0.32, sink: 4, depth: 3 },
+          { key: "lantern-post", dx: -140, scale: 0.44, sink: 38, depth: 7 },
+          { key: "igloo", dx: -70, scale: 0.54, sink: 44, depth: 7 },
+          { key: "snow-village", dx: 40, scale: 0.72, sink: 52, depth: 7 },
+          { key: "snow-storage", dx: 150, scale: 0.5, sink: 46, depth: 7 },
+          { key: "wood-pile", dx: 220, scale: 0.4, sink: 42, depth: 6 },
+          { key: "hot-spring", dx: 290, scale: 0.48, sink: 48, depth: 6 },
+          { key: "lantern-post", dx: 350, scale: 0.42, sink: 36, depth: 7 },
         ],
       },
       {
         // Rocky end of the runout.
         anchorX: 7700,
         props: [
-          { key: "rock-cluster", dx: -180, scale: 0.4, sink: 10, depth: 2 },
-          { key: "snow-pile", dx: -110, scale: 0.3, sink: 8, depth: 2 },
-          { key: "rock-cluster", dx: -40, scale: 0.48, sink: 12, depth: 2 },
-          { key: "geyser", dx: 40, scale: 0.42, sink: 10, depth: 2 },
-          { key: "watchtower", dx: 120, scale: 0.62, sink: 8, depth: 4 },
-          { key: "rock-cluster", dx: 210, scale: 0.36, sink: 10, depth: 2 },
-          { key: "snow-pile", dx: 280, scale: 0.32, sink: 8, depth: 2 },
-          { key: "rock-cluster", dx: 350, scale: 0.44, sink: 12, depth: 2 },
-          { key: "snow-pile", dx: 420, scale: 0.26, sink: 8, depth: 2 },
+          { key: "rock-cluster", dx: -180, scale: 0.52, sink: 50, depth: 6 },
+          { key: "snow-pile", dx: -110, scale: 0.4, sink: 44, depth: 6 },
+          { key: "rock-cluster", dx: -40, scale: 0.62, sink: 56, depth: 6 },
+          { key: "geyser", dx: 40, scale: 0.55, sink: 48, depth: 6 },
+          { key: "watchtower", dx: 120, scale: 0.82, sink: 54, depth: 8 },
+          { key: "rock-cluster", dx: 210, scale: 0.48, sink: 50, depth: 6 },
+          { key: "snow-pile", dx: 280, scale: 0.42, sink: 44, depth: 6 },
+          { key: "rock-cluster", dx: 350, scale: 0.58, sink: 58, depth: 6 },
+          { key: "snow-pile", dx: 420, scale: 0.36, sink: 42, depth: 6 },
         ],
       },
     ];
