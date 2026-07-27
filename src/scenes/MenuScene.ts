@@ -41,7 +41,6 @@ export class MenuScene extends Phaser.Scene {
   private flag!: Phaser.GameObjects.Image;
   private flagMark!: Phaser.GameObjects.Graphics;
   private playPrompt!: Phaser.GameObjects.Text;
-  private creditMore!: Phaser.GameObjects.Text;
   private creditLink!: Phaser.GameObjects.Text;
   private started = false;
   private groundY = 0;
@@ -600,13 +599,6 @@ export class MenuScene extends Phaser.Scene {
       .setAlpha(0.9)
       .setName("credit");
 
-    this.creditMore = this.add
-      .text(0, 0, "More at ", style)
-      .setOrigin(1, 1)
-      .setScrollFactor(0)
-      .setDepth(100)
-      .setAlpha(0.9);
-
     this.creditLink = this.add
       .text(0, 0, "dergigi.com/games", {
         ...style,
@@ -775,10 +767,6 @@ export class MenuScene extends Phaser.Scene {
     const creditRight = w - 18;
     const creditBottom = h - 14;
     this.creditLink.setPosition(creditRight, creditBottom);
-    this.creditMore.setPosition(
-      creditRight - this.creditLink.width,
-      creditBottom,
-    );
     credit?.setPosition(
       creditRight,
       creditBottom - this.creditLink.height - 2,
