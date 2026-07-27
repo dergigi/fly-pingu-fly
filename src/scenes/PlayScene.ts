@@ -96,8 +96,8 @@ export class PlayScene extends Phaser.Scene {
       "/assets/sprites/snow-packed.webp",
     );
     this.load.image(
-      "waterfall",
-      "/assets/sprites/snow-covered-waterfall-mini.webp",
+      "geyser",
+      "/assets/sprites/snow-covered-geyser.webp",
     );
     this.load.image("snow-pile", "/assets/sprites/snow-pile.webp");
     this.load.image(
@@ -522,15 +522,30 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeJumpGapScenery(): void {
-    const gapCenterX =
-      (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
+    const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
+    const gapCenterX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
+    const floorY = Math.max(lip.y, land.y) + 220;
 
-    this.add
-      .image(gapCenterX, lip.y + 260, "waterfall")
-      .setScale(1.35)
-      .setAlpha(0.96)
-      .setDepth(1);
+    const rubble = [
+      { key: "rock-cluster", x: gapCenterX - 70, y: floorY + 40, scale: 0.85, depth: 1 },
+      { key: "geyser", x: gapCenterX - 18, y: floorY - 10, scale: 0.72, depth: 2 },
+      { key: "rock-cluster", x: gapCenterX + 36, y: floorY + 55, scale: 1.05, depth: 1 },
+      { key: "geyser", x: gapCenterX + 88, y: floorY + 8, scale: 0.48, depth: 2 },
+      { key: "rock-cluster", x: gapCenterX - 110, y: floorY + 95, scale: 0.55, depth: 1 },
+      { key: "rock-cluster", x: gapCenterX + 20, y: floorY + 110, scale: 0.4, depth: 1 },
+      { key: "geyser", x: gapCenterX - 48, y: floorY + 70, scale: 0.36, depth: 2 },
+      { key: "rock-cluster", x: gapCenterX + 120, y: floorY + 80, scale: 0.62, depth: 1 },
+    ] as const;
+
+    for (const piece of rubble) {
+      this.add
+        .image(piece.x, piece.y, piece.key)
+        .setOrigin(0.5, 1)
+        .setScale(piece.scale)
+        .setAlpha(0.96)
+        .setDepth(piece.depth);
+    }
   }
 
   private placeRunoutScenery(): void {

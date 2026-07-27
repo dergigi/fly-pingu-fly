@@ -8,7 +8,7 @@ const REQUIRED_ASSETS = [
   { name: "winter-forest.webp", format: "webp" },
   { name: "pine-tree-snow-heavy.webp", format: "webp" },
   { name: "snow-packed.webp", format: "webp" },
-  { name: "snow-covered-waterfall-mini.webp", format: "webp" },
+  { name: "snow-covered-geyser.webp", format: "webp" },
   { name: "snow-ice-crystal.png", format: "png" },
   { name: "snow-fall-flakes.webp", format: "webp" },
   { name: "cloud-solid.webp", format: "webp" },
