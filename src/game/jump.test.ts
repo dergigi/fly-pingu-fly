@@ -170,7 +170,7 @@ describe("jump tracer", () => {
   });
 
   it("moves one start press and one takeoff press through the full jump", () => {
-    const result = trace(60, 1_200);
+    const result = trace(60, 2_800);
 
     expect(result.phases[0]).toBe("ready");
     expect(result.phases).toContain("flight");
@@ -182,7 +182,7 @@ describe("jump tracer", () => {
   });
 
   it("freezes jump distance at landing instead of counting the slide", () => {
-    const result = trace(60, 1_200);
+    const result = trace(60, 2_800);
 
     expect(result.firstContact.x - jumpConfig.lipX).toBeCloseTo(
       result.resting.distance,
@@ -197,7 +197,7 @@ describe("jump tracer", () => {
   });
 
   it("stops on the uphill runout instead of sliding forever", () => {
-    const result = trace(60, 1_200);
+    const result = trace(60, 2_800);
 
     expect(["resting", "crashed"]).toContain(result.resting.phase);
     expect(result.resting.speed).toBe(0);
