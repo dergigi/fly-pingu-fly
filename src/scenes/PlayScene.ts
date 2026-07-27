@@ -245,15 +245,6 @@ export class PlayScene extends Phaser.Scene {
     }
     scenery.strokePath();
 
-    const takeoff = sampleRamp(jumpConfig.takeoffStartX, jumpConfig);
-    const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
-    scenery.lineStyle(10, 0xb7e8fa, 1);
-    scenery.lineBetween(takeoff.x, takeoff.y + 7, lip.x, lip.y + 7);
-    scenery.lineStyle(7, 0x176d99, 1);
-    scenery.lineBetween(lip.x, lip.y - 15, lip.x, lip.y + 22);
-    scenery.lineStyle(3, 0x55b9dd, 1);
-    scenery.lineBetween(lip.x + 4, lip.y + 8, lip.x + 4, lip.y + 34);
-
     this.add
       .image(jumpConfig.readyX + 4, jumpConfig.readyY + LOG_READY_OFFSET_Y, "fallen-log")
       .setScale(LOG_SCALE)
