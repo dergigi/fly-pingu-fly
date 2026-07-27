@@ -6,6 +6,10 @@ import { readLeaderboard } from "../game/leaderboard";
 const PIXEL_FONT =
   '"Press Start 2P", "Courier New", Courier, monospace';
 
+const SNOWFLAKE_COUNT = 42;
+const SNOW_SCALE_MIN = 0.03;
+const SNOW_SCALE_SPAN = 0.07;
+
 const PALETTE = {
   skyTop: 0x0b1026,
   skyMid: 0x1a2744,
@@ -15,7 +19,6 @@ const PALETTE = {
   snowShade: 0xb8d4e8,
   ice: 0x7ec8ff,
   title: 0xffe566,
-  cream: 0xfff6e0,
   star: 0xffffff,
 } as const;
 
@@ -34,16 +37,11 @@ export class MenuScene extends Phaser.Scene {
   private playPrompt!: Phaser.GameObjects.Text;
   private animTimer = 0;
   private started = false;
+  private readonly flakes: Phaser.GameObjects.Image[] = [];
   private readonly stars: Array<{
     rect: Phaser.GameObjects.Rectangle;
     phase: number;
     speed: number;
-  }> = [];
-  private readonly flakes: Array<{
-    rect: Phaser.GameObjects.Rectangle;
-    vx: number;
-    vy: number;
-    baseX: number;
   }> = [];
 
   constructor() {
@@ -53,6 +51,7 @@ export class MenuScene extends Phaser.Scene {
   preload(): void {
     this.load.image("penguin-sheet", "/assets/sprites/sprite_penguin.png");
     this.load.image("menu-pine", "/assets/sprites/pine-tree-snow-heavy.webp");
+    this.load.image("snow-flakes", "/assets/sprites/snow-fall-flakes.webp");
   }
 
   create(): void {
@@ -92,17 +91,18 @@ export class MenuScene extends Phaser.Scene {
 
     const h = this.cameras.main.height;
     const w = this.cameras.main.width;
+    const dt = Math.min(delta, 50) / 1000;
     for (const flake of this.flakes) {
-      flake.rect.x += flake.vx * (delta / 16);
-      flake.rect.y += flake.vy * (delta / 16);
-      if (flake.rect.y > h + 4) {
-        flake.rect.y = -4;
-        flake.rect.x = flake.baseX + Phaser.Math.Between(-20, 20);
-      }
-      if (flake.rect.x < -8) {
-        flake.rect.x = w + 4;
-      } else if (flake.rect.x > w + 8) {
-        flake.rect.x = -4;
+      flake.x += (flake.getData("vx") as number) * dt;
+      flake.y += (flake.getData("vy") as number) * dt;
+      flake.rotation += (flake.getData("spin") as number) * dt;
+      if (flake.y > h + 40) {
+        flake.y = -40 - Math.random() * 40;
+        flake.x = Math.random() * w;
+      } else if (flake.x < -40) {
+        flake.x = w + 20;
+      } else if (flake.x > w + 40) {
+        flake.x = -20;
       }
     }
   }
@@ -206,27 +206,19 @@ export class MenuScene extends Phaser.Scene {
     this.flakes.length = 0;
     const w = this.cameras.main.width;
     const h = this.cameras.main.height;
-    for (let i = 0; i < 36; i += 1) {
-      const size = i % 5 === 0 ? 3 : 2;
-      const baseX = Phaser.Math.Between(0, Math.max(8, w));
-      const rect = this.add
-        .rectangle(
-          baseX,
-          Phaser.Math.Between(0, Math.max(8, h)),
-          size,
-          size,
-          PALETTE.cream,
-          0.85,
-        )
-        .setOrigin(0, 0)
+    for (let i = 0; i < SNOWFLAKE_COUNT; i += 1) {
+      const scale = SNOW_SCALE_MIN + Math.random() * SNOW_SCALE_SPAN;
+      const flake = this.add
+        .image(Math.random() * w, Math.random() * h, "snow-flakes")
+        .setScrollFactor(0)
         .setDepth(20)
-        .setScrollFactor(0);
-      this.flakes.push({
-        rect,
-        baseX,
-        vx: Phaser.Math.FloatBetween(-0.35, 0.35),
-        vy: Phaser.Math.FloatBetween(0.55, 1.4),
-      });
+        .setAlpha(0.26 + Math.random() * 0.34)
+        .setScale(scale);
+      flake.setData("vx", -18 + Math.random() * 36);
+      flake.setData("vy", 12 + Math.random() * 36);
+      const spinDir = Math.random() < 0.5 ? -1 : 1;
+      flake.setData("spin", spinDir * (1.4 + Math.random() * 3.8));
+      this.flakes.push(flake);
     }
   }
 
