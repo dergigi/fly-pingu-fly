@@ -68,7 +68,7 @@ export const jumpConfig: JumpConfig = Object.freeze({
   takeoffStartX: 800,
   lipX: 900,
   lipY: 620,
-  lipSlope: -0.6,
+  lipSlope: -0.65,
   lateBoundaryX: 900,
   minimumQuality: 0.22,
   earlySpan: 220,
