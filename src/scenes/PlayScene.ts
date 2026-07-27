@@ -59,7 +59,7 @@ const WATCHTOWER_X = jumpConfig.landingRunoutEndX - 120;
 const WATCHTOWER_STOP_X = WATCHTOWER_X - 56;
 const WATCHTOWER_ORIGIN_Y = 230 / 256;
 const WATCHTOWER_SCALE = 0.92;
-const WATCHTOWER_SINK = 145;
+const WATCHTOWER_SINK = 72;
 
 function browserStorage(): Storage | null {
   try {
