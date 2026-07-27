@@ -129,10 +129,6 @@ export class PlayScene extends Phaser.Scene {
       "/assets/sprites/snow-covered-rock-cluster.webp",
     );
     this.load.image(
-      "hot-spring",
-      "/assets/sprites/snow-covered-hot-spring.webp",
-    );
-    this.load.image(
       "watchtower",
       "/assets/sprites/ice-watchtower-spire.webp",
     );
@@ -740,7 +736,6 @@ export class PlayScene extends Phaser.Scene {
       "wood-pile": 207 / 256,
       "snow-village": 214 / 256,
       "snow-storage": 205 / 256,
-      "hot-spring": 224 / 256,
       watchtower: 230 / 256,
       geyser: 225 / 256,
       "pine-tree": 233 / 256,
@@ -773,7 +768,6 @@ export class PlayScene extends Phaser.Scene {
           { key: "wood-pile", dx: 520, scale: 0.73, sink: 118, depth: 13 },
           { key: "pine-tree", dx: 640, scale: 0.76, sink: 158, depth: 15 },
           { key: "pine-tree", dx: 800, scale: 0.7, sink: 150, depth: 15 },
-          { key: "hot-spring", dx: 980, scale: 0.64, sink: 132, depth: 13 },
         ],
       },
       {
