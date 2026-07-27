@@ -28,8 +28,8 @@ import {
 const WORLD_WIDTH = 4700;
 const WORLD_HEIGHT = 1000;
 const CAMERA_TOP_PAD = 140;
-const PENGUIN_SCALE = 0.68;
-const LOG_SCALE = 0.72;
+const PENGUIN_SCALE = 0.51;
+const LOG_SCALE = 0.36;
 
 export class PlayScene extends Phaser.Scene {
   private jumpState: JumpState = createInitialJumpState(jumpConfig);
@@ -215,7 +215,7 @@ export class PlayScene extends Phaser.Scene {
     scenery.lineBetween(lip.x + 4, lip.y + 8, lip.x + 4, lip.y + 34);
 
     this.add
-      .image(jumpConfig.readyX + 8, jumpConfig.readyY + 34, "fallen-log")
+      .image(jumpConfig.readyX + 4, jumpConfig.readyY + 17, "fallen-log")
       .setScale(LOG_SCALE)
       .setDepth(4);
 
