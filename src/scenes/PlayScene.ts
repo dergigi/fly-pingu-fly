@@ -11,7 +11,7 @@ import {
   stepJump,
   type JumpState,
 } from "../game/jump";
-import { formatJumpHud, jumpHudStats } from "../game/hudStats";
+import { formatAirtimeHud, formatDistanceHud, jumpHudStats } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
 import {
   formatLeaderboard,
@@ -54,7 +54,8 @@ export class PlayScene extends Phaser.Scene {
   private accumulator = 0;
   private simulationTimeMs = 0;
   private penguin!: Phaser.GameObjects.Sprite;
-  private hudText!: Phaser.GameObjects.Text;
+  private distanceText!: Phaser.GameObjects.Text;
+  private airtimeText!: Phaser.GameObjects.Text;
   private leaderboardText!: Phaser.GameObjects.Text;
   private leaderboard: number[] = [];
   private scoreRecorded = false;
@@ -99,7 +100,8 @@ export class PlayScene extends Phaser.Scene {
     this.penguin = this.createPenguin();
     const storage = browserStorage();
     this.leaderboard = storage === null ? [] : readLeaderboard(storage);
-    this.hudText = this.createHud();
+    this.distanceText = this.createDistanceHud();
+    this.airtimeText = this.createAirtimeHud();
     this.leaderboardText = this.createLeaderboardHud();
     this.bindInput();
 
@@ -359,25 +361,41 @@ export class PlayScene extends Phaser.Scene {
     this.leaderboard = [...result.entries];
   }
 
-  private createHud(): Phaser.GameObjects.Text {
+  private createDistanceHud(): Phaser.GameObjects.Text {
     return this.add
-      .text(0, 22, "", {
+      .text(0, 18, "", {
         fontFamily: "Trebuchet MS, Arial, sans-serif",
-        fontSize: "36px",
+        fontSize: "52px",
         fontStyle: "bold",
         color: "#0b4f73",
-        align: "right",
+        align: "center",
         stroke: "#f4fbff",
-        strokeThickness: 8,
+        strokeThickness: 10,
       })
-      .setOrigin(1, 0)
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(100);
+  }
+
+  private createAirtimeHud(): Phaser.GameObjects.Text {
+    return this.add
+      .text(0, 78, "", {
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
+        fontSize: "28px",
+        fontStyle: "bold",
+        color: "#0b4f73",
+        align: "center",
+        stroke: "#f4fbff",
+        strokeThickness: 7,
+      })
+      .setOrigin(0.5, 0)
       .setScrollFactor(0)
       .setDepth(100);
   }
 
   private createLeaderboardHud(): Phaser.GameObjects.Text {
     return this.add
-      .text(0, 20, formatLeaderboard(this.leaderboard), {
+      .text(0, 18, formatLeaderboard(this.leaderboard), {
         fontFamily: "Trebuchet MS, Arial, sans-serif",
         fontSize: "22px",
         fontStyle: "bold",
@@ -393,9 +411,11 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private layoutHud(): void {
+    const centerX = this.cameras.main.width * 0.5;
     const right = this.cameras.main.width - 28;
-    this.hudText.setPosition(right, 22);
-    this.leaderboardText.setPosition(right, 110);
+    this.distanceText.setPosition(centerX, 18);
+    this.airtimeText.setPosition(centerX, 78);
+    this.leaderboardText.setPosition(right, 18);
     this.cameras.main.setFollowOffset(
       -Math.min(220, this.cameras.main.width * 0.14),
       -30,
@@ -420,7 +440,9 @@ export class PlayScene extends Phaser.Scene {
         ? PENGUIN_SCALE * PENGUIN_CROUCH_SCALE_Y
         : PENGUIN_SCALE,
     );
-    this.hudText.setText(formatJumpHud(jumpHudStats(state)));
+    const stats = jumpHudStats(state);
+    this.distanceText.setText(formatDistanceHud(stats));
+    this.airtimeText.setText(formatAirtimeHud(stats));
     this.leaderboardText.setText(formatLeaderboard(this.leaderboard));
     this.takeoffPosePending = false;
 

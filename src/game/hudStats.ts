@@ -13,5 +13,13 @@ export function jumpHudStats(
 }
 
 export function formatJumpHud(stats: JumpHudStats): string {
-  return `${Math.round(stats.distance)} m\n${stats.airtime.toFixed(1)} s`;
+  return `${formatDistanceHud(stats)}\n${formatAirtimeHud(stats)}`;
+}
+
+export function formatDistanceHud(stats: JumpHudStats): string {
+  return `${Math.round(stats.distance)} m`;
+}
+
+export function formatAirtimeHud(stats: JumpHudStats): string {
+  return `${stats.airtime.toFixed(1)} s`;
 }

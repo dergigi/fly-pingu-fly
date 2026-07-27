@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatJumpHud, jumpHudStats } from "./hudStats";
+import { formatAirtimeHud, formatDistanceHud, formatJumpHud, jumpHudStats } from "./hudStats";
 
 describe("jump HUD stats", () => {
   it("reads the frozen jump distance and airtime from state", () => {
@@ -15,8 +15,9 @@ describe("jump HUD stats", () => {
   });
 
   it("formats large kid-readable values", () => {
-    expect(formatJumpHud({ distance: 312.6, airtime: 1.24 })).toBe(
-      "313 m\n1.2 s",
-    );
+    const stats = { distance: 312.6, airtime: 1.24 };
+    expect(formatDistanceHud(stats)).toBe("313 m");
+    expect(formatAirtimeHud(stats)).toBe("1.2 s");
+    expect(formatJumpHud(stats)).toBe("313 m\n1.2 s");
   });
 });
