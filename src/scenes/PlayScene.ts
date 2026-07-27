@@ -457,7 +457,8 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeBackgroundTrees(): void {
-    const hillEndX = jumpConfig.landingEndX;
+    // Stop short of the far-landing mark so that stretch stays open.
+    const hillEndX = jumpConfig.landingEndX - 750;
     const canopyFloorY = jumpConfig.startY + 8;
 
     let forestX = 30;
