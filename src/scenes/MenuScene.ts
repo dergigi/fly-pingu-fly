@@ -33,10 +33,9 @@ function browserStorage(): Storage | null {
 export class MenuScene extends Phaser.Scene {
   private backdrop!: Phaser.GameObjects.Graphics;
 
-  private startKeys: Phaser.Input.Keyboard.Key[] = [];
   private penguin!: Phaser.GameObjects.Sprite;
   private playPrompt!: Phaser.GameObjects.Text;
-  private blinkTimer = 0;
+  private animTimer = 0;
   private started = false;
   private readonly stars: Array<{
     rect: Phaser.GameObjects.Rectangle;
@@ -87,26 +86,16 @@ export class MenuScene extends Phaser.Scene {
       return;
     }
 
-    if (
-      this.startKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))
-    ) {
-      this.startGame();
-      return;
-    }
+    this.animTimer += delta;
 
-    this.blinkTimer += delta;
-    this.playPrompt.setAlpha(
-      Math.sin(this.blinkTimer / 220) > 0 ? 1 : 0.25,
-    );
-
-    const bob = Math.sin(this.blinkTimer / 380) * 8;
+    const bob = Math.sin(this.animTimer / 380) * 8;
     this.penguin.y =
       this.cameras.main.height * 0.58 + bob;
-    this.penguin.setAngle(Math.sin(this.blinkTimer / 520) * 4);
+    this.penguin.setAngle(Math.sin(this.animTimer / 520) * 4);
 
     for (const star of this.stars) {
       star.rect.setAlpha(
-        0.35 + 0.65 * (0.5 + 0.5 * Math.sin(this.blinkTimer * star.speed + star.phase)),
+        0.35 + 0.65 * (0.5 + 0.5 * Math.sin(this.animTimer * star.speed + star.phase)),
       );
     }
 
@@ -326,17 +315,10 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private createPlayPrompt(): void {
-    this.add
-      .rectangle(0, 0, 320, 56, PALETTE.play, 1)
-      .setStrokeStyle(4, PALETTE.cream, 1)
-      .setDepth(13)
-      .setScrollFactor(0)
-      .setName("play-plate");
-
     this.playPrompt = this.add
-      .text(0, 0, "▶  PLAY", {
+      .text(0, 0, "press anything to play", {
         fontFamily: PIXEL_FONT,
-        fontSize: "22px",
+        fontSize: "14px",
         color: "#fff6e0",
         align: "center",
       })
@@ -396,14 +378,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private bindInput(): void {
-    const keyboard = this.input.keyboard;
-    if (keyboard) {
-      this.startKeys = [
-        keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
-        keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
-        keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
-      ];
-    }
+    this.input.keyboard?.on("keydown", this.startGame, this);
     this.input.on("pointerdown", this.startGame, this);
   }
 
@@ -412,6 +387,7 @@ export class MenuScene extends Phaser.Scene {
       return;
     }
     this.started = true;
+    this.input.keyboard?.off("keydown", this.startGame, this);
     this.input.off("pointerdown", this.startGame, this);
     this.cameras.main.fadeOut(220, 11, 16, 38);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
@@ -436,9 +412,6 @@ export class MenuScene extends Phaser.Scene {
     const controls = this.children.getByName(
       "controls",
     ) as Phaser.GameObjects.Text | null;
-    const plate = this.children.getByName(
-      "play-plate",
-    ) as Phaser.GameObjects.Rectangle | null;
     const crystal = this.children.getByName(
       "crystal",
     ) as Phaser.GameObjects.Image | null;
@@ -463,10 +436,11 @@ export class MenuScene extends Phaser.Scene {
     this.penguin.setPosition(cx, h * 0.58);
 
     const playY = Math.min(h * 0.78, h - 110);
-    plate?.setPosition(cx, playY);
+    const promptSize = Math.round(Phaser.Math.Clamp(w * 0.018, 10, 16));
+    this.playPrompt.setFontSize(promptSize);
     this.playPrompt.setPosition(cx, playY);
 
-    controls?.setPosition(cx, Math.min(h - 28, playY + 56));
+    controls?.setPosition(cx, Math.min(h - 28, playY + 42));
 
     const groundY = h * 0.88;
     crystal?.setPosition(cx - Math.min(280, w * 0.28), groundY + 8);
