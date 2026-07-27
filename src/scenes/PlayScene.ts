@@ -14,6 +14,11 @@ import {
 import { formatJumpHud, jumpHudStats } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
 import {
+  formatLeaderboard,
+  readLeaderboard,
+  recordDistance,
+} from "../game/leaderboard";
+import {
   PENGUIN_FRAMES,
   poseForJumpPhase,
   type PenguinPose,
@@ -35,6 +40,14 @@ const LOG_SCALE = 0.36;
 /** Image-center offset so the snow seat sits under the ready-pose feet. */
 const LOG_READY_OFFSET_Y = 12;
 
+function browserStorage(): Storage | null {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage;
+  } catch {
+    return null;
+  }
+}
+
 export class PlayScene extends Phaser.Scene {
   private jumpState: JumpState = createInitialJumpState(jumpConfig);
   private readonly inputLatch = new InputLatch();
@@ -42,6 +55,9 @@ export class PlayScene extends Phaser.Scene {
   private simulationTimeMs = 0;
   private penguin!: Phaser.GameObjects.Sprite;
   private hudText!: Phaser.GameObjects.Text;
+  private leaderboardText!: Phaser.GameObjects.Text;
+  private leaderboard: number[] = [];
+  private scoreRecorded = false;
   private takeoffKeys: Phaser.Input.Keyboard.Key[] = [];
   private crouchKey: Phaser.Input.Keyboard.Key | null = null;
   private takeoffPosePending = false;
@@ -80,7 +96,10 @@ export class PlayScene extends Phaser.Scene {
     this.drawWorld();
     this.registerPenguinFrames();
     this.penguin = this.createPenguin();
+    const storage = browserStorage();
+    this.leaderboard = storage === null ? [] : readLeaderboard(storage);
     this.hudText = this.createHud();
+    this.leaderboardText = this.createLeaderboardHud();
     this.bindInput();
 
     this.cameras.main.setBounds(
@@ -140,6 +159,7 @@ export class PlayScene extends Phaser.Scene {
           this.takeoffPosePending = true;
         }
       }
+      this.maybeRecordScore(nextState);
       this.accumulator -= FIXED_STEP;
       steps += 1;
     }
@@ -301,6 +321,26 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(10);
   }
 
+  private maybeRecordScore(state: JumpState): void {
+    if (this.scoreRecorded) {
+      return;
+    }
+    const finished =
+      state.phase === "resting" ||
+      (state.phase === "crashed" && state.speed === 0);
+    if (!finished) {
+      return;
+    }
+
+    this.scoreRecorded = true;
+    const storage = browserStorage();
+    if (storage === null) {
+      return;
+    }
+    const result = recordDistance(storage, state.distance);
+    this.leaderboard = [...result.entries];
+  }
+
   private createHud(): Phaser.GameObjects.Text {
     return this.add
       .text(0, 22, "", {
@@ -317,8 +357,26 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(100);
   }
 
+  private createLeaderboardHud(): Phaser.GameObjects.Text {
+    return this.add
+      .text(24, 20, formatLeaderboard(this.leaderboard), {
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
+        fontSize: "22px",
+        fontStyle: "bold",
+        color: "#0b4f73",
+        align: "left",
+        stroke: "#f4fbff",
+        strokeThickness: 6,
+        lineSpacing: 4,
+      })
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(100);
+  }
+
   private layoutHud(): void {
     this.hudText.setPosition(this.cameras.main.width - 28, 22);
+    this.leaderboardText.setPosition(24, 20);
     this.cameras.main.setFollowOffset(
       -Math.min(220, this.cameras.main.width * 0.14),
       -30,
@@ -344,6 +402,7 @@ export class PlayScene extends Phaser.Scene {
         : PENGUIN_SCALE,
     );
     this.hudText.setText(formatJumpHud(jumpHudStats(state)));
+    this.leaderboardText.setText(formatLeaderboard(this.leaderboard));
     this.takeoffPosePending = false;
 
     const rotation =
