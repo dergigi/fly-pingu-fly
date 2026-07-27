@@ -40,7 +40,9 @@ const LOG_SCALE = 0.36;
 /** Image-center offset so the snow seat sits under the ready-pose feet. */
 const LOG_READY_OFFSET_Y = 12;
 const SNOWFLAKE_COUNT = 26;
-const CLOUD_COUNT = 4;
+const CLOUD_COUNT = 8;
+const CLOUD_SCROLL_NEAR = 0.18;
+const CLOUD_SCROLL_FAR = 0.1;
 
 function browserStorage(): Storage | null {
   try {
@@ -529,26 +531,31 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private createClouds(): void {
-    const width = Math.max(1, this.cameras.main.width);
-    const skyTop = 6;
-    const skyBottom = 72;
+    const skyTop = jumpConfig.readyY - 70;
+    const skyBottom = jumpConfig.readyY - 8;
+    const span = Math.max(1200, jumpConfig.landingCrestX + 800);
 
     for (let index = 0; index < CLOUD_COUNT; index += 1) {
       const solid = index % 2 === 0;
+      const far = index % 3 === 0;
       const baseY = skyTop + Math.random() * (skyBottom - skyTop);
       const cloud = this.add
         .image(
-          Math.random() * width,
+          (index + 0.35) * (span / CLOUD_COUNT) + (Math.random() * 120 - 60),
           baseY,
           solid ? "cloud-solid" : "cloud-thin",
         )
-        .setScrollFactor(0)
-        .setDepth(40)
-        .setAlpha(0.45 + Math.random() * 0.25)
-        .setScale(0.32 + Math.random() * 0.5);
-      const drift = (3 + Math.random() * 5) * (Math.random() < 0.5 ? -1 : 1);
+        .setScrollFactor(far ? CLOUD_SCROLL_FAR : CLOUD_SCROLL_NEAR)
+        .setDepth(far ? -7 : -6)
+        .setAlpha(far ? 0.4 + Math.random() * 0.2 : 0.5 + Math.random() * 0.25)
+        .setScale(
+          far
+            ? 0.38 + Math.random() * 0.35
+            : 0.45 + Math.random() * 0.45,
+        );
+      const drift = (2 + Math.random() * 3.5) * (Math.random() < 0.5 ? -1 : 1);
       cloud.setData("vx", drift);
-      cloud.setData("bob", 0.4 + Math.random() * 0.7);
+      cloud.setData("bob", 0.35 + Math.random() * 0.55);
       cloud.setData("phase", Math.random() * Math.PI * 2);
       cloud.setData("baseY", baseY);
       this.clouds.push(cloud);
@@ -557,33 +564,15 @@ export class PlayScene extends Phaser.Scene {
 
   private updateClouds(deltaMs: number): void {
     const dt = Math.min(deltaMs, 50) / 1000;
-    const width = Math.max(1, this.cameras.main.width);
-    const skyTop = 6;
-    const skyBottom = 72;
 
     for (const cloud of this.clouds) {
       const phase =
-        ((cloud.getData("phase") as number) + dt * 0.2) % (Math.PI * 2);
+        ((cloud.getData("phase") as number) + dt * 0.18) % (Math.PI * 2);
       cloud.setData("phase", phase);
       cloud.x += (cloud.getData("vx") as number) * dt;
       cloud.y =
         (cloud.getData("baseY") as number) +
         Math.sin(phase) * (cloud.getData("bob") as number);
-
-      const half = (cloud.displayWidth || 40) * 0.5;
-      if (cloud.x < -half - 20) {
-        cloud.x = width + half + 20;
-        cloud.setData(
-          "baseY",
-          skyTop + Math.random() * (skyBottom - skyTop),
-        );
-      } else if (cloud.x > width + half + 20) {
-        cloud.x = -half - 20;
-        cloud.setData(
-          "baseY",
-          skyTop + Math.random() * (skyBottom - skyTop),
-        );
-      }
     }
   }
 
