@@ -351,10 +351,11 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeBackgroundTrees(): void {
-    const endX = jumpConfig.landingRunoutEndX + 200;
+    const hillEndX = jumpConfig.landingEndX;
+    const runoutEndX = jumpConfig.landingRunoutEndX + 200;
 
     let forestX = 40;
-    while (forestX < endX) {
+    while (forestX < hillEndX) {
       const n = this.forestNoise(forestX, 1);
       const surfaceY = this.forestSurfaceY(forestX);
       const near = n > 0.45;
@@ -370,15 +371,10 @@ export class PlayScene extends Phaser.Scene {
       forestX += 110 + Math.floor(n * 160);
     }
 
-    let pineX = 35;
-    while (pineX < endX) {
+    let pineX = hillEndX + 40;
+    while (pineX < runoutEndX) {
       const n = this.forestNoise(pineX, 2);
       const step = 28 + Math.floor(n * 95);
-      if (pineX > jumpConfig.lipX - 30 && pineX < jumpConfig.landingStartX + 50) {
-        pineX += step;
-        continue;
-      }
-      // Leave occasional clearings so the belt does not read as a fence.
       if (n < 0.18) {
         pineX += step + 40;
         continue;
@@ -404,14 +400,10 @@ export class PlayScene extends Phaser.Scene {
       pineX += step + (cluster > 1 ? 20 : 0);
     }
 
-    let bankX = 70;
-    while (bankX < endX) {
+    let bankX = hillEndX + 80;
+    while (bankX < runoutEndX) {
       const n = this.forestNoise(bankX, 5);
       const step = 90 + Math.floor(n * 160);
-      if (bankX > jumpConfig.lipX - 20 && bankX < jumpConfig.landingStartX + 40) {
-        bankX += step;
-        continue;
-      }
       if (n < 0.28) {
         bankX += step;
         continue;
