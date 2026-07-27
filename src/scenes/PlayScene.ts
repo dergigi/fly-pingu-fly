@@ -40,7 +40,8 @@ const LOG_SCALE = 0.36;
 /** Image-center offset so the snow seat sits under the ready-pose feet. */
 const LOG_READY_OFFSET_Y = 12;
 const SNOWFLAKE_COUNT = 52;
-const SNOW_SCROLL = 0.38;
+const SNOW_SCALE_MIN = 0.03;
+const SNOW_SCALE_SPAN = 0.07;
 const CLOUD_COUNT = 4;
 const CLOUD_SCROLL_NEAR = 0.18;
 const CLOUD_SCROLL_FAR = 0.1;
@@ -849,24 +850,28 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private createSnowfall(): void {
-    const spanX = Math.max(1600, jumpConfig.landingCrestX + 600);
-    const skyTop = jumpConfig.readyY - 90;
-    const skyBottom = jumpConfig.lipY - 40;
+    const spanX = Math.max(2400, jumpConfig.landingRunoutEndX);
+    const skyTop = jumpConfig.readyY - 120;
+    const skyBottom = jumpConfig.landingEndY - 200;
 
     for (let index = 0; index < SNOWFLAKE_COUNT; index += 1) {
+      const scale = SNOW_SCALE_MIN + Math.random() * SNOW_SCALE_SPAN;
+      // Bigger flakes sit closer (stronger world scroll).
+      const scroll =
+        0.62 + ((scale - SNOW_SCALE_MIN) / SNOW_SCALE_SPAN) * 0.38;
       const flake = this.add
         .image(
           Math.random() * spanX,
-          skyTop + Math.random() * (skyBottom - skyTop),
+          skyTop + Math.random() * Math.max(80, skyBottom - skyTop),
           "snow-flakes",
         )
-        .setScrollFactor(SNOW_SCROLL)
+        .setScrollFactor(scroll)
         .setDepth(5)
         .setAlpha(0.26 + Math.random() * 0.34)
-        .setScale(0.03 + Math.random() * 0.07);
+        .setScale(scale);
       flake.setData("vx", -18 + Math.random() * 36);
-      // Slow drift with wide speed variance.
       flake.setData("vy", 12 + Math.random() * 36);
+      flake.setData("scroll", scroll);
       const spinDir = Math.random() < 0.5 ? -1 : 1;
       flake.setData("spin", spinDir * (1.4 + Math.random() * 3.8));
       this.snowflakes.push(flake);
@@ -876,15 +881,17 @@ export class PlayScene extends Phaser.Scene {
   private updateSnowfall(deltaMs: number): void {
     const dt = Math.min(deltaMs, 50) / 1000;
     const cam = this.cameras.main;
-    const recycleTop = cam.scrollY - 80;
-    const recycleBottom = cam.scrollY + cam.height / SNOW_SCROLL + 60;
-    const recycleLeft = cam.scrollX - 80;
-    const recycleWidth = cam.width / SNOW_SCROLL + 160;
 
     for (const flake of this.snowflakes) {
+      const scroll = Math.max(0.2, flake.getData("scroll") as number);
       flake.x += (flake.getData("vx") as number) * dt;
       flake.y += (flake.getData("vy") as number) * dt;
       flake.rotation += (flake.getData("spin") as number) * dt;
+
+      const recycleTop = cam.scrollY - 80;
+      const recycleBottom = cam.scrollY + cam.height / scroll + 80;
+      const recycleLeft = cam.scrollX - 80;
+      const recycleWidth = cam.width / scroll + 160;
 
       if (flake.y > recycleBottom) {
         flake.y = recycleTop - Math.random() * 40;
