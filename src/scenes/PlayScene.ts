@@ -39,7 +39,7 @@ const PENGUIN_CROUCH_SCALE_Y = 0.72;
 const LOG_SCALE = 0.36;
 /** Image-center offset so the snow seat sits under the ready-pose feet. */
 const LOG_READY_OFFSET_Y = 12;
-const SNOWFLAKE_COUNT = 26;
+const SNOWFLAKE_COUNT = 52;
 const SNOW_SCROLL = 0.38;
 const CLOUD_COUNT = 4;
 const CLOUD_SCROLL_NEAR = 0.18;
@@ -862,16 +862,17 @@ export class PlayScene extends Phaser.Scene {
         )
         .setScrollFactor(SNOW_SCROLL)
         .setDepth(5)
-        .setAlpha(0.28 + Math.random() * 0.32)
+        .setAlpha(0.26 + Math.random() * 0.34)
         .setScale(
           useCrystal
-            ? 0.1 + Math.random() * 0.12
-            : 0.028 + Math.random() * 0.03,
+            ? 0.1 + Math.random() * 0.2
+            : 0.028 + Math.random() * 0.055,
         );
-      flake.setData("vx", -16 + Math.random() * 32);
-      flake.setData("vy", 38 + Math.random() * 42);
+      flake.setData("vx", -18 + Math.random() * 36);
+      // Slow drift with wide speed variance.
+      flake.setData("vy", 12 + Math.random() * 36);
       const spinDir = Math.random() < 0.5 ? -1 : 1;
-      flake.setData("spin", spinDir * (2.2 + Math.random() * 3.4));
+      flake.setData("spin", spinDir * (1.4 + Math.random() * 3.8));
       this.snowflakes.push(flake);
     }
   }
