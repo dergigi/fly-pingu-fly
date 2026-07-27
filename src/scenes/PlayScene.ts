@@ -351,55 +351,67 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeBackgroundTrees(): void {
-    const forests = [
-      { x: 120, y: 170, scale: 0.92, alpha: 0.88, depth: -5 },
-      { x: 310, y: 210, scale: 0.84, alpha: 0.9, depth: -5 },
-      { x: 500, y: 240, scale: 0.78, alpha: 0.86, depth: -5 },
-      { x: 690, y: 275, scale: 0.72, alpha: 0.84, depth: -5 },
-      { x: 860, y: 305, scale: 0.68, alpha: 0.8, depth: -5 },
-      { x: 200, y: 255, scale: 0.7, alpha: 0.82, depth: -4 },
-      { x: 420, y: 290, scale: 0.66, alpha: 0.8, depth: -4 },
-      { x: 640, y: 320, scale: 0.62, alpha: 0.78, depth: -4 },
-      { x: 800, y: 345, scale: 0.58, alpha: 0.76, depth: -4 },
-    ] as const;
+    const endX = jumpConfig.landingRunoutEndX + 200;
 
-    for (const forest of forests) {
+    for (let x = 60; x < endX; x += 170) {
+      const surfaceY = this.forestSurfaceY(x);
+      const wave = (x * 13) % 70;
       this.add
-        .image(forest.x, forest.y, "winter-forest")
-        .setScale(forest.scale)
-        .setAlpha(forest.alpha)
-        .setDepth(forest.depth);
+        .image(x + (wave - 35) * 0.15, surfaceY - 250 - (x % 50), "winter-forest")
+        .setScale(0.62 + ((x * 7) % 40) / 100)
+        .setAlpha(0.72 + ((x * 3) % 20) / 100)
+        .setDepth(-5);
     }
 
-    const props = [
-      { key: "snow-packed", x: 60, scale: 0.34, sink: 28, alpha: 0.9, depth: -3 },
-      { key: "pine-tree", x: 95, scale: 0.5, sink: 68, alpha: 0.92, depth: -2 },
-      { key: "pine-tree", x: 155, scale: 0.58, sink: 76, alpha: 0.94, depth: -1 },
-      { key: "snow-packed", x: 210, scale: 0.3, sink: 24, alpha: 0.88, depth: -3 },
-      { key: "pine-tree", x: 260, scale: 0.46, sink: 64, alpha: 0.9, depth: -2 },
-      { key: "pine-tree", x: 330, scale: 0.62, sink: 80, alpha: 0.95, depth: -1 },
-      { key: "snow-packed", x: 390, scale: 0.36, sink: 30, alpha: 0.9, depth: -3 },
-      { key: "pine-tree", x: 440, scale: 0.52, sink: 70, alpha: 0.92, depth: -2 },
-      { key: "pine-tree", x: 510, scale: 0.44, sink: 60, alpha: 0.9, depth: -2 },
-      { key: "snow-packed", x: 560, scale: 0.28, sink: 22, alpha: 0.86, depth: -3 },
-      { key: "pine-tree", x: 610, scale: 0.56, sink: 74, alpha: 0.93, depth: -1 },
-      { key: "pine-tree", x: 680, scale: 0.48, sink: 66, alpha: 0.9, depth: -2 },
-      { key: "snow-packed", x: 730, scale: 0.32, sink: 26, alpha: 0.88, depth: -3 },
-      { key: "pine-tree", x: 780, scale: 0.54, sink: 72, alpha: 0.92, depth: -1 },
-      { key: "pine-tree", x: 845, scale: 0.42, sink: 58, alpha: 0.88, depth: -2 },
-      { key: "snow-packed", x: 890, scale: 0.3, sink: 24, alpha: 0.86, depth: -3 },
-      { key: "pine-tree", x: 920, scale: 0.5, sink: 68, alpha: 0.9, depth: -1 },
-    ] as const;
-
-    for (const prop of props) {
-      const x = Math.min(prop.x, jumpConfig.lipX);
-      const surface = sampleRamp(x, jumpConfig);
+    for (let x = 130; x < endX; x += 210) {
+      const surfaceY = this.forestSurfaceY(x);
+      const wave = (x * 19) % 90;
       this.add
-        .image(prop.x, surface.y - prop.sink, prop.key)
-        .setScale(prop.scale)
-        .setAlpha(prop.alpha)
-        .setDepth(prop.depth);
+        .image(x + (wave - 45) * 0.2, surfaceY - 190 - (x % 40), "winter-forest")
+        .setScale(0.52 + ((x * 11) % 35) / 100)
+        .setAlpha(0.78 + ((x * 5) % 15) / 100)
+        .setDepth(-4);
     }
+
+    for (let x = 55; x < endX; x += 72) {
+      if (x > jumpConfig.lipX - 30 && x < jumpConfig.landingStartX + 50) {
+        continue;
+      }
+      const surfaceY = this.forestSurfaceY(x);
+      const tall = x % 144 < 72;
+      this.add
+        .image(x + ((x * 9) % 24) - 12, surfaceY - (tall ? 78 : 62), "pine-tree")
+        .setScale(tall ? 0.5 + ((x * 3) % 18) / 100 : 0.38 + ((x * 5) % 14) / 100)
+        .setAlpha(0.88 + ((x * 2) % 10) / 100)
+        .setDepth(tall ? -1 : -2);
+    }
+
+    for (let x = 90; x < endX; x += 140) {
+      if (x > jumpConfig.lipX - 20 && x < jumpConfig.landingStartX + 40) {
+        continue;
+      }
+      const surfaceY = this.forestSurfaceY(x);
+      this.add
+        .image(x + ((x * 5) % 20) - 10, surfaceY - 26, "snow-packed")
+        .setScale(0.26 + ((x * 7) % 16) / 100)
+        .setAlpha(0.84 + ((x * 3) % 12) / 100)
+        .setDepth(-3);
+    }
+  }
+
+  private forestSurfaceY(x: number): number {
+    if (x <= jumpConfig.lipX) {
+      return sampleRamp(Math.min(Math.max(x, jumpConfig.startX), jumpConfig.lipX), jumpConfig).y;
+    }
+    if (x < jumpConfig.landingStartX) {
+      const lip = sampleRamp(jumpConfig.lipX, jumpConfig).y;
+      const land = sampleLanding(jumpConfig.landingStartX, jumpConfig).y;
+      const t =
+        (x - jumpConfig.lipX) /
+        Math.max(1, jumpConfig.landingStartX - jumpConfig.lipX);
+      return lip + (land - lip) * t;
+    }
+    return sampleLanding(x, jumpConfig).y;
   }
 
   private placeJumpGapScenery(): void {
