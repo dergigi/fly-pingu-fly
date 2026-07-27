@@ -629,10 +629,12 @@ export class PlayScene extends Phaser.Scene {
     // Marks the far end of the landing hill before the village runout.
     const x = jumpConfig.landingEndX;
     const surface = sampleLanding(x, jumpConfig);
+    const flagScale =
+      (PENGUIN_FRAMES.ready.height * PENGUIN_SCALE) / 128;
     this.add
-      .image(x, surface.y + 6, "village-flag")
+      .image(x, surface.y + 4, "village-flag")
       .setOrigin(0.2, 1)
-      .setScale(2.1)
+      .setScale(flagScale)
       .setDepth(5);
   }
 
