@@ -405,7 +405,7 @@ export class MenuScene extends Phaser.Scene {
 
   private createPlayPrompt(): void {
     this.playPrompt = this.add
-      .text(0, 0, "press anything to play", {
+      .text(0, 0, "press any key to play", {
         fontFamily: PIXEL_FONT,
         fontSize: "14px",
         color: "#0b4f73",
