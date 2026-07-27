@@ -191,18 +191,12 @@ function stepRamp(
   }
 
   if (x >= config.lateBoundaryX) {
-    if (crouching) {
-      const lip = sampleRamp(config.lateBoundaryX, config);
-      const lipTangent = Math.hypot(1, lip.slope);
-      return {
-        ...next,
-        x: config.lateBoundaryX,
-        y: lip.y,
-        vx: speed / lipTangent,
-        vy: (speed * lip.slope) / lipTangent,
-      };
-    }
-    return launchFromQuality(next, config.minimumQuality, config);
+    // Crouch rides to the lip on purpose: launch at lip timing, never park forever.
+    // Without crouch, a missed press still gets the weak auto-jump.
+    const quality = crouching
+      ? takeoffQuality(config.lateBoundaryX, config)
+      : config.minimumQuality;
+    return launchFromQuality(next, quality, config);
   }
 
   return next;

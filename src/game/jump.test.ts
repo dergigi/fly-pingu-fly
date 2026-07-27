@@ -266,8 +266,7 @@ describe("jump tracer", () => {
     expect(tuckedFall.y).toBeLessThan(openFall.y);
   });
 
-  it("holds at the lip while crouching instead of auto-jumping", () => {
-    const lip = sampleRamp(jumpConfig.lateBoundaryX, jumpConfig);
+  it("launches from the lip while crouching instead of parking there", () => {
     const initial = {
       ...createInitialJumpState(jumpConfig),
       phase: "ramp",
@@ -277,17 +276,14 @@ describe("jump tracer", () => {
       distance: 0,
     } as RampState;
 
-    const held = stepJump(initial, null, FIXED_STEP, jumpConfig, true);
-    expect(held.phase).toBe("ramp");
-    expect(held.x).toBe(jumpConfig.lateBoundaryX);
-    expect(held.y).toBeCloseTo(lip.y, 8);
-    expect(held.speed).toBeGreaterThan(initial.speed);
+    const crouched = stepJump(initial, null, FIXED_STEP, jumpConfig, true);
+    expect(crouched.phase).toBe("flight");
+    expect(crouched.vx).toBeGreaterThan(0);
+    expect(crouched.vy).toBeLessThan(0);
 
-    const launched = stepJump(held, { pressedAtMs: 0 }, FIXED_STEP, jumpConfig, true);
-    expect(launched.phase).toBe("flight");
-
-    const auto = stepJump(held, null, FIXED_STEP, jumpConfig, false);
-    expect(auto.phase).toBe("flight");
+    const missed = stepJump(initial, null, FIXED_STEP, jumpConfig, false);
+    expect(missed.phase).toBe("flight");
+    expect(missed.vx).toBeLessThan(crouched.vx);
   });
 
   it("ignores takeoff presses before the takeoff zone", () => {
