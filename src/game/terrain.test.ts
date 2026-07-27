@@ -20,19 +20,25 @@ describe("terrain sampling", () => {
     });
   });
 
-  it("uses a smooth rounded downhill profile and clear takeoff section", () => {
+  it("uses a smooth rounded downhill profile and a bent takeoff kick", () => {
     const start = sampleRamp(jumpConfig.startX, jumpConfig);
     const middle = sampleRamp(
       (jumpConfig.startX + jumpConfig.takeoffStartX) / 2,
       jumpConfig,
     );
     const takeoff = sampleRamp(jumpConfig.takeoffStartX, jumpConfig);
+    const takeoffMiddle = sampleRamp(
+      (jumpConfig.takeoffStartX + jumpConfig.lipX) / 2,
+      jumpConfig,
+    );
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
 
     expect(start.slope).toBeCloseTo(jumpConfig.rampStartSlope, 12);
     expect(start.slope).toBeGreaterThan(middle.slope);
     expect(middle.slope).toBeGreaterThan(takeoff.slope);
-    expect(takeoff.slope).toBeCloseTo(jumpConfig.lipSlope, 12);
+    expect(takeoff.slope).toBeCloseTo(jumpConfig.takeoffEntrySlope, 12);
+    expect(takeoff.slope).toBeGreaterThan(lip.slope);
+    expect(takeoffMiddle.slope).not.toBeCloseTo(takeoff.slope, 2);
     expect(lip.slope).toBeCloseTo(jumpConfig.lipSlope, 12);
     expect(lip.y).toBeLessThan(takeoff.y);
   });

@@ -61,15 +61,20 @@ export function sampleRamp(
   assertFiniteCoordinate("ramp progress", progress);
 
   const x = Math.max(config.startX, Math.min(config.lipX, progress));
-  const takeoffY =
-    config.lipY -
-    (config.lipX - config.takeoffStartX) * config.lipSlope;
 
   if (x >= config.takeoffStartX) {
+    const takeoff = sampleHermite(
+      x,
+      config.takeoffStartX,
+      config.takeoffStartY,
+      config.takeoffEntrySlope,
+      config.lipX,
+      config.lipY,
+      config.lipSlope,
+    );
     return {
       x: progress,
-      y: takeoffY + (x - config.takeoffStartX) * config.lipSlope,
-      slope: config.lipSlope,
+      ...takeoff,
     };
   }
 
@@ -79,8 +84,8 @@ export function sampleRamp(
     config.startY,
     config.rampStartSlope,
     config.takeoffStartX,
-    takeoffY,
-    config.lipSlope,
+    config.takeoffStartY,
+    config.takeoffEntrySlope,
   );
 
   return {
