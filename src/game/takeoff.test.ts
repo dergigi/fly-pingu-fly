@@ -73,7 +73,7 @@ describe("takeoff quality", () => {
 
     for (const side of [early, late]) {
       for (let index = 1; index < side.length; index += 1) {
-        expect(side[index]).toBeLessThanOrEqual(side[index - 1]);
+        expect(side[index]!).toBeLessThanOrEqual(side[index - 1]!);
       }
     }
     expect(early.at(-1)).toBe(config.minimumQuality);
@@ -89,7 +89,11 @@ describe("takeoff quality", () => {
       expect(flight.phase).toBe("flight");
       expect(flight.vx).toBeGreaterThan(0);
       expect(flight.vy).toBeLessThan(0);
-      expect(Object.values(flight).every(Number.isFinite)).toBe(true);
+      expect(
+        Object.values(flight)
+          .filter((value): value is number => typeof value === "number")
+          .every(Number.isFinite),
+      ).toBe(true);
     },
   );
 });

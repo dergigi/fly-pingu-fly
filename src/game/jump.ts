@@ -1,4 +1,5 @@
-import type { JumpConfig } from "./config";
+import { assertValidJumpConfig, type JumpConfig } from "./config";
+import { launchFromQuality, takeoffQuality } from "./takeoff";
 
 export type JumpPhase = "ramp" | "flight" | "slide" | "resting";
 export type PressCommand = { pressedAtMs: number } | null;
@@ -13,11 +14,11 @@ type MotionState = Readonly<{
   airtime: number;
 }>;
 
-export type JumpState =
-  | (MotionState & { phase: "ramp" })
-  | (MotionState & { phase: "flight" })
-  | (MotionState & { phase: "slide" })
-  | (MotionState & { phase: "resting" });
+export type RampState = MotionState & { phase: "ramp" };
+export type FlightState = MotionState & { phase: "flight" };
+export type SlideState = MotionState & { phase: "slide" };
+export type RestingState = MotionState & { phase: "resting" };
+export type JumpState = RampState | FlightState | SlideState | RestingState;
 
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
@@ -32,37 +33,8 @@ function landingY(x: number, config: JumpConfig): number {
   );
 }
 
-function takeoffQuality(x: number, config: JumpConfig): number {
-  const span = x <= config.lipX ? config.earlySpan : config.lateSpan;
-  const normalized = clamp01(Math.abs(x - config.lipX) / span);
-  const smoothstep = normalized * normalized * (3 - 2 * normalized);
-
-  return (
-    config.minimumQuality +
-    (1 - config.minimumQuality) * (1 - smoothstep)
-  );
-}
-
-function launch(
-  state: JumpState & { phase: "ramp" },
-  quality: number,
-  config: JumpConfig,
-): JumpState {
-  return {
-    ...state,
-    phase: "flight",
-    vx:
-      config.minimumLaunchX +
-      (config.maximumLaunchX - config.minimumLaunchX) * quality,
-    vy: -(
-      config.minimumLaunchY +
-      (config.maximumLaunchY - config.minimumLaunchY) * quality
-    ),
-    speed: 0,
-  };
-}
-
 export function createInitialJumpState(config: JumpConfig): JumpState {
+  assertValidJumpConfig(config);
   return {
     phase: "ramp",
     x: config.startX,
@@ -81,6 +53,7 @@ export function stepJump(
   dt: number,
   config: JumpConfig,
 ): JumpState {
+  assertValidJumpConfig(config);
   if (!Number.isFinite(dt) || dt <= 0) {
     return state;
   }
@@ -104,7 +77,7 @@ function stepRamp(
   config: JumpConfig,
 ): JumpState {
   if (command !== null && Number.isFinite(command.pressedAtMs)) {
-    return launch(state, takeoffQuality(state.x, config), config);
+    return launchFromQuality(state, takeoffQuality(state.x, config), config);
   }
 
   const speed = state.speed + config.rampAcceleration * dt;
@@ -120,7 +93,7 @@ function stepRamp(
   };
 
   if (x >= config.lateBoundaryX) {
-    return launch(next, config.minimumQuality, config);
+    return launchFromQuality(next, config.minimumQuality, config);
   }
 
   return next;
