@@ -740,8 +740,8 @@ export class PlayScene extends Phaser.Scene {
       }>;
     }> = [
       {
-        // Small village.
-        anchorX: 5600,
+        // Small village, a bit further into the runout.
+        anchorX: 6400,
         props: [
           { key: "lantern-post", dx: -140, scale: 0.34, sink: 4, depth: 3 },
           { key: "igloo", dx: -70, scale: 0.4, sink: 6, depth: 3 },
