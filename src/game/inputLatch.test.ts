@@ -31,6 +31,16 @@ describe("InputLatch", () => {
     expect(latch.tryQueuePress(200)).toBe(false);
   });
 
+  it("accepts a new press after reset", () => {
+    const latch = new InputLatch();
+
+    expect(latch.tryQueuePress(100)).toBe(true);
+    latch.seal();
+    latch.reset();
+    expect(latch.tryQueuePress(200)).toBe(true);
+    expect(latch.consumeThrough(200)).toEqual({ pressedAtMs: 200 });
+  });
+
   it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
     "rejects non-finite timestamp %s",
     (timestamp) => {

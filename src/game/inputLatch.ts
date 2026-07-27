@@ -35,4 +35,9 @@ export class InputLatch {
     this.pending = null;
     this.sealed = true;
   }
+
+  reset(): void {
+    this.pending = null;
+    this.sealed = false;
+  }
 }

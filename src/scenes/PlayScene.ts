@@ -60,6 +60,7 @@ export class PlayScene extends Phaser.Scene {
   private scoreRecorded = false;
   private takeoffKeys: Phaser.Input.Keyboard.Key[] = [];
   private crouchKey: Phaser.Input.Keyboard.Key | null = null;
+  private resetKey: Phaser.Input.Keyboard.Key | null = null;
   private takeoffPosePending = false;
 
   constructor() {
@@ -127,6 +128,10 @@ export class PlayScene extends Phaser.Scene {
       this.queuePress();
     }
 
+    if (this.resetKey !== null && Phaser.Input.Keyboard.JustDown(this.resetKey)) {
+      this.resetRun();
+    }
+
     this.accumulator += Math.min(deltaMs / 1000, MAX_FRAME_DELTA);
     let steps = 0;
 
@@ -190,6 +195,7 @@ export class PlayScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.ENTER,
       Phaser.Input.Keyboard.KeyCodes.UP,
       Phaser.Input.Keyboard.KeyCodes.DOWN,
+      Phaser.Input.Keyboard.KeyCodes.R,
     ]);
 
     this.takeoffKeys = [
@@ -198,6 +204,18 @@ export class PlayScene extends Phaser.Scene {
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
     ];
     this.crouchKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+    this.resetKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+  }
+
+  private resetRun(): void {
+    this.jumpState = createInitialJumpState(jumpConfig);
+    this.inputLatch.reset();
+    this.accumulator = 0;
+    this.scoreRecorded = false;
+    this.takeoffPosePending = false;
+    this.penguin.setRotation(0);
+    this.cameras.main.centerOn(this.jumpState.x + 180, this.jumpState.y + 80);
+    this.renderSnapshot();
   }
 
   private isCrouching(): boolean {
