@@ -588,6 +588,13 @@ export class PlayScene extends Phaser.Scene {
       { key: "rock-cluster" as const, x: tipX + 34, y: tipY + 95, scale: 1.05, depth: 3 },
       { key: "rock-cluster" as const, x: tipX - 90, y: tipY + 280, scale: 1.15, depth: 2 },
       { key: "geyser" as const, x: tipX + 70, y: tipY + 320, scale: 0.85, depth: 2 },
+      // Lower-third seam plugs (the remaining blue peek).
+      { key: "rock-cluster" as const, x: tipX - 20, y: tipY + 520, scale: 1.2, depth: 3 },
+      { key: "rock-cluster" as const, x: tipX + 45, y: tipY + 560, scale: 1.15, depth: 3 },
+      { key: "geyser" as const, x: tipX + 10, y: tipY + 600, scale: 0.95, depth: 3 },
+      { key: "rock-cluster" as const, x: tipX - 55, y: tipY + 640, scale: 1.1, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX + 80, y: tipY + 680, scale: 1.05, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX, y: tipY + 720, scale: 1.25, depth: 3 },
       { key: "rock-cluster" as const, x: tipX - 160, y: baseY - 80, scale: 1.35, depth: 2 },
       { key: "rock-cluster" as const, x: tipX + 40, y: baseY - 40, scale: 1.45, depth: 3 },
       { key: "rock-cluster" as const, x: tipX + 180, y: baseY - 100, scale: 1.25, depth: 2 },
@@ -595,6 +602,26 @@ export class PlayScene extends Phaser.Scene {
     ];
     for (const piece of anchors) {
       plant(piece.x, piece.y, piece.key, piece.scale, piece.depth);
+    }
+
+    // Extra dense pass only through the lower third of the mountain.
+    const lowerTop = tipY + (baseY - tipY) * 0.55;
+    const lowerBottom = tipY + (baseY - tipY) * 0.88;
+    for (let y = lowerTop; y <= lowerBottom; y += 42) {
+      const t = (y - tipY) / Math.max(1, baseY - tipY);
+      const halfW = tipHalfW + (baseHalfW - tipHalfW) * t * t * 0.7;
+      for (let x = tipX - halfW; x <= tipX + halfW; x += 44) {
+        const n = this.forestNoise(x + y, 40 + (i % 6));
+        plant(
+          x + (n - 0.5) * 12,
+          y + (n - 0.5) * 14,
+          n > 0.7 ? "geyser" : "rock-cluster",
+          0.55 + n * 0.45,
+          3,
+          n > 0.5,
+        );
+        i += 1;
+      }
     }
   }
 
