@@ -374,20 +374,6 @@ export class MenuScene extends Phaser.Scene {
       .setDepth(11)
       .setScrollFactor(0)
       .setName("title");
-
-    this.add
-      .text(0, 0, "SKI JUMP", {
-        fontFamily: PIXEL_FONT,
-        fontSize: "14px",
-        color: "#0b4f73",
-        align: "center",
-        stroke: "#f4fbff",
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5)
-      .setDepth(11)
-      .setScrollFactor(0)
-      .setName("subtitle");
   }
 
   private createPenguin(): void {
@@ -490,9 +476,6 @@ export class MenuScene extends Phaser.Scene {
     const shadow = this.children.getByName(
       "title-shadow",
     ) as Phaser.GameObjects.Text | null;
-    const subtitle = this.children.getByName(
-      "subtitle",
-    ) as Phaser.GameObjects.Text | null;
     const leaderboard = this.children.getByName(
       "leaderboard",
     ) as Phaser.GameObjects.Text | null;
@@ -514,7 +497,6 @@ export class MenuScene extends Phaser.Scene {
       title.setPosition(cx, titleY);
       shadow.setPosition(cx + 4, titleY + 4);
     }
-    subtitle?.setPosition(cx, titleY + titleSize * 1.15);
     leaderboard?.setPosition(w - 28, 18);
 
     this.penguin.setPosition(cx, this.groundY);
