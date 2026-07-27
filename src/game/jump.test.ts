@@ -4,9 +4,12 @@ import { FIXED_STEP, jumpConfig } from "./config";
 import {
   createInitialJumpState,
   stepJump,
+  type FlightState,
+  type RampState,
   type JumpState,
   type PressCommand,
 } from "./jump";
+import { launchFromQuality, takeoffQuality } from "./takeoff";
 
 type TraceResult = {
   takeoffVelocity: { vx: number; vy: number };
@@ -101,12 +104,44 @@ describe("jump tracer", () => {
     expect(result.firstContact.airtime).toBeGreaterThan(0);
   });
 
+  it("accepts an early press immediately at minimum quality", () => {
+    const initial = createInitialJumpState(jumpConfig) as RampState;
+    const launched = stepJump(
+      initial,
+      { pressedAtMs: 0 },
+      FIXED_STEP,
+      jumpConfig,
+    ) as FlightState;
+
+    expect(launched.phase).toBe("flight");
+    expect(takeoffQuality(initial.x, jumpConfig)).toBe(
+      jumpConfig.minimumQuality,
+    );
+    expect(launched).toEqual(
+      launchFromQuality(initial, jumpConfig.minimumQuality, jumpConfig),
+    );
+  });
+
   it("uses the shared weak launch when no command arrives", () => {
     const result = trace(60, null);
 
     expect(result.phases).toEqual(["ramp", "flight", "slide", "resting"]);
     expect(result.firstContact.airtime).toBeGreaterThan(0);
     expect(result.resting.phase).toBe("resting");
+  });
+
+  it("rejects malformed config before simulation starts", () => {
+    expect(() =>
+      createInitialJumpState({ ...jumpConfig, gravity: Number.NaN }),
+    ).toThrow(RangeError);
+    expect(() =>
+      stepJump(
+        createInitialJumpState(jumpConfig),
+        null,
+        FIXED_STEP,
+        { ...jumpConfig, earlySpan: 0 },
+      ),
+    ).toThrow(RangeError);
   });
 
   it.each([30, 60, 120, 144])(
