@@ -759,7 +759,7 @@ export class PlayScene extends Phaser.Scene {
         anchorX: 6400,
         props: [
           { key: "snow-village", dx: 60, scale: 0.95, sink: 140, depth: 14 },
-          { key: "snow-storage", dx: 320, scale: 0.82, sink: 128, depth: 14 },
+          { key: "snow-storage", dx: 320, scale: 1.64, sink: 128, depth: 14 },
           { key: "wood-pile", dx: 520, scale: 0.55, sink: 118, depth: 13 },
           { key: "hot-spring", dx: 920, scale: 0.64, sink: 132, depth: 13 },
         ],
