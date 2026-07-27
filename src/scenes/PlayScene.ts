@@ -119,6 +119,7 @@ export class PlayScene extends Phaser.Scene {
     const keys = [
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
     ];
 
     for (const key of keys) {
