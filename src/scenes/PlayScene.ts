@@ -393,16 +393,27 @@ export class PlayScene extends Phaser.Scene {
       if (point.x > jumpConfig.lipX) {
         continue;
       }
-      for (let layer = 0; layer < 2; layer += 1) {
+      const dropT = Math.min(
+        1,
+        Math.max(
+          0,
+          (point.y - jumpConfig.startY) /
+            Math.max(1, jumpConfig.lipY - jumpConfig.startY),
+        ),
+      );
+      // Keep mist lighter at the deepest part of the inrun.
+      const density = 1 - dropT * 0.72;
+      const layers = dropT > 0.55 ? 1 : 2;
+      for (let layer = 0; layer < layers; layer += 1) {
         const n = this.forestNoise(point.x + layer * 37, 9 + layer);
         const baseX = point.x + (n - 0.5) * 40;
         const baseY = point.y - (18 + layer * 10 + n * 10);
-        const baseAlpha = 0.1 + n * 0.08;
+        const baseAlpha = (0.1 + n * 0.08) * density;
         const image = this.add
           .image(baseX, baseY, "ramp-fog-wisp")
           .setDepth(6)
           .setAlpha(baseAlpha)
-          .setScale(0.7 + n * 0.55 + layer * 0.15);
+          .setScale((0.7 + n * 0.55 + layer * 0.15) * (0.75 + 0.25 * density));
         this.fogWisps.push({
           image,
           baseX,
