@@ -25,7 +25,8 @@ is not the selected character and must not be used as a substitute.
   `snow-village.webp`, `snow-walled-storage.webp`, `wood-pile-snow-capped.webp`,
   and `snowman-carrot-nose-coal.webp` at the village entrance.
 - The far end of the runout is rocky: `snow-covered-rock-cluster.webp`,
-  `snow-covered-geyser.webp`, `snow-pile.webp`, and `ice-watchtower-spire.webp`.
+  `snow-covered-geyser.webp`, and `snow-pile.webp`.
+- `ice-watchtower-spire.webp` sits on the late runout slope as the course stop.
 - `village-flag.png` marks the takeoff lip and the far end of the landing hill.
 
 All other raster scenery in this directory remains unused. Fantasy crystal
