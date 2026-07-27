@@ -31,7 +31,7 @@ export const PENGUIN_FRAMES: Readonly<Record<PenguinPose, PenguinFrame>> =
       width: 66,
       height: 78,
       contactX: 33,
-      contactY: 72,
+      contactY: 67,
     },
     drop: {
       x: 396,
@@ -96,7 +96,7 @@ export const PENGUIN_FRAMES: Readonly<Record<PenguinPose, PenguinFrame>> =
       width: 66,
       height: 78,
       contactX: 33,
-      contactY: 72,
+      contactY: 67,
     },
   });
 

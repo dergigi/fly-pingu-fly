@@ -32,6 +32,8 @@ const CAMERA_TOP_PAD = 140;
 const PENGUIN_SCALE = 0.3825;
 const PENGUIN_CROUCH_SCALE_Y = 0.72;
 const LOG_SCALE = 0.36;
+/** Image-center offset so the snow seat sits under the ready-pose feet. */
+const LOG_READY_OFFSET_Y = 12;
 
 export class PlayScene extends Phaser.Scene {
   private jumpState: JumpState = createInitialJumpState(jumpConfig);
@@ -204,7 +206,7 @@ export class PlayScene extends Phaser.Scene {
     const scenery = this.add.graphics();
     scenery.fillStyle(0xffffff);
     scenery.beginPath();
-    scenery.moveTo(0, jumpConfig.readyY + 18);
+    scenery.moveTo(0, jumpConfig.readyY + LOG_READY_OFFSET_Y + 1);
     scenery.lineTo(jumpConfig.startX, jumpConfig.startY);
     for (const point of sampleRampCurve(jumpConfig, 8)) {
       scenery.lineTo(point.x, point.y);
@@ -253,7 +255,7 @@ export class PlayScene extends Phaser.Scene {
     scenery.lineBetween(lip.x + 4, lip.y + 8, lip.x + 4, lip.y + 34);
 
     this.add
-      .image(jumpConfig.readyX + 4, jumpConfig.readyY + 17, "fallen-log")
+      .image(jumpConfig.readyX + 4, jumpConfig.readyY + LOG_READY_OFFSET_Y, "fallen-log")
       .setScale(LOG_SCALE)
       .setDepth(4);
 
