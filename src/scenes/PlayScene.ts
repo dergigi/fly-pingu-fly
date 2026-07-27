@@ -127,10 +127,6 @@ export class PlayScene extends Phaser.Scene {
     );
     this.load.image("igloo", "/assets/sprites/igloo-snow-block-dome.webp");
     this.load.image(
-      "snowman",
-      "/assets/sprites/snowman-carrot-nose-coal.webp",
-    );
-    this.load.image(
       "lantern-post",
       "/assets/sprites/lantern-post-snow-capped.webp",
     );
@@ -651,11 +647,11 @@ export class PlayScene extends Phaser.Scene {
       "snow-village": 214 / 256,
       "snow-storage": 205 / 256,
       "hot-spring": 224 / 256,
-      snowman: 231 / 256,
       watchtower: 230 / 256,
+      geyser: 225 / 256,
     };
 
-    // Clustered little village along the runout, not a scattered prop line.
+    // Compact village shortly after the far-landing mark, then stones at the end.
     const clusters: ReadonlyArray<{
       anchorX: number;
       props: ReadonlyArray<{
@@ -667,62 +663,31 @@ export class PlayScene extends Phaser.Scene {
       }>;
     }> = [
       {
-        // Trail markers leading into town.
-        anchorX: 5450,
+        // Small village.
+        anchorX: 5600,
         props: [
-          { key: "rock-cluster", dx: -70, scale: 0.34, sink: 10, depth: 2 },
-          { key: "snow-pile", dx: 10, scale: 0.28, sink: 8, depth: 2 },
-          { key: "lantern-post", dx: 70, scale: 0.34, sink: 4, depth: 3 },
+          { key: "lantern-post", dx: -140, scale: 0.34, sink: 4, depth: 3 },
+          { key: "igloo", dx: -70, scale: 0.4, sink: 6, depth: 3 },
+          { key: "snow-village", dx: 40, scale: 0.55, sink: 12, depth: 3 },
+          { key: "snow-storage", dx: 150, scale: 0.38, sink: 10, depth: 3 },
+          { key: "wood-pile", dx: 220, scale: 0.3, sink: 8, depth: 2 },
+          { key: "hot-spring", dx: 290, scale: 0.36, sink: 12, depth: 2 },
+          { key: "lantern-post", dx: 350, scale: 0.32, sink: 4, depth: 3 },
         ],
       },
       {
-        // Homestead: igloo yard.
-        anchorX: 5850,
+        // Rocky end of the runout.
+        anchorX: 7700,
         props: [
-          { key: "wood-pile", dx: -90, scale: 0.32, sink: 8, depth: 2 },
-          { key: "igloo", dx: 0, scale: 0.46, sink: 6, depth: 3 },
-          { key: "snowman", dx: 85, scale: 0.34, sink: 6, depth: 3 },
-          { key: "snow-pile", dx: 145, scale: 0.24, sink: 8, depth: 2 },
-        ],
-      },
-      {
-        // Main square: houses + storehouse.
-        anchorX: 6400,
-        props: [
-          { key: "lantern-post", dx: -150, scale: 0.36, sink: 4, depth: 3 },
-          { key: "snow-village", dx: -60, scale: 0.58, sink: 12, depth: 3 },
-          { key: "snow-storage", dx: 90, scale: 0.42, sink: 10, depth: 3 },
-          { key: "wood-pile", dx: 170, scale: 0.3, sink: 8, depth: 2 },
-          { key: "lantern-post", dx: 230, scale: 0.34, sink: 4, depth: 3 },
-        ],
-      },
-      {
-        // Hot-spring courtyard.
-        anchorX: 6950,
-        props: [
-          { key: "rock-cluster", dx: -80, scale: 0.3, sink: 10, depth: 2 },
-          { key: "hot-spring", dx: 0, scale: 0.44, sink: 14, depth: 2 },
-          { key: "snow-pile", dx: 75, scale: 0.26, sink: 8, depth: 2 },
-          { key: "snowman", dx: 130, scale: 0.3, sink: 6, depth: 3 },
-        ],
-      },
-      {
-        // Second house row.
-        anchorX: 7350,
-        props: [
-          { key: "snow-village", dx: -40, scale: 0.5, sink: 12, depth: 3 },
-          { key: "snow-storage", dx: 95, scale: 0.36, sink: 10, depth: 3 },
-          { key: "wood-pile", dx: 165, scale: 0.28, sink: 8, depth: 2 },
-        ],
-      },
-      {
-        // Watchtower at the far edge of town.
-        anchorX: 7800,
-        props: [
-          { key: "rock-cluster", dx: -100, scale: 0.32, sink: 10, depth: 2 },
-          { key: "watchtower", dx: 0, scale: 0.7, sink: 8, depth: 4 },
-          { key: "lantern-post", dx: 70, scale: 0.34, sink: 4, depth: 3 },
-          { key: "snow-pile", dx: 130, scale: 0.28, sink: 8, depth: 2 },
+          { key: "rock-cluster", dx: -180, scale: 0.4, sink: 10, depth: 2 },
+          { key: "snow-pile", dx: -110, scale: 0.3, sink: 8, depth: 2 },
+          { key: "rock-cluster", dx: -40, scale: 0.48, sink: 12, depth: 2 },
+          { key: "geyser", dx: 40, scale: 0.42, sink: 10, depth: 2 },
+          { key: "watchtower", dx: 120, scale: 0.62, sink: 8, depth: 4 },
+          { key: "rock-cluster", dx: 210, scale: 0.36, sink: 10, depth: 2 },
+          { key: "snow-pile", dx: 280, scale: 0.32, sink: 8, depth: 2 },
+          { key: "rock-cluster", dx: 350, scale: 0.44, sink: 12, depth: 2 },
+          { key: "snow-pile", dx: 420, scale: 0.26, sink: 8, depth: 2 },
         ],
       },
     ];
