@@ -529,13 +529,12 @@ export class PlayScene extends Phaser.Scene {
   private placeJumpGapScenery(): void {
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
     const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
-    // Keep rubble tops under the takeoff/landing edges; only build downward.
     const rampCeiling = Math.min(lip.y, land.y) + 40;
-    const left = jumpConfig.lipX - 90;
-    const right = jumpConfig.landingStartX + 130;
-    const top = rampCeiling + 150;
-    const bottom = Math.max(lip.y, land.y) + 560;
-    const gapCenterX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
+    const tipX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
+    const tipY = rampCeiling + 170;
+    const baseY = WORLD_HEIGHT + 20;
+    const tipHalfW = 48;
+    const baseHalfW = 320;
 
     const plant = (
       x: number,
@@ -545,9 +544,9 @@ export class PlayScene extends Phaser.Scene {
       depth: number,
       flipX = false,
     ): void => {
-      const baseY = Math.max(y, rampCeiling + 256 * scale);
+      const base = Math.max(y, rampCeiling + 256 * scale);
       this.add
-        .image(x, baseY, key)
+        .image(x, base, key)
         .setOrigin(0.5, 1)
         .setScale(scale)
         .setFlipX(flipX)
@@ -555,46 +554,45 @@ export class PlayScene extends Phaser.Scene {
     };
 
     let i = 0;
-    for (let y = top; y <= bottom; y += 32) {
-      for (let x = left; x <= right; x += 34) {
+    for (let y = tipY; y <= baseY; y += 50) {
+      const t = (y - tipY) / Math.max(1, baseY - tipY);
+      // Widen faster near the bottom so the silhouette reads as a mountain.
+      const halfW = tipHalfW + (baseHalfW - tipHalfW) * t * t;
+      const step = 56 + Math.floor(t * 18);
+      for (let x = tipX - halfW; x <= tipX + halfW; x += step) {
         const n = this.forestNoise(x * 2 + y, 20 + (i % 9));
+        // Leave gaps so the pile is rocky, not a solid brick.
+        if (n < 0.22 + t * 0.08) {
+          i += 1;
+          continue;
+        }
+        const scale = 0.38 + n * 0.55 + t * 0.2;
         plant(
-          x + (n - 0.5) * 22,
-          y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 18,
-          n > 0.68 ? "geyser" : "rock-cluster",
-          0.42 + n * 0.78,
+          x + (n - 0.5) * 18,
+          y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 22,
+          n > 0.78 ? "geyser" : "rock-cluster",
+          scale,
           n > 0.55 ? 2 : 1,
-          n > 0.52,
+          n > 0.5,
         );
         i += 1;
       }
     }
 
-    for (let y = top + 16; y <= bottom; y += 36) {
-      for (let x = left + 17; x <= right; x += 38) {
-        const n = this.forestNoise(x + y * 3, 30 + (i % 7));
-        plant(
-          x + (n - 0.5) * 16,
-          y,
-          n > 0.75 ? "geyser" : "rock-cluster",
-          0.5 + n * 0.7,
-          2,
-          n < 0.4,
-        );
-        i += 1;
-      }
-    }
-
+    // A few larger pieces: tip plugs the gap, base anchors the mountain.
     const anchors = [
-      { key: "rock-cluster" as const, x: gapCenterX - 40, y: top + 80, scale: 1.15 },
-      { key: "geyser" as const, x: gapCenterX + 10, y: top + 50, scale: 0.95 },
-      { key: "rock-cluster" as const, x: gapCenterX + 55, y: top + 120, scale: 1.2 },
-      { key: "rock-cluster" as const, x: gapCenterX - 10, y: top + 200, scale: 1.3 },
-      { key: "geyser" as const, x: gapCenterX - 55, y: top + 160, scale: 0.85 },
-      { key: "rock-cluster" as const, x: gapCenterX + 30, y: top + 280, scale: 1.1 },
+      { key: "geyser" as const, x: tipX, y: tipY + 20, scale: 0.9, depth: 3 },
+      { key: "rock-cluster" as const, x: tipX - 28, y: tipY + 70, scale: 0.95, depth: 3 },
+      { key: "rock-cluster" as const, x: tipX + 34, y: tipY + 95, scale: 1.05, depth: 3 },
+      { key: "rock-cluster" as const, x: tipX - 90, y: tipY + 280, scale: 1.15, depth: 2 },
+      { key: "geyser" as const, x: tipX + 70, y: tipY + 320, scale: 0.85, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX - 160, y: baseY - 80, scale: 1.35, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX + 40, y: baseY - 40, scale: 1.45, depth: 3 },
+      { key: "rock-cluster" as const, x: tipX + 180, y: baseY - 100, scale: 1.25, depth: 2 },
+      { key: "geyser" as const, x: tipX - 40, y: baseY - 160, scale: 1.05, depth: 2 },
     ];
     for (const piece of anchors) {
-      plant(piece.x, piece.y, piece.key, piece.scale, 3);
+      plant(piece.x, piece.y, piece.key, piece.scale, piece.depth);
     }
   }
 
