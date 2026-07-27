@@ -586,10 +586,10 @@ export class PlayScene extends Phaser.Scene {
     const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
     const gapLine = Math.min(lip.y, land.y);
     const tipX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
-    // Brown tip sits in the air gap; black rocks stay under it.
-    const tipScale = 1.08;
+    // All-black rock pyramid with the peak filling into the jump gap.
+    const tipScale = 1.05;
     const tipBaseY = gapLine - 20 + 256 * tipScale;
-    const rockCeiling = tipBaseY - 20;
+    const rockCeiling = tipBaseY - 10;
     const tipY = rockCeiling;
     const baseY = WORLD_HEIGHT + 20;
     const tipHalfW = 28;
@@ -610,6 +610,13 @@ export class PlayScene extends Phaser.Scene {
         .setFlipX(flipX)
         .setDepth(depth);
     };
+
+    // Black peak first so the pyramid points into the gap.
+    this.add
+      .image(tipX, tipBaseY, "rock-cluster")
+      .setOrigin(0.5, 1)
+      .setScale(tipScale)
+      .setDepth(4);
 
     let i = 0;
     for (let y = tipY + 40; y <= baseY; y += 44) {
@@ -671,13 +678,6 @@ export class PlayScene extends Phaser.Scene {
         i += 1;
       }
     }
-
-    // Plant the brown peak last so it stays visible in the jump gap.
-    this.add
-      .image(tipX, tipBaseY, "geyser")
-      .setOrigin(0.5, 1)
-      .setScale(tipScale)
-      .setDepth(4);
   }
 
   private placeFarLandingFlag(): void {
