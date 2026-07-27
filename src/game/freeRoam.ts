@@ -83,12 +83,7 @@ export function stepFreeRoam(
   const minX = config.minX + config.margin;
   const maxX = Math.max(minX, config.maxX - config.margin);
 
-  if (!grounded) {
-    vy += config.gravity * dt;
-  }
-
   x += vx * dt;
-  y += vy * dt;
 
   if (x < minX) {
     x = minX;
@@ -99,6 +94,26 @@ export function stepFreeRoam(
     vx = -Math.abs(vx) * 0.35;
     facing = -1;
   }
+
+  if (grounded) {
+    // Stick to the surface so downhill runs do not pop airborne for a frame.
+    const ground = groundAt(x);
+    y = ground.y;
+    vy = 0;
+    if (Math.abs(vx) > config.stopSpeed) {
+      const sign = Math.sign(vx);
+      vx -= sign * config.slideFriction * dt;
+      if (Math.sign(vx) !== sign) {
+        vx = 0;
+      }
+    } else {
+      vx = 0;
+    }
+    return { x, y, vx, vy, facing, grounded: true };
+  }
+
+  vy += config.gravity * dt;
+  y += vy * dt;
 
   const ground = groundAt(x);
   if (y >= ground.y) {
@@ -114,14 +129,12 @@ export function stepFreeRoam(
     } else {
       vx = 0;
     }
-  } else {
-    grounded = false;
   }
 
   return { x, y, vx, vy, facing, grounded };
 }
 
-export type FreeRoamPose = "ready" | "takeoff" | "flight" | "slide";
+export type FreeRoamPose = "ready" | "takeoff" | "flight";
 
 export function poseForFreeRoam(
   state: FreeRoamState,
@@ -130,8 +143,9 @@ export function poseForFreeRoam(
   if (!state.grounded) {
     return state.vy < 0 ? "takeoff" : "flight";
   }
+  // Match the scored jump: keep the flight pose while skimming the snow.
   if (Math.abs(state.vx) > stopSpeed) {
-    return "slide";
+    return "flight";
   }
   return "ready";
 }

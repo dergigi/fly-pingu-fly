@@ -1225,10 +1225,18 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
     const pose = poseForFreeRoam(this.roam);
-    this.applyPose(pose);
-    this.penguin.setPosition(this.roam.x, this.roam.y);
-    this.penguin.setFlipX(this.roam.facing > 0);
-    this.penguin.setScale(PENGUIN_SCALE);
+    const frame = PENGUIN_FRAMES[pose];
+    // Sheet faces left. Facing right uses flipX; mirror the contact origin with it.
+    const originX =
+      this.roam.facing > 0
+        ? 1 - frame.contactX / frame.width
+        : frame.contactX / frame.width;
+    this.penguin
+      .setFrame(pose)
+      .setOrigin(originX, frame.contactY / frame.height)
+      .setPosition(this.roam.x, this.roam.y)
+      .setFlipX(this.roam.facing > 0)
+      .setScale(PENGUIN_SCALE);
     const stats = jumpHudStats(this.jumpState);
     this.distanceText.setText(formatDistanceHud(stats));
     this.leaderboardText.setText(formatLeaderboard(this.leaderboard));
@@ -1236,7 +1244,14 @@ export class PlayScene extends Phaser.Scene {
     const surface = this.worldSurface(this.roam.x);
     const rotation = this.roam.grounded
       ? Math.atan(surface.slope)
-      : Phaser.Math.Clamp(Math.atan2(this.roam.vy, this.roam.vx), -0.65, 0.65);
+      : Phaser.Math.Clamp(
+          Math.atan2(
+            this.roam.vy,
+            Math.max(40, Math.abs(this.roam.vx)) * this.roam.facing,
+          ),
+          -0.65,
+          0.65,
+        );
     this.penguin.setRotation(rotation);
   }
 }

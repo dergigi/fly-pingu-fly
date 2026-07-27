@@ -69,6 +69,26 @@ describe("free roam hop/slide", () => {
         ...createFreeRoamState(0, 0, 1),
         vx: 80,
       }),
-    ).toBe("slide");
+    ).toBe("flight");
+  });
+
+  it("stays stuck to a descending slope instead of popping airborne", () => {
+    let state = createFreeRoamState(100, 200, 1);
+    state = tryFreeRoamJump(state, config);
+    // Land with rightward speed on a downhill that drops as x grows.
+    state = {
+      ...state,
+      x: 100,
+      y: 200,
+      vx: 220,
+      vy: 0,
+      grounded: true,
+    };
+
+    const downhill = (x: number) => ({ y: 200 + (x - 100) * 0.4, slope: 0.4 });
+    const next = stepFreeRoam(state, 1 / 60, config, downhill);
+    expect(next.grounded).toBe(true);
+    expect(next.y).toBeCloseTo(downhill(next.x).y, 8);
+    expect(next.x).toBeGreaterThan(state.x);
   });
 });

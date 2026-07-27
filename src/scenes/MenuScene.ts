@@ -207,12 +207,16 @@ export class MenuScene extends Phaser.Scene {
   private renderPenguin(): void {
     const pose = poseForFreeRoam(this.roam);
     const frame = PENGUIN_FRAMES[pose];
+    const originX =
+      this.roam.facing > 0
+        ? 1 - frame.contactX / frame.width
+        : frame.contactX / frame.width;
     this.penguin
       .setFrame(pose)
-      .setOrigin(frame.contactX / frame.width, frame.contactY / frame.height)
+      .setOrigin(originX, frame.contactY / frame.height)
       .setPosition(this.roam.x, this.roam.y)
-      // Sheet faces left; flipX true shows facing right.
-      .setFlipX(this.roam.facing > 0);
+      .setFlipX(this.roam.facing > 0)
+      .setRotation(0);
   }
 
   private touchesFlag(): boolean {
