@@ -105,6 +105,26 @@ export class PlayScene extends Phaser.Scene {
       "/assets/sprites/snow-covered-fallen-log.webp",
     );
     this.load.image("snow-village", "/assets/sprites/snow-village.webp");
+    this.load.image(
+      "snow-storage",
+      "/assets/sprites/snow-walled-storage.webp",
+    );
+    this.load.image(
+      "wood-pile",
+      "/assets/sprites/wood-pile-snow-capped.webp",
+    );
+    this.load.image(
+      "rock-cluster",
+      "/assets/sprites/snow-covered-rock-cluster.webp",
+    );
+    this.load.image(
+      "hot-spring",
+      "/assets/sprites/snow-covered-hot-spring.webp",
+    );
+    this.load.image(
+      "watchtower",
+      "/assets/sprites/ice-watchtower-spire.webp",
+    );
     this.load.image("igloo", "/assets/sprites/igloo-snow-block-dome.webp");
     this.load.image(
       "snowman",
@@ -514,21 +534,31 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeRunoutScenery(): void {
+    // Little snow village where the penguin comes to rest on the runout.
     const props = [
-      { key: "snow-pile", x: 5150, scale: 0.32, sink: 20, depth: 2 },
-      { key: "snow-pile", x: 5700, scale: 0.28, sink: 18, depth: 2 },
-      { key: "igloo", x: 5400, scale: 0.42, sink: 48, depth: 3 },
-      { key: "snowman", x: 6100, scale: 0.38, sink: 44, depth: 3 },
-      { key: "lantern-post", x: 6450, scale: 0.4, sink: 52, depth: 3 },
-      { key: "snow-village", x: 7000, scale: 0.55, sink: 58, depth: 3 },
-      { key: "snow-pile", x: 7550, scale: 0.34, sink: 22, depth: 2 },
-      { key: "snow-pile", x: 8000, scale: 0.3, sink: 18, depth: 2 },
+      { key: "rock-cluster", x: 5280, scale: 0.36, sink: 10, depth: 2 },
+      { key: "snow-pile", x: 5420, scale: 0.28, sink: 8, depth: 2 },
+      { key: "igloo", x: 5560, scale: 0.4, sink: 6, depth: 3 },
+      { key: "wood-pile", x: 5720, scale: 0.34, sink: 8, depth: 2 },
+      { key: "lantern-post", x: 5860, scale: 0.38, sink: 4, depth: 3 },
+      { key: "snow-village", x: 6080, scale: 0.62, sink: 12, depth: 3 },
+      { key: "snow-storage", x: 6320, scale: 0.44, sink: 10, depth: 3 },
+      { key: "hot-spring", x: 6520, scale: 0.4, sink: 14, depth: 2 },
+      { key: "snowman", x: 6680, scale: 0.36, sink: 6, depth: 3 },
+      { key: "lantern-post", x: 6820, scale: 0.36, sink: 4, depth: 3 },
+      { key: "snow-village", x: 7020, scale: 0.52, sink: 12, depth: 3 },
+      { key: "wood-pile", x: 7220, scale: 0.3, sink: 8, depth: 2 },
+      { key: "watchtower", x: 7420, scale: 0.72, sink: 8, depth: 4 },
+      { key: "rock-cluster", x: 7620, scale: 0.32, sink: 10, depth: 2 },
+      { key: "snow-storage", x: 7780, scale: 0.38, sink: 10, depth: 3 },
+      { key: "snow-pile", x: 7960, scale: 0.3, sink: 8, depth: 2 },
     ] as const;
 
     for (const prop of props) {
       const surface = sampleLanding(prop.x, jumpConfig);
       this.add
-        .image(prop.x, surface.y - prop.sink, prop.key)
+        .image(prop.x, surface.y + prop.sink, prop.key)
+        .setOrigin(0.5, 1)
         .setScale(prop.scale)
         .setDepth(prop.depth);
     }

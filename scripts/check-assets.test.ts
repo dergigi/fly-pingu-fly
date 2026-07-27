@@ -20,6 +20,11 @@ const REQUIRED_ASSETS = [
   "snow-pile.webp",
   "snow-covered-fallen-log.webp",
   "snow-village.webp",
+  "snow-walled-storage.webp",
+  "wood-pile-snow-capped.webp",
+  "snow-covered-rock-cluster.webp",
+  "snow-covered-hot-spring.webp",
+  "ice-watchtower-spire.webp",
   "igloo-snow-block-dome.webp",
   "snowman-carrot-nose-coal.webp",
   "lantern-post-snow-capped.webp",
@@ -68,6 +73,17 @@ describe("required art readiness", () => {
       "not a webp",
     );
     await writeFile(assetPath(root, "snow-village.webp"), "not a webp");
+    await writeFile(assetPath(root, "snow-walled-storage.webp"), "not a webp");
+    await writeFile(assetPath(root, "wood-pile-snow-capped.webp"), "not a webp");
+    await writeFile(
+      assetPath(root, "snow-covered-rock-cluster.webp"),
+      "not a webp",
+    );
+    await writeFile(
+      assetPath(root, "snow-covered-hot-spring.webp"),
+      "not a webp",
+    );
+    await writeFile(assetPath(root, "ice-watchtower-spire.webp"), "not a webp");
     await writeFile(assetPath(root, "igloo-snow-block-dome.webp"), "not a webp");
     await writeFile(
       assetPath(root, "snowman-carrot-nose-coal.webp"),
@@ -79,7 +95,7 @@ describe("required art readiness", () => {
     );
 
     expect(() => checkRequiredAssets(root)).toThrowError(
-      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp[\s\S]*snow-covered-fallen-log\.webp[\s\S]*snow-village\.webp[\s\S]*igloo-snow-block-dome\.webp[\s\S]*snowman-carrot-nose-coal\.webp[\s\S]*lantern-post-snow-capped\.webp/,
+      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp[\s\S]*snow-covered-fallen-log\.webp[\s\S]*snow-village\.webp[\s\S]*snow-walled-storage\.webp[\s\S]*wood-pile-snow-capped\.webp[\s\S]*snow-covered-rock-cluster\.webp[\s\S]*snow-covered-hot-spring\.webp[\s\S]*ice-watchtower-spire\.webp[\s\S]*igloo-snow-block-dome\.webp[\s\S]*snowman-carrot-nose-coal\.webp[\s\S]*lantern-post-snow-capped\.webp/,
     );
   });
 
