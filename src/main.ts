@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { MenuScene } from "./scenes/MenuScene";
 import { PlayScene } from "./scenes/PlayScene";
 import "./style.css";
 
@@ -11,8 +12,8 @@ new Phaser.Game({
   parent: "game",
   width: viewportWidth(),
   height: viewportHeight(),
-  backgroundColor: "#8ed8f8",
-  scene: [PlayScene],
+  backgroundColor: "#0b1026",
+  scene: [MenuScene, PlayScene],
   scale: {
     mode: Phaser.Scale.RESIZE,
     width: viewportWidth(),
@@ -22,5 +23,6 @@ new Phaser.Game({
   render: {
     antialias: true,
     pixelArt: false,
+    roundPixels: true,
   },
 });
