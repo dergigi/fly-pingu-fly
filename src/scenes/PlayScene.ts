@@ -377,19 +377,15 @@ export class PlayScene extends Phaser.Scene {
     const points = [
       { x: jumpConfig.readyX, y: jumpConfig.readyY },
       { x: jumpConfig.startX, y: jumpConfig.startY },
-      ...sampleRampCurve(jumpConfig, 5),
+      ...sampleRampCurve(jumpConfig, 8),
     ];
 
     for (const point of points) {
       if (point.x > jumpConfig.lipX) {
         continue;
       }
-      fog.fillStyle(0xffffff, 0.1);
-      fog.fillEllipse(point.x, point.y - 58, 170, 100);
-      fog.fillStyle(0xeaf6ff, 0.12);
-      fog.fillEllipse(point.x + 18, point.y - 34, 130, 72);
-      fog.fillStyle(0xffffff, 0.08);
-      fog.fillEllipse(point.x - 24, point.y - 78, 150, 86);
+      fog.fillStyle(0xffffff, 0.035);
+      fog.fillEllipse(point.x, point.y - 48, 110, 58);
     }
   }
 
