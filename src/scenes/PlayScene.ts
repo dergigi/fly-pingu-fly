@@ -606,23 +606,30 @@ export class PlayScene extends Phaser.Scene {
     const x = jumpConfig.landingEndX;
     const surface = sampleLanding(x, jumpConfig);
 
-    // Yellow stripe painted across the hill, perpendicular to the slope.
-    const halfLen = 58;
-    const tangentLen = Math.hypot(1, surface.slope);
-    const nx = -surface.slope / tangentLen;
-    const ny = 1 / tangentLen;
+    // Yellow paint following the snow surface (not sticking into the sky).
+    const halfSpan = 36;
+    const sink = 5;
     const mark = this.add.graphics();
     mark.setDepth(4);
-    mark.lineStyle(8, 0xf0b400, 1);
-    mark.beginPath();
-    mark.moveTo(x - nx * halfLen, surface.y - ny * halfLen + 3);
-    mark.lineTo(x + nx * halfLen, surface.y + ny * halfLen + 3);
-    mark.strokePath();
-    mark.lineStyle(4, 0xffe066, 1);
-    mark.beginPath();
-    mark.moveTo(x - nx * halfLen, surface.y - ny * halfLen + 3);
-    mark.lineTo(x + nx * halfLen, surface.y + ny * halfLen + 3);
-    mark.strokePath();
+    const paint = (width: number, color: number): void => {
+      mark.lineStyle(width, color, 1);
+      mark.beginPath();
+      let started = false;
+      for (let dx = -halfSpan; dx <= halfSpan; dx += 4) {
+        const point = sampleLanding(x + dx, jumpConfig);
+        const px = point.x;
+        const py = point.y + sink;
+        if (!started) {
+          mark.moveTo(px, py);
+          started = true;
+        } else {
+          mark.lineTo(px, py);
+        }
+      }
+      mark.strokePath();
+    };
+    paint(8, 0xf0b400);
+    paint(4, 0xffe066);
 
     const flagScale =
       (PENGUIN_FRAMES.ready.height * PENGUIN_SCALE) / 128;
