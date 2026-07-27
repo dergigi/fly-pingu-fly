@@ -73,9 +73,11 @@ export class PlayScene extends Phaser.Scene {
       WORLD_WIDTH,
       WORLD_HEIGHT + CAMERA_TOP_PAD,
     );
-    this.cameras.main.setFollowOffset(-180, -30);
+    this.cameras.main.setFollowOffset(-Math.min(220, this.cameras.main.width * 0.14), -30);
     this.cameras.main.startFollow(this.penguin, true, 0.14, 0.14);
     this.cameras.main.centerOn(this.penguin.x + 180, this.penguin.y + 80);
+    this.scale.on("resize", this.layoutHud, this);
+    this.layoutHud();
     this.renderSnapshot();
   }
 
@@ -253,7 +255,7 @@ export class PlayScene extends Phaser.Scene {
 
   private createHud(): Phaser.GameObjects.Text {
     return this.add
-      .text(this.cameras.main.width - 28, 22, "", {
+      .text(0, 22, "", {
         fontFamily: "Trebuchet MS, Arial, sans-serif",
         fontSize: "36px",
         fontStyle: "bold",
@@ -265,6 +267,14 @@ export class PlayScene extends Phaser.Scene {
       .setOrigin(1, 0)
       .setScrollFactor(0)
       .setDepth(100);
+  }
+
+  private layoutHud(): void {
+    this.hudText.setPosition(this.cameras.main.width - 28, 22);
+    this.cameras.main.setFollowOffset(
+      -Math.min(220, this.cameras.main.width * 0.14),
+      -30,
+    );
   }
 
   private applyPose(pose: PenguinPose): void {
