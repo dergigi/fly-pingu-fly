@@ -1016,16 +1016,26 @@ export class PlayScene extends Phaser.Scene {
       .setVisible(false);
 
     this.pauseHint = this.add
-      .text(0, 0, "ESC or tap  ·  play\nR  ·  retry", {
-        fontFamily: "Trebuchet MS, Arial, sans-serif",
-        fontSize: "28px",
-        fontStyle: "bold",
-        color: "#e8f6ff",
-        align: "center",
-        stroke: "#0b4f73",
-        strokeThickness: 6,
-        lineSpacing: 10,
-      })
+      .text(
+        0,
+        0,
+        [
+          "Tap / Space / Up  ·  jump",
+          "Down  ·  crouch for speed",
+          "ESC  ·  pause or play",
+          "R  ·  retry",
+        ].join("\n"),
+        {
+          fontFamily: "Trebuchet MS, Arial, sans-serif",
+          fontSize: "26px",
+          fontStyle: "bold",
+          color: "#e8f6ff",
+          align: "center",
+          stroke: "#0b4f73",
+          strokeThickness: 6,
+          lineSpacing: 8,
+        },
+      )
       .setOrigin(0.5, 0)
       .setScrollFactor(0)
       .setDepth(120)
@@ -1043,8 +1053,8 @@ export class PlayScene extends Phaser.Scene {
       this.cameras.main.width + 40,
       this.cameras.main.height + 40,
     );
-    this.pauseTitle.setPosition(centerX, centerY - 36);
-    this.pauseHint.setPosition(centerX, centerY + 28);
+    this.pauseTitle.setPosition(centerX, centerY - 78);
+    this.pauseHint.setPosition(centerX, centerY - 18);
     this.cameras.main.setFollowOffset(
       -Math.min(220, this.cameras.main.width * 0.14),
       -30,
