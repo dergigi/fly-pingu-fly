@@ -35,18 +35,25 @@ function trace(renderHz: number, commandAtMs: number | null): TraceResult {
           ? command
           : null;
       const previousPhase = state.phase;
-      state = stepJump(state, dueCommand, FIXED_STEP, jumpConfig);
+      const nextState: JumpState = stepJump(
+        state,
+        dueCommand,
+        FIXED_STEP,
+        jumpConfig,
+      );
+      const nextPhase: JumpState["phase"] = nextState.phase;
+      state = nextState;
 
       if (dueCommand !== null) {
         command = null;
       }
-      if (state.phase !== previousPhase) {
-        phases.push(state.phase);
+      if (nextPhase !== previousPhase) {
+        phases.push(nextPhase);
       }
-      if (previousPhase === "ramp" && state.phase === "flight") {
+      if (previousPhase === "ramp" && nextPhase === "flight") {
         takeoffVelocity = { vx: state.vx, vy: state.vy };
       }
-      if (previousPhase === "flight" && state.phase === "slide") {
+      if (previousPhase === "flight" && nextPhase === "slide") {
         firstContact = {
           x: state.x,
           y: state.y,
