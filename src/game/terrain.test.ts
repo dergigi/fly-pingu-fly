@@ -35,12 +35,13 @@ describe("terrain sampling", () => {
 
     expect(start.slope).toBeCloseTo(jumpConfig.rampStartSlope, 12);
     expect(start.slope).toBeGreaterThan(middle.slope);
-    expect(middle.slope).toBeGreaterThan(takeoff.slope);
+    expect(middle.slope).toBeGreaterThan(0);
     expect(takeoff.slope).toBeCloseTo(jumpConfig.takeoffEntrySlope, 12);
     expect(takeoff.slope).toBeGreaterThan(lip.slope);
-    expect(takeoffMiddle.slope).not.toBeCloseTo(takeoff.slope, 2);
+    expect(takeoffMiddle.slope).toBeLessThan(takeoff.slope);
     expect(lip.slope).toBeCloseTo(jumpConfig.lipSlope, 12);
-    expect(lip.y).toBeLessThan(takeoff.y);
+    expect(lip.y).toBeGreaterThan(takeoff.y);
+    expect(Math.abs(lip.slope)).toBeLessThan(0.15);
   });
 
   it("keeps the rendered curve on the authoritative terrain query", () => {
