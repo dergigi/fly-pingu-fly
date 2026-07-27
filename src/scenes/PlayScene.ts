@@ -683,7 +683,18 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeFarLandingFlag(): void {
-    // Marks the far end of the landing hill before the village runout.
+    const flagScale =
+      (PENGUIN_FRAMES.ready.height * PENGUIN_SCALE) / 128;
+
+    // Takeoff lip marker.
+    const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
+    this.add
+      .image(jumpConfig.lipX - 6, lip.y + 4, "village-flag")
+      .setOrigin(0.2, 1)
+      .setScale(flagScale)
+      .setDepth(5);
+
+    // Far end of the landing hill before the village runout.
     const x = jumpConfig.landingEndX;
     const surface = sampleLanding(x, jumpConfig);
 
@@ -712,8 +723,6 @@ export class PlayScene extends Phaser.Scene {
     paint(8, 0xf0b400);
     paint(4, 0xffe066);
 
-    const flagScale =
-      (PENGUIN_FRAMES.ready.height * PENGUIN_SCALE) / 128;
     this.add
       .image(x + 10, surface.y + 4, "village-flag")
       .setOrigin(0.2, 1)

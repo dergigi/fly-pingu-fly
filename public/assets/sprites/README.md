@@ -26,7 +26,7 @@ is not the selected character and must not be used as a substitute.
   `snow-covered-hot-spring.webp`, and `igloo-snow-block-dome.webp`.
 - The far end of the runout is rocky: `snow-covered-rock-cluster.webp`,
   `snow-covered-geyser.webp`, `snow-pile.webp`, and `ice-watchtower-spire.webp`.
-- `village-flag.png` marks the far end of the landing hill before the runout.
+- `village-flag.png` marks the takeoff lip and the far end of the landing hill.
 
 All other raster scenery in this directory remains unused. Fantasy crystal
 trees, autumn maples, and decorated holiday trees stay out of the first level.
