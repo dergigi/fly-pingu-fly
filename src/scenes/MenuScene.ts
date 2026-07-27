@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 import { PENGUIN_FRAMES, type PenguinPose } from "../game/penguinFrames";
 import { formatLeaderboard, readLeaderboard } from "../game/leaderboard";
+import { GAME_VERSION } from "../game/version";
 
 const PIXEL_FONT =
   '"Press Start 2P", "Courier New", Courier, monospace';
@@ -103,6 +104,7 @@ export class MenuScene extends Phaser.Scene {
     this.createLeaderboard();
     this.createControlsHint();
     this.createCredit();
+    this.createVersion();
     this.bindInput();
     this.scale.on("resize", this.layout, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -622,6 +624,23 @@ export class MenuScene extends Phaser.Scene {
     });
   }
 
+  private createVersion(): void {
+    this.add
+      .text(0, 0, `v${GAME_VERSION}`, {
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
+        fontSize: "13px",
+        color: "#3a6f8a",
+        align: "left",
+        stroke: "#f4fbff",
+        strokeThickness: 3,
+      })
+      .setOrigin(0, 1)
+      .setScrollFactor(0)
+      .setDepth(100)
+      .setAlpha(0.9)
+      .setName("version");
+  }
+
   private bindInput(): void {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
@@ -699,6 +718,9 @@ export class MenuScene extends Phaser.Scene {
     const credit = this.children.getByName(
       "credit",
     ) as Phaser.GameObjects.Text | null;
+    const version = this.children.getByName(
+      "version",
+    ) as Phaser.GameObjects.Text | null;
     const pineLeft = this.children.getByName(
       "pine-left",
     ) as Phaser.GameObjects.Image | null;
@@ -761,6 +783,7 @@ export class MenuScene extends Phaser.Scene {
       creditRight,
       creditBottom - this.creditLink.height - 2,
     );
+    version?.setPosition(18, creditBottom);
 
     pineLeft?.setPosition(
       cx - Math.min(420, w * 0.38),
