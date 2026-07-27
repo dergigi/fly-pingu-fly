@@ -593,7 +593,7 @@ export class PlayScene extends Phaser.Scene {
     const tipY = rampCeiling + 170;
     const baseY = WORLD_HEIGHT + 20;
     const tipHalfW = 42;
-    const baseHalfW = 340;
+    const baseHalfW = 420;
 
     const plant = (
       x: number,
@@ -656,10 +656,11 @@ export class PlayScene extends Phaser.Scene {
       { key: "rock-cluster" as const, x: tipX + 30, y: tipY + 460, scale: 1.2, depth: 3 },
       { key: "rock-cluster" as const, x: tipX - 20, y: tipY + 560, scale: 1.25, depth: 3 },
       { key: "rock-cluster" as const, x: tipX + 80, y: tipY + 620, scale: 1.1, depth: 2 },
-      { key: "rock-cluster" as const, x: tipX - 140, y: baseY - 90, scale: 1.4, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX - 190, y: baseY - 90, scale: 1.4, depth: 2 },
       { key: "rock-cluster" as const, x: tipX + 20, y: baseY - 30, scale: 1.5, depth: 3 },
-      { key: "rock-cluster" as const, x: tipX + 170, y: baseY - 110, scale: 1.3, depth: 2 },
-      { key: "rock-cluster" as const, x: tipX - 50, y: baseY - 180, scale: 1.2, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX + 210, y: baseY - 110, scale: 1.3, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX - 80, y: baseY - 180, scale: 1.2, depth: 2 },
+      { key: "rock-cluster" as const, x: tipX + 120, y: baseY - 160, scale: 1.25, depth: 2 },
     ];
     for (const piece of anchors) {
       plant(piece.x, piece.y, piece.key, piece.scale, piece.depth);
