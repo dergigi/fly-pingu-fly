@@ -11,6 +11,15 @@ import {
   stepJump,
   type JumpState,
 } from "../game/jump";
+import {
+  createFreeRoamState,
+  freeRoamDefaults,
+  poseForFreeRoam,
+  setFreeRoamFacing,
+  stepFreeRoam,
+  tryFreeRoamJump,
+  type FreeRoamState,
+} from "../game/freeRoam";
 import { formatDistanceHud, jumpHudStats, worldDistanceToMeters } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
 import {
@@ -65,6 +74,8 @@ export class PlayScene extends Phaser.Scene {
   private leaderboard: number[] = [];
   private scoreRecorded = false;
   private takeoffKeys: Phaser.Input.Keyboard.Key[] = [];
+  private leftKeys: Phaser.Input.Keyboard.Key[] = [];
+  private rightKeys: Phaser.Input.Keyboard.Key[] = [];
   private crouchKey: Phaser.Input.Keyboard.Key | null = null;
   private resetKey: Phaser.Input.Keyboard.Key | null = null;
   private pauseKey: Phaser.Input.Keyboard.Key | null = null;
@@ -74,6 +85,7 @@ export class PlayScene extends Phaser.Scene {
   private pauseTitle!: Phaser.GameObjects.Text;
   private pauseHint!: Phaser.GameObjects.Text;
   private takeoffPosePending = false;
+  private roam: FreeRoamState | null = null;
   private readonly snowflakes: Phaser.GameObjects.Image[] = [];
   private readonly clouds: Phaser.GameObjects.Image[] = [];
   private readonly fogWisps: Array<{
@@ -195,15 +207,21 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
+    this.updateSnowfall(deltaMs);
+    this.updateClouds(deltaMs);
+    this.updateRampFog(deltaMs);
+
+    if (this.roam !== null || this.shouldBeginFreeRoam()) {
+      this.updateFreeRoam(deltaMs);
+      this.renderSnapshot();
+      return;
+    }
+
     if (
       this.takeoffKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))
     ) {
       this.queuePress();
     }
-
-    this.updateSnowfall(deltaMs);
-    this.updateClouds(deltaMs);
-    this.updateRampFog(deltaMs);
 
     this.accumulator += Math.min(deltaMs / 1000, MAX_FRAME_DELTA);
     let steps = 0;
@@ -246,6 +264,10 @@ export class PlayScene extends Phaser.Scene {
       this.accumulator = Math.min(this.accumulator, FIXED_STEP);
     }
 
+    if (this.shouldBeginFreeRoam()) {
+      this.beginFreeRoam();
+    }
+
     this.renderSnapshot();
   }
 
@@ -253,10 +275,22 @@ export class PlayScene extends Phaser.Scene {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
 
-    this.input.on("pointerdown", () => {
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       this.game.canvas.focus();
       if (this.paused) {
         this.setPaused(false);
+        return;
+      }
+      if (this.roam !== null) {
+        const x = pointer.x;
+        const w = this.cameras.main.width;
+        if (x < w * 0.33) {
+          this.roam = setFreeRoamFacing(this.roam, -1);
+        } else if (x > w * 0.66) {
+          this.roam = setFreeRoamFacing(this.roam, 1);
+        } else {
+          this.roam = tryFreeRoamJump(this.roam, freeRoamDefaults);
+        }
         return;
       }
       this.queuePress();
@@ -272,6 +306,8 @@ export class PlayScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.ENTER,
       Phaser.Input.Keyboard.KeyCodes.UP,
       Phaser.Input.Keyboard.KeyCodes.DOWN,
+      Phaser.Input.Keyboard.KeyCodes.LEFT,
+      Phaser.Input.Keyboard.KeyCodes.RIGHT,
       Phaser.Input.Keyboard.KeyCodes.R,
       Phaser.Input.Keyboard.KeyCodes.P,
       Phaser.Input.Keyboard.KeyCodes.ESC,
@@ -281,6 +317,14 @@ export class PlayScene extends Phaser.Scene {
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
+    ];
+    this.leftKeys = [
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+    ];
+    this.rightKeys = [
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
+      keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     ];
     this.crouchKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
     this.resetKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
@@ -301,13 +345,86 @@ export class PlayScene extends Phaser.Scene {
   private resetRun(): void {
     this.setPaused(false);
     this.jumpState = createInitialJumpState(jumpConfig);
+    this.roam = null;
     this.inputLatch.reset();
     this.accumulator = 0;
     this.scoreRecorded = false;
     this.takeoffPosePending = false;
     this.penguin.setRotation(0);
+    this.penguin.setFlipX(true);
     this.cameras.main.centerOn(this.jumpState.x + 180, this.jumpState.y + 80);
     this.renderSnapshot();
+  }
+
+  private shouldBeginFreeRoam(): boolean {
+    if (this.roam !== null) {
+      return false;
+    }
+    const { phase, speed } = this.jumpState;
+    return phase === "resting" || (phase === "crashed" && speed <= jumpConfig.stopSpeed);
+  }
+
+  private beginFreeRoam(): void {
+    const facing: 1 | -1 = this.jumpState.vx >= 0 ? 1 : -1;
+    this.roam = createFreeRoamState(
+      this.jumpState.x,
+      this.jumpState.y,
+      facing,
+    );
+  }
+
+  private updateFreeRoam(deltaMs: number): void {
+    if (this.roam === null) {
+      if (this.shouldBeginFreeRoam()) {
+        this.beginFreeRoam();
+      }
+      if (this.roam === null) {
+        return;
+      }
+    }
+
+    if (this.leftKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
+      this.roam = setFreeRoamFacing(this.roam, -1);
+    }
+    if (this.rightKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
+      this.roam = setFreeRoamFacing(this.roam, 1);
+    }
+    if (this.takeoffKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
+      this.roam = tryFreeRoamJump(this.roam, freeRoamDefaults);
+    }
+
+    const dt = Math.min(deltaMs, 50) / 1000;
+    this.roam = stepFreeRoam(
+      this.roam,
+      dt,
+      {
+        ...freeRoamDefaults,
+        minX: jumpConfig.startX,
+        maxX: jumpConfig.landingRunoutEndX,
+      },
+      (x) => this.worldSurface(x),
+    );
+  }
+
+  private worldSurface(x: number): { y: number; slope: number } {
+    if (x <= jumpConfig.lipX) {
+      return sampleRamp(
+        Math.min(Math.max(x, jumpConfig.startX), jumpConfig.lipX),
+        jumpConfig,
+      );
+    }
+    if (x < jumpConfig.landingStartX) {
+      const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
+      const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
+      const t =
+        (x - jumpConfig.lipX) /
+        Math.max(1, jumpConfig.landingStartX - jumpConfig.lipX);
+      return {
+        y: lip.y + (land.y - lip.y) * t,
+        slope: lip.slope + (land.slope - lip.slope) * t,
+      };
+    }
+    return sampleLanding(x, jumpConfig);
   }
 
   private isCrouching(): boolean {
@@ -715,7 +832,7 @@ export class PlayScene extends Phaser.Scene {
       let started = false;
       for (let dx = -halfSpan; dx <= halfSpan; dx += 4) {
         const point = sampleLanding(x + dx, jumpConfig);
-        const px = point.x;
+        const px = x + dx;
         const py = point.y + sink;
         if (!started) {
           mark.moveTo(px, py);
@@ -1025,6 +1142,7 @@ export class PlayScene extends Phaser.Scene {
           "Down  ·  crouch for speed",
           "ESC  ·  pause or play",
           "R  ·  retry",
+          "After stop  ·  ← → turn, ↑ jump",
         ].join("\n"),
         {
           fontFamily: "Trebuchet MS, Arial, sans-serif",
@@ -1070,10 +1188,16 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private renderSnapshot(): void {
+    if (this.roam !== null) {
+      this.renderFreeRoam();
+      return;
+    }
+
     const state = this.jumpState;
     const pose = poseForJumpPhase(state, this.takeoffPosePending);
     this.applyPose(pose);
     this.penguin.setPosition(state.x, state.y);
+    this.penguin.setFlipX(true);
     this.penguin.setScale(
       PENGUIN_SCALE,
       this.isCrouching()
@@ -1093,6 +1217,26 @@ export class PlayScene extends Phaser.Scene {
           : state.phase === "ramp"
             ? Math.atan(sampleRamp(state.x, jumpConfig).slope)
             : Math.atan(sampleLanding(state.x, jumpConfig).slope);
+    this.penguin.setRotation(rotation);
+  }
+
+  private renderFreeRoam(): void {
+    if (this.roam === null) {
+      return;
+    }
+    const pose = poseForFreeRoam(this.roam);
+    this.applyPose(pose);
+    this.penguin.setPosition(this.roam.x, this.roam.y);
+    this.penguin.setFlipX(this.roam.facing > 0);
+    this.penguin.setScale(PENGUIN_SCALE);
+    const stats = jumpHudStats(this.jumpState);
+    this.distanceText.setText(formatDistanceHud(stats));
+    this.leaderboardText.setText(formatLeaderboard(this.leaderboard));
+
+    const surface = this.worldSurface(this.roam.x);
+    const rotation = this.roam.grounded
+      ? Math.atan(surface.slope)
+      : Phaser.Math.Clamp(Math.atan2(this.roam.vy, this.roam.vx), -0.65, 0.65);
     this.penguin.setRotation(rotation);
   }
 }
