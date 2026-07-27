@@ -14,12 +14,14 @@ is not the selected character and must not be used as a substitute.
 ## Snow scenery
 
 - `winter-forest.webp` supplies the sparse background forest.
-- `snow-pile.webp` supplies one foreground snow accent.
 - `snow-covered-fallen-log.webp` is the start platform at the top of the ramp.
+- `snow-pile.webp`, `snow-village.webp`, `igloo-snow-block-dome.webp`,
+  `snowman-carrot-nose-coal.webp`, and `lantern-post-snow-capped.webp`
+  dress the nearly flat runout after the landing hill.
 
 All other raster scenery in this directory remains unused. The first level
 keeps its scene lean and does not load unrelated fantasy, animal, vegetation,
-pine-tree, or rock-cluster art.
+or rock-cluster art.
 
 The production prebuild validates the selected paths, their image containers,
 and the penguin sheet dimensions before Vite starts.

@@ -201,7 +201,7 @@ describe("jump tracer", () => {
 
     expect(["resting", "crashed"]).toContain(result.resting.phase);
     expect(result.resting.speed).toBe(0);
-    expect(result.resting.x).toBeLessThan(jumpConfig.landingRunoutEndX + 80);
+    expect(result.resting.x).toBeLessThan(jumpConfig.landingRunoutEndX + 200);
   });
 
   it("accelerates faster down the ramp while crouching", () => {

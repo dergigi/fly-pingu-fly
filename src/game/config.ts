@@ -84,11 +84,11 @@ export const jumpConfig: JumpConfig = Object.freeze({
   landingCrestSlope: 0.02,
   landingEndX: 2400,
   landingEndY: 1040,
-  landingEndSlope: 0.22,
-  landingRunoutEndX: 3100,
-  landingRunoutEndY: 680,
-  landingRunoutEndSlope: -0.4,
-  slideDeceleration: 150,
+  landingEndSlope: 0.12,
+  landingRunoutEndX: 3900,
+  landingRunoutEndY: 980,
+  landingRunoutEndSlope: -0.035,
+  slideDeceleration: 175,
   stopSpeed: 1,
 });
 

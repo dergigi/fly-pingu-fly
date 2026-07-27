@@ -26,7 +26,7 @@ import {
   sampleRampCurve,
 } from "../game/terrain";
 
-const WORLD_WIDTH = 5600;
+const WORLD_WIDTH = 6200;
 const WORLD_HEIGHT = 1200;
 const CAMERA_TOP_PAD = 140;
 const PENGUIN_SCALE = 0.3825;
@@ -61,6 +61,16 @@ export class PlayScene extends Phaser.Scene {
     this.load.image(
       "fallen-log",
       "/assets/sprites/snow-covered-fallen-log.webp",
+    );
+    this.load.image("snow-village", "/assets/sprites/snow-village.webp");
+    this.load.image("igloo", "/assets/sprites/igloo-snow-block-dome.webp");
+    this.load.image(
+      "snowman",
+      "/assets/sprites/snowman-carrot-nose-coal.webp",
+    );
+    this.load.image(
+      "lantern-post",
+      "/assets/sprites/lantern-post-snow-capped.webp",
     );
   }
 
@@ -247,11 +257,28 @@ export class PlayScene extends Phaser.Scene {
       .setScale(LOG_SCALE)
       .setDepth(4);
 
-    const pileSurface = sampleLanding(2400, jumpConfig);
-    this.add
-      .image(2400, pileSurface.y - 18, "snow-pile")
-      .setScale(0.35)
-      .setDepth(2);
+    this.placeRunoutScenery();
+  }
+
+  private placeRunoutScenery(): void {
+    const props = [
+      { key: "snow-pile", x: 2480, scale: 0.32, sink: 20, depth: 2 },
+      { key: "snow-pile", x: 2920, scale: 0.28, sink: 18, depth: 2 },
+      { key: "snow-pile", x: 3480, scale: 0.34, sink: 22, depth: 2 },
+      { key: "igloo", x: 2680, scale: 0.42, sink: 48, depth: 3 },
+      { key: "snowman", x: 3120, scale: 0.38, sink: 44, depth: 3 },
+      { key: "lantern-post", x: 3300, scale: 0.4, sink: 52, depth: 3 },
+      { key: "snow-village", x: 3700, scale: 0.55, sink: 58, depth: 3 },
+      { key: "snow-pile", x: 4050, scale: 0.3, sink: 18, depth: 2 },
+    ] as const;
+
+    for (const prop of props) {
+      const surface = sampleLanding(prop.x, jumpConfig);
+      this.add
+        .image(prop.x, surface.y - prop.sink, prop.key)
+        .setScale(prop.scale)
+        .setDepth(prop.depth);
+    }
   }
 
   private registerPenguinFrames(): void {

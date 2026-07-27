@@ -12,6 +12,10 @@ const REQUIRED_ASSETS = [
   "winter-forest.webp",
   "snow-pile.webp",
   "snow-covered-fallen-log.webp",
+  "snow-village.webp",
+  "igloo-snow-block-dome.webp",
+  "snowman-carrot-nose-coal.webp",
+  "lantern-post-snow-capped.webp",
 ] as const;
 const fixtureRoots: string[] = [];
 
@@ -41,7 +45,7 @@ afterEach(async () => {
 });
 
 describe("required art readiness", () => {
-  test("accepts the four committed assets at their exact paths", async () => {
+  test("accepts the committed scenery and penguin assets", async () => {
     const root = await createReadyFixture();
 
     expect(() => checkRequiredAssets(root)).not.toThrow();
@@ -56,18 +60,23 @@ describe("required art readiness", () => {
       assetPath(root, "snow-covered-fallen-log.webp"),
       "not a webp",
     );
+    await writeFile(assetPath(root, "snow-village.webp"), "not a webp");
+    await writeFile(assetPath(root, "igloo-snow-block-dome.webp"), "not a webp");
+    await writeFile(
+      assetPath(root, "snowman-carrot-nose-coal.webp"),
+      "not a webp",
+    );
+    await writeFile(
+      assetPath(root, "lantern-post-snow-capped.webp"),
+      "not a webp",
+    );
 
     expect(() => checkRequiredAssets(root)).toThrowError(
-      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp[\s\S]*snow-covered-fallen-log\.webp/,
+      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp[\s\S]*snow-covered-fallen-log\.webp[\s\S]*snow-village\.webp[\s\S]*igloo-snow-block-dome\.webp[\s\S]*snowman-carrot-nose-coal\.webp[\s\S]*lantern-post-snow-capped\.webp/,
     );
   });
 
-  test.each([
-    "sprite_penguin.png",
-    "winter-forest.webp",
-    "snow-pile.webp",
-    "snow-covered-fallen-log.webp",
-  ] as const)("rejects a truncated %s container", async (asset) => {
+  test.each(REQUIRED_ASSETS)("rejects a truncated %s container", async (asset) => {
     const root = await createReadyFixture();
     const bytes = await readFile(assetPath(root, asset));
     await writeFile(assetPath(root, asset), bytes.subarray(0, 24));
