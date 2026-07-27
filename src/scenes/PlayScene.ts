@@ -73,6 +73,16 @@ export class PlayScene extends Phaser.Scene {
   private takeoffPosePending = false;
   private readonly snowflakes: Phaser.GameObjects.Image[] = [];
   private readonly clouds: Phaser.GameObjects.Image[] = [];
+  private readonly fogWisps: Array<{
+    image: Phaser.GameObjects.Image;
+    baseX: number;
+    baseY: number;
+    phase: number;
+    drift: number;
+    bob: number;
+    range: number;
+    baseAlpha: number;
+  }> = [];
 
   constructor() {
     super("play");
@@ -196,6 +206,7 @@ export class PlayScene extends Phaser.Scene {
 
     this.updateSnowfall(deltaMs);
     this.updateClouds(deltaMs);
+    this.updateRampFog(deltaMs);
 
     this.accumulator += Math.min(deltaMs / 1000, MAX_FRAME_DELTA);
     let steps = 0;
@@ -370,22 +381,67 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeRampFog(): void {
-    // Soft mist behind the inrun so the penguin reads against the forest.
-    const fog = this.add.graphics();
-    fog.setDepth(6);
+    this.ensureFogTexture();
 
     const points = [
       { x: jumpConfig.readyX, y: jumpConfig.readyY },
       { x: jumpConfig.startX, y: jumpConfig.startY },
-      ...sampleRampCurve(jumpConfig, 8),
+      ...sampleRampCurve(jumpConfig, 6),
     ];
 
     for (const point of points) {
       if (point.x > jumpConfig.lipX) {
         continue;
       }
-      fog.fillStyle(0xffffff, 0.035);
-      fog.fillEllipse(point.x, point.y - 48, 110, 58);
+      for (let layer = 0; layer < 2; layer += 1) {
+        const n = this.forestNoise(point.x + layer * 37, 9 + layer);
+        const baseX = point.x + (n - 0.5) * 40;
+        const baseY = point.y - (42 + layer * 18 + n * 16);
+        const baseAlpha = 0.1 + n * 0.08;
+        const image = this.add
+          .image(baseX, baseY, "ramp-fog-wisp")
+          .setDepth(6)
+          .setAlpha(baseAlpha)
+          .setScale(0.7 + n * 0.55 + layer * 0.15);
+        this.fogWisps.push({
+          image,
+          baseX,
+          baseY,
+          phase: n * Math.PI * 2,
+          drift: (6 + n * 8) * (layer === 0 ? 1 : -1),
+          bob: 3 + n * 5,
+          range: 14 + n * 18,
+          baseAlpha,
+        });
+      }
+    }
+  }
+
+  private ensureFogTexture(): void {
+    if (this.textures.exists("ramp-fog-wisp")) {
+      return;
+    }
+    const graphics = this.make.graphics({ x: 0, y: 0 });
+    for (let ring = 6; ring >= 1; ring -= 1) {
+      graphics.fillStyle(0xffffff, 0.045 * ring);
+      graphics.fillEllipse(80, 48, 22 * ring, 13 * ring);
+    }
+    graphics.generateTexture("ramp-fog-wisp", 160, 96);
+    graphics.destroy();
+  }
+
+  private updateRampFog(deltaMs: number): void {
+    const dt = Math.min(deltaMs, 50) / 1000;
+    for (const wisp of this.fogWisps) {
+      wisp.phase = (wisp.phase + dt * 0.35) % (Math.PI * 2);
+      wisp.image.x =
+        wisp.baseX +
+        Math.sin(wisp.phase) * wisp.range +
+        wisp.drift * Math.sin(wisp.phase * 0.45);
+      wisp.image.y = wisp.baseY + Math.cos(wisp.phase * 0.8) * wisp.bob;
+      wisp.image.setAlpha(
+        wisp.baseAlpha * (0.82 + 0.18 * Math.sin(wisp.phase * 1.3)),
+      );
     }
   }
 
