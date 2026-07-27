@@ -14,8 +14,8 @@ is not the selected character and must not be used as a substitute.
 ## Snow scenery
 
 - `winter-forest.webp` is the distant forest mass behind the ramp and landing hill.
-- `pine-tree-snow-heavy.webp` and `snow-packed.webp` dress the near treeline
-  and snow banks only on the flat runout at the end.
+- `pine-tree-snow-heavy.webp` and `snow-packed.webp` add a few sparse accents
+  at the edges of the village runout.
 - Rock and geyser rubble (`snow-covered-rock-cluster.webp`,
   `snow-covered-geyser.webp`) fills the cliff gap between takeoff and landing.
 - `snow-ice-crystal.png` and `snow-fall-flakes.webp` drive the light snowfall.

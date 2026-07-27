@@ -374,7 +374,6 @@ export class PlayScene extends Phaser.Scene {
 
   private placeBackgroundTrees(): void {
     const hillEndX = jumpConfig.landingEndX;
-    const runoutEndX = jumpConfig.landingRunoutEndX + 200;
     const canopyFloorY = jumpConfig.startY + 8;
 
     let forestX = 30;
@@ -417,58 +416,35 @@ export class PlayScene extends Phaser.Scene {
       forestX += 28 + Math.floor(n * 34);
     }
 
-    let pineX = hillEndX + 40;
-    while (pineX < runoutEndX) {
-      const n = this.forestNoise(pineX, 2);
-      const step = 28 + Math.floor(n * 95);
-      if (n < 0.18) {
-        pineX += step + 40;
-        continue;
-      }
-
-      const surfaceY = this.forestSurfaceY(pineX);
-      const cluster = n > 0.72 ? 2 + Math.floor(this.forestNoise(pineX, 3) * 2) : 1;
-      for (let i = 0; i < cluster; i += 1) {
-        const cn = this.forestNoise(pineX + i * 17, 4 + i);
-        const scale = 0.22 + cn * 0.58;
-        const baseY = surfaceY + (8 + cn * 14);
-        if (baseY - 256 * scale < canopyFloorY) {
-          continue;
-        }
-        this.add
-          .image(
-            pineX + i * (18 + cn * 22) + (cn - 0.5) * 16,
-            baseY,
-            "pine-tree",
-          )
-          .setOrigin(0.5, 1)
-          .setScale(scale)
-          .setFlipX(cn > 0.55)
-          .setAlpha(0.82 + cn * 0.16)
-          .setDepth(scale > 0.48 ? -1 : -2);
-      }
-      pineX += step + (cluster > 1 ? 20 : 0);
+    // Sparse pines only: keep the village readable.
+    const runoutPines = [
+      { x: hillEndX + 180, scale: 0.42 },
+      { x: hillEndX + 520, scale: 0.36 },
+      { x: 7900, scale: 0.4 },
+      { x: 8120, scale: 0.34 },
+    ] as const;
+    for (const pine of runoutPines) {
+      const n = this.forestNoise(pine.x, 2);
+      const surfaceY = this.forestSurfaceY(pine.x);
+      this.add
+        .image(pine.x + (n - 0.5) * 12, surfaceY + 8, "pine-tree")
+        .setOrigin(0.5, 1)
+        .setScale(pine.scale)
+        .setFlipX(n > 0.5)
+        .setAlpha(0.88)
+        .setDepth(-2);
     }
 
-    let bankX = hillEndX + 80;
-    while (bankX < runoutEndX) {
-      const n = this.forestNoise(bankX, 5);
-      const step = 90 + Math.floor(n * 160);
-      if (n < 0.28) {
-        bankX += step;
-        continue;
-      }
-      const surfaceY = this.forestSurfaceY(bankX);
-      const baseY = surfaceY + (6 + n * 10);
-      if (baseY >= canopyFloorY) {
-        this.add
-          .image(bankX + (n - 0.5) * 28, baseY, "snow-packed")
-          .setOrigin(0.5, 1)
-          .setScale(0.18 + n * 0.28)
-          .setAlpha(0.78 + n * 0.16)
-          .setDepth(-3);
-      }
-      bankX += step;
+    const bankX = [hillEndX + 260, 8050] as const;
+    for (const x of bankX) {
+      const n = this.forestNoise(x, 5);
+      const surfaceY = this.forestSurfaceY(x);
+      this.add
+        .image(x, surfaceY + 6, "snow-packed")
+        .setOrigin(0.5, 1)
+        .setScale(0.22 + n * 0.12)
+        .setAlpha(0.82)
+        .setDepth(-3);
     }
   }
 
