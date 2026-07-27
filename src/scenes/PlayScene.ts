@@ -483,12 +483,17 @@ export class PlayScene extends Phaser.Scene {
     canopyFloorY: number,
   ): void {
     const halfW = 128 * scale * 0.9;
+    // Lift the treeline a little behind the inrun and early landing hill.
+    const lift =
+      x <= jumpConfig.lipX || x < jumpConfig.landingCrestX + 120 ? 22 : 0;
     const baseY =
       Math.max(
         this.forestSurfaceY(x - halfW),
         this.forestSurfaceY(x),
         this.forestSurfaceY(x + halfW),
-      ) + sink;
+      ) +
+      sink -
+      lift;
     if (baseY - 256 * scale < canopyFloorY) {
       return;
     }
