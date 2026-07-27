@@ -19,6 +19,7 @@ const REQUIRED_ASSETS = [
   { name: "snow-covered-rock-cluster.webp", format: "webp" },
   { name: "snow-covered-hot-spring.webp", format: "webp" },
   { name: "ice-watchtower-spire.webp", format: "webp" },
+  { name: "snowman-carrot-nose-coal.webp", format: "webp" },
   { name: "village-flag.png", format: "png" },
 ];
 
