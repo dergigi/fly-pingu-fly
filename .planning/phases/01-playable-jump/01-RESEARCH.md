@@ -46,7 +46,7 @@ None — discussion stayed within phase scope.
 | INPT-03 | The game immediately acknowledges an accepted takeoff input through the penguin's pose and motion. | Accepted command changes phase/pose at the next simulation tick and next render. [VERIFIED: repository requirements] |
 | PRES-01 | The game displays a bright snowy side-scrolling scene with a visible ramp edge and takeoff zone. | Drawn snow terrain plus two curated existing snow assets. [VERIFIED: repository asset inspection] |
 | PRES-02 | The camera keeps the penguin, upcoming ramp edge, flight, and landing area readable during their relevant phases. | Phase-derived camera target with lead, bounds, and lerp. [CITED: https://docs.phaser.io/phaser/concepts/cameras] |
-| PRES-03 | The penguin uses the provided sprite art with stable animation alignment and a consistent ground-contact point. | Render every frame around a fixed contact point using a frame manifest. Final verification is blocked because the selected file is absent. [VERIFIED: repository asset inspection] |
+| PRES-03 | The penguin uses the provided sprite art with stable animation alignment and a consistent ground-contact point. | The committed 640x240 RGBA sheet can be inspected directly; render selected crops around a fixed contact point using a frame manifest. [VERIFIED: repository asset inspection] |
 </phase_requirements>
 
 ## Summary
@@ -55,7 +55,7 @@ Build this phase as one Phaser `PlayScene` around a browser-free TypeScript simu
 
 Use a fixed-step accumulator inside `PlayScene.update`, not a second `requestAnimationFrame` loop. Queue one timestamped semantic press, consume it at the corresponding simulation step, and derive launch quality from world-space position. The broad early and short late ranges should map through one smooth continuous curve with its maximum at the lip. If no command arrives by the late boundary, launch automatically at minimum quality. [VERIFIED: repository context and requirements; CITED: https://docs.phaser.io/phaser/concepts/scenes]
 
-The selected character prerequisite is unresolved. `public/assets/sprites/sprite_penguin.png` does not exist. `snowball-penguin.webp` must not be used. Core work and a temporary geometric development marker may proceed, but Phase 1 cannot satisfy `PRES-03` until the chosen file arrives and its frame rectangles/contact offsets are documented. [VERIFIED: repository asset inspection and D-07]
+The selected character and curated snow inputs are ready on disk. `public/assets/sprites/sprite_penguin.png` is the committed 640x240 RGBA *Where's My Egg?* sheet, and `winter-forest.webp` plus `snow-pile.webp` are present for the lean snow composition. Plan 01-03 must inspect the real sheet, select explicit visible crops, and document stable contact offsets. `snowball-penguin.webp` remains prohibited as a substitute. [VERIFIED: repository asset inspection and D-07]
 
 **Primary recommendation:** Implement and test one pure `stepJump` state machine first, then bind it to one lean Phaser scene with a timestamped input latch, a phase-aware camera target, and a contact-anchored sprite renderer. [VERIFIED: repository architecture research]
 
@@ -259,7 +259,7 @@ Use camera bounds plus a target that changes by phase:
 
 Treat simulation `(x, y)` as the snow-contact point, not the visual center. Render each selected frame with a manifest entry containing its crop rectangle and contact offset. A plain `setOrigin(0.5, 1)` is sufficient only if received frames have normalized bounds and the feet share a baseline. [CITED: https://docs.phaser.io/phaser/concepts/gameobjects/sprite]
 
-The actual sheet layout, frame dimensions, and foot offsets cannot be researched until `sprite_penguin.png` exists. The planner must schedule asset receipt/inspection before animation tasks and block final `PRES-03` verification on it. [VERIFIED: repository asset inspection]
+The committed sheet is 640x240 RGBA and contains irregularly spaced poses rather than a guaranteed uniform frame grid. Plan 01-03 must make direct sheet inspection executable work: identify each selected pose's occupied crop bounds, record its stable foot, belly, or sled contact pixel, and test every crop against the known sheet bounds before animation integration. [VERIFIED: repository asset inspection]
 
 ### Snow Scene Composition
 
@@ -332,11 +332,11 @@ Both are 256 × 256 WebP payloads. `pine-tree-snow-heavy.webp` and `snow-covered
 
 **How to avoid:** Keep one simulation contact point and correct each visual frame with manifest offsets. Do not derive collision from sprite dimensions. [CITED: https://docs.phaser.io/phaser/concepts/gameobjects/sprite]
 
-### Pitfall 6: Missing Character Asset Is Hidden by a Substitute
+### Pitfall 6: The Chosen Character Is Replaced During Integration
 
-**What goes wrong:** The phase appears complete with `snowball-penguin.webp`, violating D-07 and leaving the real sheet integration untested. [VERIFIED: repository context]
+**What goes wrong:** Integration chooses the easier standalone `snowball-penguin.webp` instead of cropping and anchoring the committed approved sheet, violating D-07. [VERIFIED: repository context]
 
-**How to avoid:** Permit a temporary geometric marker only for development. Add an explicit asset prerequisite and fail final `PRES-03` verification while `sprite_penguin.png` is absent. [VERIFIED: repository asset inspection]
+**How to avoid:** Validate the exact committed path during prebuild, inspect and crop `sprite_penguin.png` directly, and assert in the scene review that no alternate character asset is loaded. [VERIFIED: repository asset inspection]
 
 ## Testing Strategy
 
@@ -416,13 +416,13 @@ Confirm the exact Phaser 4 TypeScript signatures during implementation because t
 // Source: https://vite.dev/guide/assets
 this.load.image("winter-forest", "/assets/sprites/winter-forest.webp");
 this.load.image("snow-pile", "/assets/sprites/snow-pile.webp");
-this.load.spritesheet("penguin", "/assets/sprites/sprite_penguin.png", {
-  frameWidth: RECEIVED_FRAME_WIDTH,
-  frameHeight: RECEIVED_FRAME_HEIGHT,
-});
+this.load.image("penguin-sheet", "/assets/sprites/sprite_penguin.png");
+
+const texture = this.textures.get("penguin-sheet");
+texture.add("ramp", 0, rampCrop.x, rampCrop.y, rampCrop.width, rampCrop.height);
 ```
 
-Do not fill in frame dimensions until the selected asset is present and inspected. [VERIFIED: repository asset inspection]
+The sheet is 640x240, but its poses must be inspected and registered as explicit named texture frames because the visible bounds do not form one uniform grid. Keep per-crop contact offsets separate from the source-sheet dimensions. [VERIFIED: repository asset inspection]
 
 ## State of the Art
 
@@ -448,22 +448,18 @@ Do not fill in frame dimensions until the selected asset is present and inspecte
 
 All three assumptions concern game feel. They do not change the recommended state/input/render boundaries. [VERIFIED: architecture analysis]
 
-## Open Questions
+## Resolved Questions
 
-1. **What is the actual penguin sheet layout?**
-   - What we know: the required path is `public/assets/sprites/sprite_penguin.png`, and `snowball-penguin.webp` is forbidden. [VERIFIED: D-05 and D-07]
-   - What's unclear: frame size, frame count, transparent bounds, intended poses, and contact offsets because the file is absent. [VERIFIED: repository inspection]
-   - Recommendation: make asset receipt and frame-manifest inspection a blocking prerequisite for sprite integration and final `PRES-03` verification. [VERIFIED: implementation dependency analysis]
+**Status: RESOLVED by Plans 01-02 and 01-03.**
 
-2. **How wide should early and late spans be?**
-   - What we know: early must be broad, late must exist, both are continuous, and no input auto-launches weakly. [VERIFIED: D-01 through D-04]
-   - What's unclear: tuned world distances and minimum quality. [VERIFIED: Claude's discretion]
-   - Recommendation: begin with config values and invariant tests, then tune in-browser without rewriting formulas. [ASSUMED]
+1. **How will the committed penguin sheet layout be handled?**
+   - Resolution: The approved 640x240 RGBA sheet is committed. Plan 01-03 inspects its visible frame boundaries, chooses explicit crops, and records tested contact offsets before scene integration. No alternate penguin art is allowed. [VERIFIED: D-05, D-07, repository asset inspection, and Plan 01-03]
 
-3. **Should the optional PNG-payload `.webp` assets be normalized?**
-   - What we know: the pine tree and rock cluster extensions do not match their detected payload format. [VERIFIED: repository asset inspection]
-   - What's unclear: whether the deployment server/browser combination will tolerate that mismatch consistently. [ASSUMED]
-   - Recommendation: omit them from the smallest scene or normalize them in a separate asset step before use. [VERIFIED: scope minimization]
+2. **How wide are the initial early and late spans?**
+   - Resolution: Plan 01-02 starts browser tuning with a 180-world-unit early span, 60-world-unit late span, and `minimumQuality` of 0.35. Invariant tests lock continuity, monotonic falloff, bounds, and safe launch behavior while the centralized values remain tunable under Claude's discretion. [VERIFIED: D-01 through D-04 and Plan 01-02]
+
+3. **Will the optional PNG-payload `.webp` assets be normalized?**
+   - Resolution: no normalization is needed for this phase because Plan 01-03 deliberately omits the pine tree and rock cluster. The scene loads only `winter-forest.webp` and `snow-pile.webp` from the curated raster scenery per D-08. [VERIFIED: D-08 and Plan 01-03]
 
 ## Environment Availability
 
@@ -472,12 +468,12 @@ All three assumptions concern game feel. They do not change the recommended stat
 | Node.js | Vite, TypeScript, Vitest | ✓ | `26.5.0` | Pin the project-supported major in `engines`; current binary satisfies Vite and Vitest engine ranges. [VERIFIED: local command and npm metadata] |
 | npm | Dependency install/scripts | ✓ | `11.17.0` | — [VERIFIED: local command] |
 | Phaser package | Runtime | ✗ not installed | target `4.2.1` | Human-verify flagged package, then install. [VERIFIED: repository and package audit] |
-| Existing snow art | Scene | ✓ | two selected 256 × 256 WebP files | Draw terrain with Phaser graphics. [VERIFIED: repository asset inspection] |
-| `sprite_penguin.png` | `PRES-03` | ✗ | — | No final fallback. A geometric marker may support development only; do not use `snowball-penguin.webp`. [VERIFIED: repository context and inspection] |
+| Existing snow art | Scene | ✓ | two selected 256 × 256 WebP files | Draw terrain with Phaser graphics and use these two files sparingly. [VERIFIED: repository asset inspection] |
+| `sprite_penguin.png` | `PRES-03` | ✓ | 640x240 RGBA PNG | Inspect explicit crops and contact pixels; do not use `snowball-penguin.webp`. [VERIFIED: repository context and inspection] |
 
 **Missing dependencies with no fallback:**
 
-- `public/assets/sprites/sprite_penguin.png` blocks final character integration and `PRES-03`. [VERIFIED: repository inspection]
+- None. All three selected art inputs are committed at their required paths. [VERIFIED: repository inspection]
 
 **Missing dependencies with fallback:**
 
@@ -526,7 +522,7 @@ No user text, network data, storage payload, authentication, session, or cryptog
 
 ### Tertiary (LOW confidence)
 
-- Exact gameplay tuning values and visual pose choices remain assumptions until the playable prototype and selected sprite are available. [ASSUMED]
+- Exact gameplay tuning values and visual pose choices remain assumptions until the playable scene is implemented and tested with the selected sprite. [ASSUMED]
 
 ## Metadata
 
@@ -534,8 +530,8 @@ No user text, network data, storage payload, authentication, session, or cryptog
 
 - Standard stack: MEDIUM. Official docs and registry metadata agree, but the package gate flags each very recent release for human verification.
 - Architecture: HIGH. It follows the locked deterministic, one-action, one-ramp constraints and established fixed-step boundaries.
-- Pitfalls: MEDIUM. Timing and collision risks are documented; final camera feel and sprite alignment need the missing asset and browser testing.
-- Asset readiness: HIGH. Repository inspection directly confirms the selected file is missing and the two optional extension/payload mismatches.
+- Pitfalls: MEDIUM. Timing and collision risks are documented; final camera feel and sprite alignment need browser testing against the committed assets.
+- Asset readiness: HIGH. Repository inspection directly confirms the approved 640x240 RGBA sheet and both selected 256x256 WebP scenery files are present.
 
 **Research date:** 2026-07-27
 **Valid until:** 2026-08-03 for package versions; architecture remains valid unless phase decisions change.
