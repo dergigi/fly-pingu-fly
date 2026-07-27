@@ -69,7 +69,7 @@ function stepRamp(
   }
 
   const speed = state.speed + config.rampAcceleration * dt;
-  const x = state.x + speed * dt;
+  const x = Math.min(state.x + speed * dt, config.lateBoundaryX);
   const ramp = sampleRamp(x, config);
   const tangentLength = Math.hypot(1, ramp.slope);
   const next: JumpState & { phase: "ramp" } = {

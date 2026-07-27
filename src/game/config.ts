@@ -12,7 +12,11 @@ export type TakeoffConfig = Readonly<{
 export type TerrainConfig = Readonly<{
   startX: number;
   startY: number;
-  rampSlope: number;
+  rampStartSlope: number;
+  takeoffStartX: number;
+  lipX: number;
+  lipY: number;
+  lipSlope: number;
   landingStartX: number;
   landingY: number;
   landingSlope: number;
@@ -36,12 +40,15 @@ export type JumpConfig = Readonly<
 
 export const jumpConfig: JumpConfig = Object.freeze({
   startX: 120,
-  startY: 190,
+  startY: 150,
   initialSpeed: 70,
   rampAcceleration: 80,
-  rampSlope: 0.55,
+  rampStartSlope: 1,
+  takeoffStartX: 460,
   lipX: 520,
-  lateBoundaryX: 560,
+  lipY: 364,
+  lipSlope: -0.1,
+  lateBoundaryX: 520,
   minimumQuality: 0.35,
   earlySpan: 180,
   lateSpan: 60,
@@ -95,12 +102,22 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
   for (const field of [
     "startX",
     "startY",
-    "rampSlope",
+    "rampStartSlope",
+    "takeoffStartX",
+    "lipY",
+    "lipSlope",
     "landingStartX",
     "landingY",
     "landingSlope",
   ] as const) {
     assertFinite(field, config[field]);
+  }
+
+  if (
+    config.takeoffStartX <= config.startX ||
+    config.takeoffStartX >= config.lipX
+  ) {
+    throw new RangeError("takeoffStartX must lie inside the ramp");
   }
 }
 
