@@ -62,6 +62,9 @@ export class PlayScene extends Phaser.Scene {
     this.bindInput();
 
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    this.cameras.main.setFollowOffset(-180, 40);
+    this.cameras.main.startFollow(this.penguin, true, 0.14, 0.14);
+    this.cameras.main.centerOn(this.penguin.x + 180, this.penguin.y - 40);
     this.renderSnapshot();
   }
 
@@ -261,37 +264,5 @@ export class PlayScene extends Phaser.Scene {
           ? Math.atan(sampleRamp(state.x, jumpConfig).slope)
           : Math.atan(sampleLanding(state.x, jumpConfig).slope);
     this.penguin.setRotation(rotation);
-
-    const focusX =
-      state.phase === "ramp"
-        ? Math.max(state.x + 180, jumpConfig.lipX)
-        : state.phase === "flight"
-          ? state.x + 390
-          : state.x + 230;
-    const targetX = Phaser.Math.Clamp(
-      focusX - this.cameras.main.width / 2,
-      0,
-      WORLD_WIDTH - this.cameras.main.width,
-    );
-    this.cameras.main.scrollX =
-      state.phase === "resting"
-        ? targetX
-        : Phaser.Math.Linear(this.cameras.main.scrollX, targetX, 0.08);
-
-    const focusY =
-      state.phase === "ramp"
-        ? state.y
-        : state.phase === "flight"
-          ? state.y + 80
-          : state.y + 120;
-    const targetY = Phaser.Math.Clamp(
-      focusY - this.cameras.main.height * 0.55,
-      0,
-      WORLD_HEIGHT - this.cameras.main.height,
-    );
-    this.cameras.main.scrollY =
-      state.phase === "resting"
-        ? targetY
-        : Phaser.Math.Linear(this.cameras.main.scrollY, targetY, 0.08);
   }
 }
