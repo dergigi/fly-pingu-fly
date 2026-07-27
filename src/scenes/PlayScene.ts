@@ -103,14 +103,6 @@ export class PlayScene extends Phaser.Scene {
       "waterfall",
       "/assets/sprites/snow-covered-waterfall-mini.webp",
     );
-    this.load.image(
-      "hot-spring",
-      "/assets/sprites/snow-covered-hot-spring.webp",
-    );
-    this.load.image(
-      "geyser",
-      "/assets/sprites/snow-covered-geyser.webp",
-    );
     this.load.image("snow-pile", "/assets/sprites/snow-pile.webp");
     this.load.image(
       "fallen-log",
@@ -410,24 +402,9 @@ export class PlayScene extends Phaser.Scene {
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
 
     this.add
-      .image(gapCenterX - 8, lip.y + 95, "waterfall")
-      .setScale(0.72)
-      .setAlpha(0.95)
-      .setDepth(1);
-    this.add
-      .image(gapCenterX + 28, lip.y + 210, "waterfall")
-      .setScale(0.48)
-      .setAlpha(0.85)
-      .setDepth(1);
-    this.add
-      .image(gapCenterX - 18, lip.y + 320, "hot-spring")
-      .setScale(0.42)
-      .setAlpha(0.92)
-      .setDepth(1);
-    this.add
-      .image(gapCenterX + 22, lip.y + 430, "geyser")
-      .setScale(0.38)
-      .setAlpha(0.9)
+      .image(gapCenterX, lip.y + 160, "waterfall")
+      .setScale(1.35)
+      .setAlpha(0.96)
       .setDepth(1);
   }
 

@@ -17,8 +17,8 @@ is not the selected character and must not be used as a substitute.
 - `pine-tree-snow-heavy.webp`, `birch-tree-white.webp`, `dead-tree.webp`,
   `twisted-dead-tree.webp`, and `snow-covered-tree-stump.webp` fill out the
   treeline behind the ramp.
-- `snow-covered-waterfall-mini.webp`, `snow-covered-hot-spring.webp`, and
-  `snow-covered-geyser.webp` sit in the cliff gap between takeoff and landing.
+- `snow-covered-waterfall-mini.webp` sits large in the cliff gap between takeoff
+  and landing.
 - `snow-ice-crystal.png` and `snow-fall-flakes.webp` drive the light snowfall.
 - `snow-covered-fallen-log.webp` is the start platform at the top of the ramp.
 - `snow-pile.webp`, `snow-village.webp`, `igloo-snow-block-dome.webp`,

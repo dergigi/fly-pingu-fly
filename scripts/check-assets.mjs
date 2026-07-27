@@ -12,8 +12,6 @@ const REQUIRED_ASSETS = [
   { name: "twisted-dead-tree.webp", format: "webp" },
   { name: "snow-covered-tree-stump.webp", format: "webp" },
   { name: "snow-covered-waterfall-mini.webp", format: "webp" },
-  { name: "snow-covered-hot-spring.webp", format: "webp" },
-  { name: "snow-covered-geyser.webp", format: "webp" },
   { name: "snow-ice-crystal.png", format: "png" },
   { name: "snow-fall-flakes.webp", format: "webp" },
   { name: "snow-pile.webp", format: "webp" },
