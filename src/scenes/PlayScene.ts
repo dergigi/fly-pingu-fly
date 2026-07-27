@@ -28,7 +28,7 @@ import {
 const WORLD_WIDTH = 4700;
 const WORLD_HEIGHT = 1000;
 const CAMERA_TOP_PAD = 140;
-const PENGUIN_SCALE = 0.51;
+const PENGUIN_SCALE = 0.3825;
 const LOG_SCALE = 0.36;
 
 export class PlayScene extends Phaser.Scene {
