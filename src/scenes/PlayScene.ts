@@ -615,33 +615,88 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeRunoutScenery(): void {
-    // Little snow village where the penguin comes to rest on the runout.
-    const props = [
-      { key: "rock-cluster", x: 5280, scale: 0.36, sink: 10, depth: 2 },
-      { key: "snow-pile", x: 5420, scale: 0.28, sink: 8, depth: 2 },
-      { key: "igloo", x: 5560, scale: 0.4, sink: 6, depth: 3 },
-      { key: "wood-pile", x: 5720, scale: 0.34, sink: 8, depth: 2 },
-      { key: "lantern-post", x: 5860, scale: 0.38, sink: 4, depth: 3 },
-      { key: "snow-village", x: 6080, scale: 0.62, sink: 12, depth: 3 },
-      { key: "snow-storage", x: 6320, scale: 0.44, sink: 10, depth: 3 },
-      { key: "hot-spring", x: 6520, scale: 0.4, sink: 14, depth: 2 },
-      { key: "snowman", x: 6680, scale: 0.36, sink: 6, depth: 3 },
-      { key: "lantern-post", x: 6820, scale: 0.36, sink: 4, depth: 3 },
-      { key: "snow-village", x: 7020, scale: 0.52, sink: 12, depth: 3 },
-      { key: "wood-pile", x: 7220, scale: 0.3, sink: 8, depth: 2 },
-      { key: "watchtower", x: 7420, scale: 0.72, sink: 8, depth: 4 },
-      { key: "rock-cluster", x: 7620, scale: 0.32, sink: 10, depth: 2 },
-      { key: "snow-storage", x: 7780, scale: 0.38, sink: 10, depth: 3 },
-      { key: "snow-pile", x: 7960, scale: 0.3, sink: 8, depth: 2 },
-    ] as const;
+    // Clustered little village along the runout, not a scattered prop line.
+    const clusters: ReadonlyArray<{
+      anchorX: number;
+      props: ReadonlyArray<{
+        key: string;
+        dx: number;
+        scale: number;
+        sink: number;
+        depth: number;
+      }>;
+    }> = [
+      {
+        // Trail markers leading into town.
+        anchorX: 5450,
+        props: [
+          { key: "rock-cluster", dx: -70, scale: 0.34, sink: 10, depth: 2 },
+          { key: "snow-pile", dx: 10, scale: 0.28, sink: 8, depth: 2 },
+          { key: "lantern-post", dx: 70, scale: 0.34, sink: 4, depth: 3 },
+        ],
+      },
+      {
+        // Homestead: igloo yard.
+        anchorX: 5850,
+        props: [
+          { key: "wood-pile", dx: -90, scale: 0.32, sink: 8, depth: 2 },
+          { key: "igloo", dx: 0, scale: 0.46, sink: 6, depth: 3 },
+          { key: "snowman", dx: 85, scale: 0.34, sink: 6, depth: 3 },
+          { key: "snow-pile", dx: 145, scale: 0.24, sink: 8, depth: 2 },
+        ],
+      },
+      {
+        // Main square: houses + storehouse.
+        anchorX: 6400,
+        props: [
+          { key: "lantern-post", dx: -150, scale: 0.36, sink: 4, depth: 3 },
+          { key: "snow-village", dx: -60, scale: 0.58, sink: 12, depth: 3 },
+          { key: "snow-storage", dx: 90, scale: 0.42, sink: 10, depth: 3 },
+          { key: "wood-pile", dx: 170, scale: 0.3, sink: 8, depth: 2 },
+          { key: "lantern-post", dx: 230, scale: 0.34, sink: 4, depth: 3 },
+        ],
+      },
+      {
+        // Hot-spring courtyard.
+        anchorX: 6950,
+        props: [
+          { key: "rock-cluster", dx: -80, scale: 0.3, sink: 10, depth: 2 },
+          { key: "hot-spring", dx: 0, scale: 0.44, sink: 14, depth: 2 },
+          { key: "snow-pile", dx: 75, scale: 0.26, sink: 8, depth: 2 },
+          { key: "snowman", dx: 130, scale: 0.3, sink: 6, depth: 3 },
+        ],
+      },
+      {
+        // Second house row.
+        anchorX: 7350,
+        props: [
+          { key: "snow-village", dx: -40, scale: 0.5, sink: 12, depth: 3 },
+          { key: "snow-storage", dx: 95, scale: 0.36, sink: 10, depth: 3 },
+          { key: "wood-pile", dx: 165, scale: 0.28, sink: 8, depth: 2 },
+        ],
+      },
+      {
+        // Watchtower at the far edge of town.
+        anchorX: 7800,
+        props: [
+          { key: "rock-cluster", dx: -100, scale: 0.32, sink: 10, depth: 2 },
+          { key: "watchtower", dx: 0, scale: 0.7, sink: 8, depth: 4 },
+          { key: "lantern-post", dx: 70, scale: 0.34, sink: 4, depth: 3 },
+          { key: "snow-pile", dx: 130, scale: 0.28, sink: 8, depth: 2 },
+        ],
+      },
+    ];
 
-    for (const prop of props) {
-      const surface = sampleLanding(prop.x, jumpConfig);
-      this.add
-        .image(prop.x, surface.y + prop.sink, prop.key)
-        .setOrigin(0.5, 1)
-        .setScale(prop.scale)
-        .setDepth(prop.depth);
+    for (const cluster of clusters) {
+      for (const prop of cluster.props) {
+        const x = cluster.anchorX + prop.dx;
+        const surface = sampleLanding(x, jumpConfig);
+        this.add
+          .image(x, surface.y + prop.sink, prop.key)
+          .setOrigin(0.5, 1)
+          .setScale(prop.scale)
+          .setDepth(prop.depth);
+      }
     }
   }
 
