@@ -952,7 +952,7 @@ export class PlayScene extends Phaser.Scene {
           { key: "pine-tree", dx: -390, scale: 0.7, sink: 168, depth: 16 },
           { key: "snow-pile", dx: -300, scale: 0.55, sink: 122, depth: 13 },
           { key: "rock-cluster", dx: -100, scale: 0.82, sink: 148, depth: 13 },
-          { key: "pine-tree", dx: 10, scale: 0.85, sink: 175, depth: 16 },
+          { key: "pine-tree", dx: 10, scale: 0.85, sink: 198, depth: 16 },
           { key: "geyser", dx: 120, scale: 0.72, sink: 130, depth: 13 },
           { key: "pine-tree", dx: 280, scale: 0.74, sink: 170, depth: 16 },
           { key: "rock-cluster", dx: 400, scale: 0.65, sink: 138, depth: 13 },
