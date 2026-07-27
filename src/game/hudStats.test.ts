@@ -1,23 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import { formatAirtimeHud, formatDistanceHud, formatJumpHud, jumpHudStats } from "./hudStats";
+import {
+  formatAirtimeHud,
+  formatDistanceHud,
+  formatJumpHud,
+  jumpHudStats,
+  worldDistanceToMeters,
+} from "./hudStats";
 
 describe("jump HUD stats", () => {
-  it("reads the frozen jump distance and airtime from state", () => {
+  it("converts world distance into display meters", () => {
+    expect(worldDistanceToMeters(271)).toBeCloseTo(2.71, 8);
     expect(jumpHudStats({ distance: 0, airtime: 0 })).toEqual({
       distance: 0,
       airtime: 0,
     });
     expect(jumpHudStats({ distance: 300, airtime: 1.24 })).toEqual({
-      distance: 300,
+      distance: 3,
       airtime: 1.24,
     });
   });
 
-  it("formats large kid-readable values", () => {
-    const stats = { distance: 312.6, airtime: 1.24 };
-    expect(formatDistanceHud(stats)).toBe("313 m");
+  it("formats short distances with two decimals", () => {
+    const stats = { distance: 3.126, airtime: 1.24 };
+    expect(formatDistanceHud(stats)).toBe("3.13 m");
     expect(formatAirtimeHud(stats)).toBe("1.2 s");
-    expect(formatJumpHud(stats)).toBe("313 m\n1.2 s");
+    expect(formatJumpHud(stats)).toBe("3.13 m\n1.2 s");
   });
 });

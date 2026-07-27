@@ -11,7 +11,7 @@ import {
   stepJump,
   type JumpState,
 } from "../game/jump";
-import { formatAirtimeHud, formatDistanceHud, jumpHudStats } from "../game/hudStats";
+import { formatAirtimeHud, formatDistanceHud, jumpHudStats, worldDistanceToMeters } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
 import {
   formatLeaderboard,
@@ -843,7 +843,7 @@ export class PlayScene extends Phaser.Scene {
     if (storage === null) {
       return;
     }
-    const result = recordDistance(storage, state.distance);
+    const result = recordDistance(storage, worldDistanceToMeters(state.distance));
     this.leaderboard = [...result.entries];
   }
 

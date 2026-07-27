@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatLeaderboard,
   LEADERBOARD_LIMIT,
+  LEADERBOARD_STORAGE_KEY,
   normalizeDistance,
   rankDistance,
   readLeaderboard,
@@ -39,12 +40,12 @@ function memoryStore(initial: Record<string, string> = {}): Storage {
 
 describe("distance leaderboard", () => {
   it("keeps only the top ten distances, highest first", () => {
-    const seed = [10, 40, 30, 20, 50, 60, 70, 80, 90, 100, 15, 5];
-    const result = submitDistance(seed, 45);
+    const seed = [1.0, 4.0, 3.0, 2.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 1.5, 0.5];
+    const result = submitDistance(seed, 4.5);
 
     expect(result.entries).toHaveLength(LEADERBOARD_LIMIT);
-    expect(result.entries[0]).toBe(100);
-    expect(result.entries).toEqual([100, 90, 80, 70, 60, 50, 45, 40, 30, 20]);
+    expect(result.entries[0]).toBe(10);
+    expect(result.entries).toEqual([10, 9, 8, 7, 6, 5, 4.5, 4, 3, 2]);
     expect(result.accepted).toBe(true);
     expect(result.rank).toBe(7);
   });
@@ -52,41 +53,41 @@ describe("distance leaderboard", () => {
   it("rejects non-positive distances and still returns a clean board", () => {
     expect(normalizeDistance(-3)).toBe(0);
     expect(normalizeDistance(Number.NaN)).toBe(0);
-    expect(submitDistance([12, 8], 0).accepted).toBe(false);
-    expect(submitDistance([12, 8], 0).entries).toEqual([12, 8]);
+    expect(submitDistance([1.2, 0.8], 0).accepted).toBe(false);
+    expect(submitDistance([1.2, 0.8], 0).entries).toEqual([1.2, 0.8]);
   });
 
-  it("rounds distances to whole meters before ranking", () => {
-    const result = submitDistance([100], 99.6);
-    expect(result.entries).toEqual([100, 100]);
-    expect(rankDistance([200, 100], 150.4)).toBe(2);
+  it("rounds distances to centimeters before ranking", () => {
+    const result = submitDistance([1.0], 0.996);
+    expect(result.entries).toEqual([1, 1]);
+    expect(rankDistance([2.0, 1.0], 1.504)).toBe(2);
   });
 
   it("persists and reloads through storage", () => {
     const store = memoryStore();
-    const saved = writeLeaderboard(store, [12.2, 40.8, 0, -1]);
-    expect(saved).toEqual([41, 12]);
-    expect(readLeaderboard(store)).toEqual([41, 12]);
+    const saved = writeLeaderboard(store, [0.122, 0.408, 0, -1]);
+    expect(saved).toEqual([0.41, 0.12]);
+    expect(readLeaderboard(store)).toEqual([0.41, 0.12]);
 
-    const recorded = recordDistance(store, 55.2);
+    const recorded = recordDistance(store, 0.552);
     expect(recorded.rank).toBe(1);
-    expect(readLeaderboard(store)).toEqual([55, 41, 12]);
+    expect(readLeaderboard(store)).toEqual([0.55, 0.41, 0.12]);
   });
 
   it("survives corrupt or missing storage values", () => {
     expect(readLeaderboard(memoryStore())).toEqual([]);
-    expect(readLeaderboard(memoryStore({ "fly-pingu-fly:top-distances": "{" }))).toEqual(
-      [],
-    );
     expect(
-      readLeaderboard(
-        memoryStore({ "fly-pingu-fly:top-distances": '"nope"' }),
-      ),
+      readLeaderboard(memoryStore({ [LEADERBOARD_STORAGE_KEY]: "{" })),
+    ).toEqual([]);
+    expect(
+      readLeaderboard(memoryStore({ [LEADERBOARD_STORAGE_KEY]: '"nope"' })),
     ).toEqual([]);
   });
 
   it("formats a simple kid-readable board", () => {
     expect(formatLeaderboard([])).toBe("Top 10\n—");
-    expect(formatLeaderboard([3128, 1693])).toBe("Top 10\n1. 3128 m\n2. 1693 m");
+    expect(formatLeaderboard([31.28, 16.93])).toBe(
+      "Top 10\n1. 31.28 m\n2. 16.93 m",
+    );
   });
 });

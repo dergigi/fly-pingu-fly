@@ -1,5 +1,5 @@
 export const LEADERBOARD_LIMIT = 10;
-export const LEADERBOARD_STORAGE_KEY = "fly-pingu-fly:top-distances";
+export const LEADERBOARD_STORAGE_KEY = "fly-pingu-fly:top-distances-m";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem">;
 
@@ -9,11 +9,12 @@ export type SubmitDistanceResult = Readonly<{
   accepted: boolean;
 }>;
 
+/** Keep centimeter precision for short ski distances. */
 export function normalizeDistance(distance: number): number {
   if (!Number.isFinite(distance) || distance <= 0) {
     return 0;
   }
-  return Math.round(distance);
+  return Math.round(distance * 100) / 100;
 }
 
 export function rankDistance(
@@ -122,7 +123,7 @@ export function formatLeaderboard(entries: readonly number[]): string {
   return [
     "Top 10",
     ...entries.map(
-      (distance, index) => `${index + 1}. ${Math.round(distance)} m`,
+      (distance, index) => `${index + 1}. ${normalizeDistance(distance).toFixed(2)} m`,
     ),
   ].join("\n");
 }
