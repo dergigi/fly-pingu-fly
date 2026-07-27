@@ -191,6 +191,17 @@ function stepRamp(
   }
 
   if (x >= config.lateBoundaryX) {
+    if (crouching) {
+      const lip = sampleRamp(config.lateBoundaryX, config);
+      const lipTangent = Math.hypot(1, lip.slope);
+      return {
+        ...next,
+        x: config.lateBoundaryX,
+        y: lip.y,
+        vx: speed / lipTangent,
+        vy: (speed * lip.slope) / lipTangent,
+      };
+    }
     return launchFromQuality(next, config.minimumQuality, config);
   }
 

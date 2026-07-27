@@ -61,7 +61,7 @@ export const jumpConfig: JumpConfig = Object.freeze({
   startY: 36,
   initialSpeed: 120,
   rampAcceleration: 95,
-  crouchRampAcceleration: 200,
+  crouchRampAcceleration: 480,
   rampStartSlope: 2.05,
   takeoffStartX: 760,
   lipX: 900,

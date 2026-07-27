@@ -221,6 +221,35 @@ describe("jump tracer", () => {
     expect(crouched.phase).toBe("ramp");
     expect(crouched.speed).toBeGreaterThan(upright.speed);
     expect(crouched.x).toBeGreaterThan(upright.x);
+    expect(crouched.speed - upright.speed).toBeCloseTo(
+      (jumpConfig.crouchRampAcceleration - jumpConfig.rampAcceleration) *
+        FIXED_STEP,
+      8,
+    );
+  });
+
+  it("holds at the lip while crouching instead of auto-jumping", () => {
+    const lip = sampleRamp(jumpConfig.lateBoundaryX, jumpConfig);
+    const initial = {
+      ...createInitialJumpState(jumpConfig),
+      phase: "ramp",
+      x: jumpConfig.lateBoundaryX - 1,
+      y: sampleRamp(jumpConfig.lateBoundaryX - 1, jumpConfig).y,
+      speed: 400,
+      distance: 0,
+    } as RampState;
+
+    const held = stepJump(initial, null, FIXED_STEP, jumpConfig, true);
+    expect(held.phase).toBe("ramp");
+    expect(held.x).toBe(jumpConfig.lateBoundaryX);
+    expect(held.y).toBeCloseTo(lip.y, 8);
+    expect(held.speed).toBeGreaterThan(initial.speed);
+
+    const launched = stepJump(held, { pressedAtMs: 0 }, FIXED_STEP, jumpConfig, true);
+    expect(launched.phase).toBe("flight");
+
+    const auto = stepJump(held, null, FIXED_STEP, jumpConfig, false);
+    expect(auto.phase).toBe("flight");
   });
 
   it("ignores takeoff presses before the takeoff zone", () => {
