@@ -73,13 +73,37 @@
 
 ## Traceability
 
-Roadmap phase mapping will be added during roadmap creation.
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| JUMP-01 | Phase 1 | Pending |
+| JUMP-02 | Phase 1 | Pending |
+| JUMP-03 | Phase 1 | Pending |
+| JUMP-04 | Phase 1 | Pending |
+| JUMP-05 | Phase 1 | Pending |
+| INPT-01 | Phase 1 | Pending |
+| INPT-02 | Phase 1 | Pending |
+| INPT-03 | Phase 1 | Pending |
+| INPT-04 | Phase 2 | Pending |
+| PRES-01 | Phase 1 | Pending |
+| PRES-02 | Phase 1 | Pending |
+| PRES-03 | Phase 1 | Pending |
+| PRES-04 | Phase 2 | Pending |
+| RSLT-01 | Phase 3 | Pending |
+| RSLT-02 | Phase 3 | Pending |
+| RSLT-03 | Phase 3 | Pending |
+| RSLT-04 | Phase 3 | Pending |
+| RSLT-05 | Phase 3 | Pending |
+| RSLT-06 | Phase 3 | Pending |
+| BRWS-01 | Phase 2 | Pending |
+| BRWS-02 | Phase 2 | Pending |
+| BRWS-03 | Phase 2 | Pending |
+| BRWS-04 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-27*
-*Last updated: 2026-07-27 after initial definition*
+*Last updated: 2026-07-27 after roadmap creation*
