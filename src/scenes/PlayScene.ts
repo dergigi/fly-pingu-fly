@@ -592,8 +592,8 @@ export class PlayScene extends Phaser.Scene {
     const tipX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
     const tipY = rampCeiling + 170;
     const baseY = WORLD_HEIGHT + 20;
-    const tipHalfW = 42;
-    const baseHalfW = 420;
+    const tipHalfW = 28;
+    const baseHalfW = 560;
 
     const plant = (
       x: number,
@@ -612,32 +612,27 @@ export class PlayScene extends Phaser.Scene {
         .setDepth(depth);
     };
 
-    // Brown geyser tip / upper slopes, dark rock base: a proper mountain stack.
+    // Single brown tip; everything else is dark rock in a pyramid silhouette.
+    plant(tipX, tipY + 8, "geyser", 1.08, 3);
+
     let i = 0;
-    for (let y = tipY; y <= baseY; y += 48) {
+    for (let y = tipY + 60; y <= baseY; y += 44) {
       const t = (y - tipY) / Math.max(1, baseY - tipY);
-      const halfW = tipHalfW + (baseHalfW - tipHalfW) * t * t;
-      const step = 54 + Math.floor(t * 16);
+      // Linear widen so the outline reads as a pyramid.
+      const halfW = tipHalfW + (baseHalfW - tipHalfW) * t;
+      const step = 48 + Math.floor(t * 10);
       for (let x = tipX - halfW; x <= tipX + halfW; x += step) {
         const n = this.forestNoise(x * 2 + y, 20 + (i % 9));
-        if (n < 0.18 + t * 0.06) {
+        if (n < 0.14 + t * 0.04) {
           i += 1;
           continue;
         }
-        // Upper slopes may use brown geysers; the tip itself is a single anchor.
-        const geyserChance =
-          t < 0.12 ? 0 : t < 0.28 ? 0.55 : t < 0.55 ? 0.4 - (t - 0.28) : 0.08;
-        const key = n < geyserChance ? "geyser" : "rock-cluster";
-        const scale =
-          key === "geyser"
-            ? 0.42 + n * 0.4 + (1 - t) * 0.15
-            : 0.48 + n * 0.5 + t * 0.28;
         plant(
-          x + (n - 0.5) * 16,
-          y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 18,
-          key,
-          scale,
-          key === "geyser" ? 2 : 1,
+          x + (n - 0.5) * 14,
+          y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 16,
+          "rock-cluster",
+          0.5 + n * 0.45 + t * 0.25,
+          n > 0.55 ? 2 : 1,
           n > 0.5,
         );
         i += 1;
@@ -645,37 +640,39 @@ export class PlayScene extends Phaser.Scene {
     }
 
     const anchors = [
-      { key: "geyser" as const, x: tipX, y: tipY + 10, scale: 1.05, depth: 3 },
-      { key: "rock-cluster" as const, x: tipX - 70, y: tipY + 420, scale: 1.15, depth: 2 },
-      { key: "rock-cluster" as const, x: tipX + 30, y: tipY + 460, scale: 1.2, depth: 3 },
-      { key: "rock-cluster" as const, x: tipX - 20, y: tipY + 560, scale: 1.25, depth: 3 },
-      { key: "rock-cluster" as const, x: tipX + 80, y: tipY + 620, scale: 1.1, depth: 2 },
-      { key: "rock-cluster" as const, x: tipX - 190, y: baseY - 90, scale: 1.4, depth: 2 },
-      { key: "rock-cluster" as const, x: tipX + 20, y: baseY - 30, scale: 1.5, depth: 3 },
-      { key: "rock-cluster" as const, x: tipX + 210, y: baseY - 110, scale: 1.3, depth: 2 },
-      { key: "rock-cluster" as const, x: tipX - 80, y: baseY - 180, scale: 1.2, depth: 2 },
-      { key: "rock-cluster" as const, x: tipX + 120, y: baseY - 160, scale: 1.25, depth: 2 },
+      { x: tipX - 40, y: tipY + 180, scale: 0.95, depth: 2 },
+      { x: tipX + 45, y: tipY + 210, scale: 1.0, depth: 2 },
+      { x: tipX - 90, y: tipY + 380, scale: 1.15, depth: 2 },
+      { x: tipX + 20, y: tipY + 420, scale: 1.2, depth: 3 },
+      { x: tipX + 100, y: tipY + 460, scale: 1.1, depth: 2 },
+      { x: tipX - 160, y: tipY + 620, scale: 1.25, depth: 2 },
+      { x: tipX + 40, y: tipY + 660, scale: 1.3, depth: 3 },
+      { x: tipX + 180, y: tipY + 700, scale: 1.15, depth: 2 },
+      { x: tipX - 260, y: baseY - 100, scale: 1.45, depth: 2 },
+      { x: tipX - 80, y: baseY - 40, scale: 1.5, depth: 3 },
+      { x: tipX + 90, y: baseY - 60, scale: 1.4, depth: 3 },
+      { x: tipX + 260, y: baseY - 120, scale: 1.35, depth: 2 },
+      { x: tipX + 20, y: baseY - 20, scale: 1.55, depth: 3 },
     ];
     for (const piece of anchors) {
-      plant(piece.x, piece.y, piece.key, piece.scale, piece.depth);
+      plant(piece.x, piece.y, "rock-cluster", piece.scale, piece.depth);
     }
 
-    // Dense dark-rock pass for the broad base.
-    const lowerTop = tipY + (baseY - tipY) * 0.58;
-    for (let y = lowerTop; y <= baseY; y += 40) {
+    // Dense fill inside the pyramid, denser toward the wide base.
+    for (let y = tipY + 100; y <= baseY; y += 38) {
       const t = (y - tipY) / Math.max(1, baseY - tipY);
-      const halfW = tipHalfW + (baseHalfW - tipHalfW) * t * t;
-      for (let x = tipX - halfW; x <= tipX + halfW; x += 42) {
+      const halfW = (tipHalfW + (baseHalfW - tipHalfW) * t) * 0.92;
+      for (let x = tipX - halfW; x <= tipX + halfW; x += 40) {
         const n = this.forestNoise(x + y, 40 + (i % 6));
-        if (n < 0.2) {
+        if (n < 0.18) {
           i += 1;
           continue;
         }
         plant(
-          x + (n - 0.5) * 12,
-          y + (n - 0.5) * 12,
+          x + (n - 0.5) * 10,
+          y + (n - 0.5) * 10,
           "rock-cluster",
-          0.6 + n * 0.5,
+          0.55 + n * 0.48 + t * 0.15,
           3,
           n > 0.5,
         );
