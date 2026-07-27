@@ -588,38 +588,36 @@ export class PlayScene extends Phaser.Scene {
   private placeJumpGapScenery(): void {
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
     const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
-    // Allow the peak a little into the air gap between the cliffs.
-    const rampCeiling = Math.min(lip.y, land.y) - 15;
+    const gapLine = Math.min(lip.y, land.y);
     const tipX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
-    const tipY = rampCeiling + 95;
+    // Brown tip sits in the air gap; black rocks stay under it.
+    const tipScale = 1.08;
+    const tipBaseY = gapLine - 20 + 256 * tipScale;
+    const rockCeiling = tipBaseY - 20;
+    const tipY = rockCeiling;
     const baseY = WORLD_HEIGHT + 20;
     const tipHalfW = 28;
     const baseHalfW = 560;
 
-    const plant = (
+    const plantRock = (
       x: number,
       y: number,
-      key: "rock-cluster" | "geyser",
       scale: number,
       depth: number,
       flipX = false,
     ): void => {
-      const base = Math.max(y, rampCeiling + 256 * scale);
+      const base = Math.max(y, rockCeiling + 256 * scale);
       this.add
-        .image(x, base, key)
+        .image(x, base, "rock-cluster")
         .setOrigin(0.5, 1)
         .setScale(scale)
         .setFlipX(flipX)
         .setDepth(depth);
     };
 
-    // Single brown tip; everything else is dark rock in a pyramid silhouette.
-    plant(tipX, tipY + 4, "geyser", 1.08, 3);
-
     let i = 0;
-    for (let y = tipY + 60; y <= baseY; y += 44) {
+    for (let y = tipY + 40; y <= baseY; y += 44) {
       const t = (y - tipY) / Math.max(1, baseY - tipY);
-      // Linear widen so the outline reads as a pyramid.
       const halfW = tipHalfW + (baseHalfW - tipHalfW) * t;
       const step = 48 + Math.floor(t * 10);
       for (let x = tipX - halfW; x <= tipX + halfW; x += step) {
@@ -628,10 +626,9 @@ export class PlayScene extends Phaser.Scene {
           i += 1;
           continue;
         }
-        plant(
+        plantRock(
           x + (n - 0.5) * 14,
           y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 16,
-          "rock-cluster",
           0.5 + n * 0.45 + t * 0.25,
           n > 0.55 ? 2 : 1,
           n > 0.5,
@@ -656,10 +653,9 @@ export class PlayScene extends Phaser.Scene {
       { x: tipX + 20, y: baseY - 20, scale: 1.55, depth: 3 },
     ];
     for (const piece of anchors) {
-      plant(piece.x, piece.y, "rock-cluster", piece.scale, piece.depth);
+      plantRock(piece.x, piece.y, piece.scale, piece.depth);
     }
 
-    // Dense fill inside the pyramid, denser toward the wide base.
     for (let y = tipY + 100; y <= baseY; y += 38) {
       const t = (y - tipY) / Math.max(1, baseY - tipY);
       const halfW = (tipHalfW + (baseHalfW - tipHalfW) * t) * 0.92;
@@ -669,10 +665,9 @@ export class PlayScene extends Phaser.Scene {
           i += 1;
           continue;
         }
-        plant(
+        plantRock(
           x + (n - 0.5) * 10,
           y + (n - 0.5) * 10,
-          "rock-cluster",
           0.55 + n * 0.48 + t * 0.15,
           3,
           n > 0.5,
@@ -680,6 +675,13 @@ export class PlayScene extends Phaser.Scene {
         i += 1;
       }
     }
+
+    // Plant the brown peak last so it stays visible in the jump gap.
+    this.add
+      .image(tipX, tipBaseY, "geyser")
+      .setOrigin(0.5, 1)
+      .setScale(tipScale)
+      .setDepth(4);
   }
 
   private placeFarLandingFlag(): void {
