@@ -11,6 +11,7 @@ import {
   stepJump,
   type JumpState,
 } from "../game/jump";
+import { formatJumpHud, jumpHudStats } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
 import {
   PENGUIN_FRAMES,
@@ -34,6 +35,7 @@ export class PlayScene extends Phaser.Scene {
   private accumulator = 0;
   private simulationTimeMs = 0;
   private penguin!: Phaser.GameObjects.Sprite;
+  private hudText!: Phaser.GameObjects.Text;
   private takeoffPosePending = false;
 
   constructor() {
@@ -56,6 +58,7 @@ export class PlayScene extends Phaser.Scene {
     this.drawWorld();
     this.registerPenguinFrames();
     this.penguin = this.createPenguin();
+    this.hudText = this.createHud();
     this.bindInput();
 
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -218,6 +221,22 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(10);
   }
 
+  private createHud(): Phaser.GameObjects.Text {
+    return this.add
+      .text(this.cameras.main.width - 28, 22, "", {
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
+        fontSize: "36px",
+        fontStyle: "bold",
+        color: "#0b4f73",
+        align: "right",
+        stroke: "#f4fbff",
+        strokeThickness: 8,
+      })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(100);
+  }
+
   private applyPose(pose: PenguinPose): void {
     const frame = PENGUIN_FRAMES[pose];
     this.penguin
@@ -230,6 +249,9 @@ export class PlayScene extends Phaser.Scene {
     const pose = poseForJumpPhase(state, this.takeoffPosePending);
     this.applyPose(pose);
     this.penguin.setPosition(state.x, state.y);
+    this.hudText.setText(
+      formatJumpHud(jumpHudStats(state, jumpConfig.lipX)),
+    );
     this.takeoffPosePending = false;
 
     const rotation =
