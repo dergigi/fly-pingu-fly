@@ -40,6 +40,8 @@ export class MenuScene extends Phaser.Scene {
   private flag!: Phaser.GameObjects.Image;
   private flagMark!: Phaser.GameObjects.Graphics;
   private playPrompt!: Phaser.GameObjects.Text;
+  private creditMore!: Phaser.GameObjects.Text;
+  private creditLink!: Phaser.GameObjects.Text;
   private started = false;
   private groundY = 0;
   private penguinX = 0;
@@ -573,34 +575,66 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private createCredit(): void {
+    const style = {
+      fontFamily: "Trebuchet MS, Arial, sans-serif",
+      fontSize: "13px",
+      color: "#3a6f8a",
+      align: "right",
+      stroke: "#f4fbff",
+      strokeThickness: 3,
+      lineSpacing: 2,
+    } as const;
+
     this.add
       .text(
         0,
         0,
         "Concept & game design by my daughter.\nThe clankers did the rest.",
-        {
-          fontFamily: "Trebuchet MS, Arial, sans-serif",
-          fontSize: "13px",
-          color: "#3a6f8a",
-          align: "right",
-          stroke: "#f4fbff",
-          strokeThickness: 3,
-          lineSpacing: 2,
-        },
+        style,
       )
       .setOrigin(1, 1)
       .setScrollFactor(0)
       .setDepth(100)
       .setAlpha(0.9)
       .setName("credit");
+
+    this.creditMore = this.add
+      .text(0, 0, "More at ", style)
+      .setOrigin(1, 1)
+      .setScrollFactor(0)
+      .setDepth(100)
+      .setAlpha(0.9);
+
+    this.creditLink = this.add
+      .text(0, 0, "dergigi.com/games", {
+        ...style,
+        color: "#0b6fa8",
+      })
+      .setOrigin(1, 1)
+      .setScrollFactor(0)
+      .setDepth(101)
+      .setAlpha(0.95)
+      .setInteractive({ useHandCursor: true });
+
+    this.creditLink.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+      pointer.event?.preventDefault?.();
+      window.open("https://dergigi.com/games", "_blank", "noopener,noreferrer");
+    });
   }
 
   private bindInput(): void {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
-    this.input.on("pointerdown", () => {
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+      if (
+        this.creditLink
+          .getBounds()
+          .contains(pointer.x, pointer.y)
+      ) {
+        return;
+      }
       this.game.canvas.focus();
-      const x = this.input.activePointer.x;
+      const x = pointer.x;
       const w = this.cameras.main.width;
       if (x < w * 0.33) {
         this.facing = -1;
@@ -716,7 +750,17 @@ export class MenuScene extends Phaser.Scene {
     this.playPrompt.setFontSize(promptSize);
     this.playPrompt.setPosition(cx, playY);
     controls?.setPosition(cx, Math.min(h - 28, playY + 36));
-    credit?.setPosition(w - 18, h - 14);
+    const creditRight = w - 18;
+    const creditBottom = h - 14;
+    this.creditLink.setPosition(creditRight, creditBottom);
+    this.creditMore.setPosition(
+      creditRight - this.creditLink.width,
+      creditBottom,
+    );
+    credit?.setPosition(
+      creditRight,
+      creditBottom - this.creditLink.height - 2,
+    );
 
     pineLeft?.setPosition(
       cx - Math.min(420, w * 0.38),
