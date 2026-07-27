@@ -13,7 +13,6 @@ const REQUIRED_ASSETS = [
   "pine-tree-snow-heavy.webp",
   "snow-packed.webp",
   "snow-covered-geyser.webp",
-  "snow-ice-crystal.png",
   "snow-fall-flakes.webp",
   "cloud-solid.webp",
   "cloud-thin.webp",

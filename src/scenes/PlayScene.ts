@@ -137,10 +137,6 @@ export class PlayScene extends Phaser.Scene {
     );
     this.load.image("village-flag", "/assets/sprites/village-flag.png");
     this.load.image(
-      "snow-crystal",
-      "/assets/sprites/snow-ice-crystal.png",
-    );
-    this.load.image(
       "snow-flakes",
       "/assets/sprites/snow-fall-flakes.webp",
     );
@@ -858,21 +854,16 @@ export class PlayScene extends Phaser.Scene {
     const skyBottom = jumpConfig.lipY - 40;
 
     for (let index = 0; index < SNOWFLAKE_COUNT; index += 1) {
-      const useCrystal = index % 3 !== 0;
       const flake = this.add
         .image(
           Math.random() * spanX,
           skyTop + Math.random() * (skyBottom - skyTop),
-          useCrystal ? "snow-crystal" : "snow-flakes",
+          "snow-flakes",
         )
         .setScrollFactor(SNOW_SCROLL)
         .setDepth(5)
         .setAlpha(0.26 + Math.random() * 0.34)
-        .setScale(
-          useCrystal
-            ? 0.1 + Math.random() * 0.2
-            : 0.028 + Math.random() * 0.055,
-        );
+        .setScale(0.03 + Math.random() * 0.07);
       flake.setData("vx", -18 + Math.random() * 36);
       // Slow drift with wide speed variance.
       flake.setData("vy", 12 + Math.random() * 36);

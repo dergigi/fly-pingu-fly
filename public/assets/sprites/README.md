@@ -18,7 +18,7 @@ is not the selected character and must not be used as a substitute.
   at the edges of the village runout.
 - Rock and geyser rubble (`snow-covered-rock-cluster.webp`,
   `snow-covered-geyser.webp`) fills the cliff gap between takeoff and landing.
-- `snow-ice-crystal.png` and `snow-fall-flakes.webp` drive the light snowfall.
+- `snow-fall-flakes.webp` drives the light snowfall.
 - `cloud-solid.webp` and `cloud-thin.webp` drift gently across the sky.
 - `snow-covered-fallen-log.webp` is the start platform at the top of the ramp.
 - After the far-landing mark, a small village sits on the runout:
