@@ -529,62 +529,72 @@ export class PlayScene extends Phaser.Scene {
   private placeJumpGapScenery(): void {
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
     const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
+    // Keep rubble tops under the takeoff/landing edges; only build downward.
+    const rampCeiling = Math.min(lip.y, land.y) + 40;
     const left = jumpConfig.lipX - 90;
     const right = jumpConfig.landingStartX + 130;
-    const top = Math.min(lip.y, land.y) + 20;
+    const top = rampCeiling + 150;
     const bottom = Math.max(lip.y, land.y) + 560;
     const gapCenterX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
+
+    const plant = (
+      x: number,
+      y: number,
+      key: "rock-cluster" | "geyser",
+      scale: number,
+      depth: number,
+      flipX = false,
+    ): void => {
+      const baseY = Math.max(y, rampCeiling + 256 * scale);
+      this.add
+        .image(x, baseY, key)
+        .setOrigin(0.5, 1)
+        .setScale(scale)
+        .setFlipX(flipX)
+        .setDepth(depth);
+    };
 
     let i = 0;
     for (let y = top; y <= bottom; y += 32) {
       for (let x = left; x <= right; x += 34) {
         const n = this.forestNoise(x * 2 + y, 20 + (i % 9));
-        const key = n > 0.68 ? "geyser" : "rock-cluster";
-        const scale = 0.42 + n * 0.78;
-        this.add
-          .image(
-            x + (n - 0.5) * 22,
-            y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 18,
-            key,
-          )
-          .setOrigin(0.5, 1)
-          .setScale(scale)
-          .setFlipX(n > 0.52)
-          .setDepth(n > 0.55 ? 2 : 1);
+        plant(
+          x + (n - 0.5) * 22,
+          y + (this.forestNoise(y, 21 + (i % 5)) - 0.5) * 18,
+          n > 0.68 ? "geyser" : "rock-cluster",
+          0.42 + n * 0.78,
+          n > 0.55 ? 2 : 1,
+          n > 0.52,
+        );
         i += 1;
       }
     }
 
-    // Offset second pass plugs the remaining blue seams.
     for (let y = top + 16; y <= bottom; y += 36) {
       for (let x = left + 17; x <= right; x += 38) {
         const n = this.forestNoise(x + y * 3, 30 + (i % 7));
-        const key = n > 0.75 ? "geyser" : "rock-cluster";
-        this.add
-          .image(x + (n - 0.5) * 16, y, key)
-          .setOrigin(0.5, 1)
-          .setScale(0.5 + n * 0.7)
-          .setFlipX(n < 0.4)
-          .setDepth(2);
+        plant(
+          x + (n - 0.5) * 16,
+          y,
+          n > 0.75 ? "geyser" : "rock-cluster",
+          0.5 + n * 0.7,
+          2,
+          n < 0.4,
+        );
         i += 1;
       }
     }
 
-    // Big foreground chunks seal the middle of the pile.
     const anchors = [
-      { key: "rock-cluster", x: gapCenterX - 40, y: top + 180, scale: 1.25 },
-      { key: "geyser", x: gapCenterX + 10, y: top + 140, scale: 1.1 },
-      { key: "rock-cluster", x: gapCenterX + 55, y: top + 220, scale: 1.35 },
-      { key: "rock-cluster", x: gapCenterX - 10, y: top + 320, scale: 1.45 },
-      { key: "geyser", x: gapCenterX - 55, y: top + 280, scale: 0.95 },
-      { key: "rock-cluster", x: gapCenterX + 30, y: top + 400, scale: 1.2 },
-    ] as const;
+      { key: "rock-cluster" as const, x: gapCenterX - 40, y: top + 80, scale: 1.15 },
+      { key: "geyser" as const, x: gapCenterX + 10, y: top + 50, scale: 0.95 },
+      { key: "rock-cluster" as const, x: gapCenterX + 55, y: top + 120, scale: 1.2 },
+      { key: "rock-cluster" as const, x: gapCenterX - 10, y: top + 200, scale: 1.3 },
+      { key: "geyser" as const, x: gapCenterX - 55, y: top + 160, scale: 0.85 },
+      { key: "rock-cluster" as const, x: gapCenterX + 30, y: top + 280, scale: 1.1 },
+    ];
     for (const piece of anchors) {
-      this.add
-        .image(piece.x, piece.y, piece.key)
-        .setOrigin(0.5, 1)
-        .setScale(piece.scale)
-        .setDepth(3);
+      plant(piece.x, piece.y, piece.key, piece.scale, 3);
     }
   }
 
