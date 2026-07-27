@@ -53,7 +53,6 @@ export class MenuScene extends Phaser.Scene {
   preload(): void {
     this.load.image("penguin-sheet", "/assets/sprites/sprite_penguin.png");
     this.load.image("menu-pine", "/assets/sprites/pine-tree-snow-heavy.webp");
-    this.load.image("menu-crystal", "/assets/sprites/crystal-tree-16bit.webp");
   }
 
   create(): void {
@@ -238,13 +237,6 @@ export class MenuScene extends Phaser.Scene {
 
   private placeDecor(): void {
     this.add
-      .image(0, 0, "menu-crystal")
-      .setOrigin(0.5, 1)
-      .setScale(0.42)
-      .setDepth(4)
-      .setScrollFactor(0)
-      .setName("crystal");
-    this.add
       .image(0, 0, "menu-pine")
       .setOrigin(0.5, 1)
       .setScale(0.28)
@@ -409,9 +401,6 @@ export class MenuScene extends Phaser.Scene {
     const controls = this.children.getByName(
       "controls",
     ) as Phaser.GameObjects.Text | null;
-    const crystal = this.children.getByName(
-      "crystal",
-    ) as Phaser.GameObjects.Image | null;
     const pineLeft = this.children.getByName(
       "pine-left",
     ) as Phaser.GameObjects.Image | null;
@@ -440,7 +429,6 @@ export class MenuScene extends Phaser.Scene {
     controls?.setPosition(cx, Math.min(h - 28, playY + 42));
 
     const groundY = h * 0.88;
-    crystal?.setPosition(cx - Math.min(280, w * 0.28), groundY + 8);
     pineLeft?.setPosition(cx - Math.min(420, w * 0.4), groundY + 6);
     pineRight?.setPosition(cx + Math.min(360, w * 0.34), groundY + 6);
 
