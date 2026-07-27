@@ -54,6 +54,12 @@ const SNOW_SCALE_SPAN = 0.07;
 const CLOUD_COUNT = 4;
 const CLOUD_SCROLL_NEAR = 0.18;
 const CLOUD_SCROLL_FAR = 0.1;
+/** Ice spire planted on the late runout slope; penguin stops just before it. */
+const WATCHTOWER_X = jumpConfig.landingRunoutEndX - 120;
+const WATCHTOWER_STOP_X = WATCHTOWER_X - 56;
+const WATCHTOWER_ORIGIN_Y = 242 / 256;
+const WATCHTOWER_SCALE = 0.92;
+const WATCHTOWER_SINK = 14;
 
 function browserStorage(): Storage | null {
   try {
@@ -256,6 +262,7 @@ export class PlayScene extends Phaser.Scene {
         }
       }
       this.maybeRecordScore(previousPhase, nextState);
+      this.jumpState = this.clampAgainstWatchtower(this.jumpState);
       this.accumulator -= FIXED_STEP;
       steps += 1;
     }
@@ -400,10 +407,41 @@ export class PlayScene extends Phaser.Scene {
       {
         ...freeRoamDefaults,
         minX: jumpConfig.startX,
-        maxX: jumpConfig.landingRunoutEndX,
+        maxX: WATCHTOWER_STOP_X,
       },
       (x) => this.worldSurface(x),
     );
+  }
+
+  private clampAgainstWatchtower(state: JumpState): JumpState {
+    if (
+      (state.phase !== "slide" && state.phase !== "crashed") ||
+      state.x < WATCHTOWER_STOP_X
+    ) {
+      return state;
+    }
+
+    const surface = sampleLanding(WATCHTOWER_STOP_X, jumpConfig);
+    if (state.phase === "crashed") {
+      return {
+        ...state,
+        x: WATCHTOWER_STOP_X,
+        y: surface.y,
+        vx: 0,
+        vy: 0,
+        speed: 0,
+      };
+    }
+
+    return {
+      ...state,
+      phase: "resting",
+      x: WATCHTOWER_STOP_X,
+      y: surface.y,
+      vx: 0,
+      vy: 0,
+      speed: 0,
+    };
   }
 
   private worldSurface(x: number): { y: number; slope: number } {
@@ -497,6 +535,7 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(4);
 
     this.placeRunoutScenery();
+    this.placeWatchtowerStop();
     this.placeFarLandingFlag();
   }
 
@@ -906,14 +945,9 @@ export class PlayScene extends Phaser.Scene {
           { key: "rock-cluster", dx: -100, scale: 0.82, sink: 148, depth: 13 },
           { key: "pine-tree", dx: 10, scale: 0.85, sink: 175, depth: 16 },
           { key: "geyser", dx: 120, scale: 0.72, sink: 130, depth: 13 },
-          { key: "watchtower", dx: 340, scale: 1.05, sink: 145, depth: 15 },
-          { key: "pine-tree", dx: 450, scale: 0.74, sink: 170, depth: 16 },
-          { key: "rock-cluster", dx: 560, scale: 0.65, sink: 138, depth: 13 },
-          { key: "snow-pile", dx: 740, scale: 0.58, sink: 124, depth: 13 },
-          { key: "pine-tree", dx: 840, scale: 0.8, sink: 178, depth: 16 },
-          { key: "rock-cluster", dx: 940, scale: 0.78, sink: 152, depth: 13 },
-          { key: "snow-pile", dx: 1120, scale: 0.5, sink: 120, depth: 13 },
-          { key: "pine-tree", dx: 1240, scale: 0.72, sink: 165, depth: 16 },
+          { key: "pine-tree", dx: 280, scale: 0.74, sink: 170, depth: 16 },
+          { key: "rock-cluster", dx: 400, scale: 0.65, sink: 138, depth: 13 },
+          { key: "snow-pile", dx: 520, scale: 0.58, sink: 124, depth: 13 },
         ],
       },
     ];
@@ -929,6 +963,15 @@ export class PlayScene extends Phaser.Scene {
           .setDepth(prop.depth);
       }
     }
+  }
+
+  private placeWatchtowerStop(): void {
+    const surface = sampleLanding(WATCHTOWER_X, jumpConfig);
+    this.add
+      .image(WATCHTOWER_X, surface.y + WATCHTOWER_SINK, "watchtower")
+      .setOrigin(0.5, WATCHTOWER_ORIGIN_Y)
+      .setScale(WATCHTOWER_SCALE)
+      .setDepth(15);
   }
 
   private registerPenguinFrames(): void {
