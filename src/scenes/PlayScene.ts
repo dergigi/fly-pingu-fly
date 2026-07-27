@@ -588,9 +588,10 @@ export class PlayScene extends Phaser.Scene {
   private placeJumpGapScenery(): void {
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
     const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
-    const rampCeiling = Math.min(lip.y, land.y) + 40;
+    // Allow the peak a little into the air gap between the cliffs.
+    const rampCeiling = Math.min(lip.y, land.y) - 15;
     const tipX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
-    const tipY = rampCeiling + 170;
+    const tipY = rampCeiling + 95;
     const baseY = WORLD_HEIGHT + 20;
     const tipHalfW = 28;
     const baseHalfW = 560;
@@ -613,7 +614,7 @@ export class PlayScene extends Phaser.Scene {
     };
 
     // Single brown tip; everything else is dark rock in a pyramid silhouette.
-    plant(tipX, tipY + 8, "geyser", 1.08, 3);
+    plant(tipX, tipY + 4, "geyser", 1.08, 3);
 
     let i = 0;
     for (let y = tipY + 60; y <= baseY; y += 44) {
