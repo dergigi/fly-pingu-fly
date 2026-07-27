@@ -419,12 +419,12 @@ export class MenuScene extends Phaser.Scene {
     const groundY = h * 0.86;
     this.penguin.setPosition(cx, groundY);
 
-    const playY = Math.min(h * 0.78, h - 110);
+    const playY = Math.min(groundY - 120, h * 0.68);
     const promptSize = Math.round(Phaser.Math.Clamp(w * 0.018, 10, 16));
     this.playPrompt.setFontSize(promptSize);
     this.playPrompt.setPosition(cx, playY);
 
-    controls?.setPosition(cx, Math.min(h - 28, playY + 42));
+    controls?.setPosition(cx, Math.min(h - 28, playY + 36));
 
     pineLeft?.setPosition(cx - Math.min(420, w * 0.4), groundY + 6);
     pineRight?.setPosition(cx + Math.min(360, w * 0.34), groundY + 6);
