@@ -397,7 +397,11 @@ export class PlayScene extends Phaser.Scene {
       this.roam = setFreeRoamFacing(this.roam, 1);
     }
     if (this.takeoffKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
-      this.roam = tryFreeRoamJump(this.roam, freeRoamDefaults);
+      this.roam = tryFreeRoamJump(
+        this.roam,
+        freeRoamDefaults,
+        this.isCrouching(),
+      );
     }
 
     const dt = Math.min(deltaMs, 50) / 1000;
@@ -410,6 +414,7 @@ export class PlayScene extends Phaser.Scene {
         maxX: WATCHTOWER_STOP_X,
       },
       (x) => this.worldSurface(x),
+      this.isCrouching(),
     );
   }
 
@@ -467,7 +472,10 @@ export class PlayScene extends Phaser.Scene {
 
   private isCrouching(): boolean {
     return (
-      (this.jumpState.phase === "ramp" || this.jumpState.phase === "flight") &&
+      (this.jumpState.phase === "ramp" ||
+        this.jumpState.phase === "flight" ||
+        this.jumpState.phase === "slide" ||
+        this.roam !== null) &&
       this.crouchKey !== null &&
       this.crouchKey.isDown
     );
@@ -1279,7 +1287,12 @@ export class PlayScene extends Phaser.Scene {
       .setOrigin(originX, frame.contactY / frame.height)
       .setPosition(this.roam.x, this.roam.y)
       .setFlipX(this.roam.facing > 0)
-      .setScale(PENGUIN_SCALE);
+      .setScale(
+        PENGUIN_SCALE,
+        this.isCrouching()
+          ? PENGUIN_SCALE * PENGUIN_CROUCH_SCALE_Y
+          : PENGUIN_SCALE,
+      );
     const stats = jumpHudStats(this.jumpState);
     this.distanceText.setText(formatDistanceHud(stats));
     this.leaderboardText.setText(formatLeaderboard(this.leaderboard));

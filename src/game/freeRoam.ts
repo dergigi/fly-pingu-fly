@@ -11,7 +11,9 @@ export type FreeRoamConfig = Readonly<{
   gravity: number;
   jumpVy: number;
   jumpVx: number;
+  crouchJumpVx: number;
   slideFriction: number;
+  crouchSlideFriction: number;
   stopSpeed: number;
   margin: number;
   minX: number;
@@ -27,7 +29,9 @@ export const freeRoamDefaults = Object.freeze({
   gravity: 1400,
   jumpVy: -380,
   jumpVx: 300,
+  crouchJumpVx: 380,
   slideFriction: 280,
+  crouchSlideFriction: 140,
   stopSpeed: 12,
   margin: 36,
 }) satisfies Omit<FreeRoamConfig, "minX" | "maxX">;
@@ -56,17 +60,33 @@ export function setFreeRoamFacing(
 
 export function tryFreeRoamJump(
   state: FreeRoamState,
-  config: Pick<FreeRoamConfig, "jumpVy" | "jumpVx">,
+  config: Pick<FreeRoamConfig, "jumpVy" | "jumpVx" | "crouchJumpVx">,
+  crouching = false,
 ): FreeRoamState {
   if (!state.grounded) {
     return state;
   }
+  const jumpVx = crouching ? config.crouchJumpVx : config.jumpVx;
   return {
     ...state,
     grounded: false,
     vy: config.jumpVy,
-    vx: state.facing * config.jumpVx,
+    vx: state.facing * jumpVx,
   };
+}
+
+function applySlideFriction(
+  vx: number,
+  dt: number,
+  friction: number,
+  stopSpeed: number,
+): number {
+  if (Math.abs(vx) <= stopSpeed) {
+    return 0;
+  }
+  const sign = Math.sign(vx);
+  const next = vx - sign * friction * dt;
+  return Math.sign(next) !== sign ? 0 : next;
 }
 
 export function stepFreeRoam(
@@ -74,6 +94,7 @@ export function stepFreeRoam(
   dt: number,
   config: FreeRoamConfig,
   groundAt: (x: number) => GroundSample,
+  crouching = false,
 ): FreeRoamState {
   if (!Number.isFinite(dt) || dt <= 0) {
     return state;
@@ -82,6 +103,9 @@ export function stepFreeRoam(
   let { x, y, vx, vy, facing, grounded } = state;
   const minX = config.minX + config.margin;
   const maxX = Math.max(minX, config.maxX - config.margin);
+  const friction = crouching
+    ? config.crouchSlideFriction
+    : config.slideFriction;
 
   x += vx * dt;
 
@@ -100,15 +124,7 @@ export function stepFreeRoam(
     const ground = groundAt(x);
     y = ground.y;
     vy = 0;
-    if (Math.abs(vx) > config.stopSpeed) {
-      const sign = Math.sign(vx);
-      vx -= sign * config.slideFriction * dt;
-      if (Math.sign(vx) !== sign) {
-        vx = 0;
-      }
-    } else {
-      vx = 0;
-    }
+    vx = applySlideFriction(vx, dt, friction, config.stopSpeed);
     return { x, y, vx, vy, facing, grounded: true };
   }
 
@@ -120,15 +136,7 @@ export function stepFreeRoam(
     y = ground.y;
     vy = 0;
     grounded = true;
-    if (Math.abs(vx) > config.stopSpeed) {
-      const sign = Math.sign(vx);
-      vx -= sign * config.slideFriction * dt;
-      if (Math.sign(vx) !== sign) {
-        vx = 0;
-      }
-    } else {
-      vx = 0;
-    }
+    vx = applySlideFriction(vx, dt, friction, config.stopSpeed);
   }
 
   return { x, y, vx, vy, facing, grounded };

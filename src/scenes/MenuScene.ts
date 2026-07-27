@@ -24,6 +24,7 @@ const SNOW_FILL = 0xffffff;
 const SNOW_EDGE = 0xd9f5ff;
 const PINE_ORIGIN_Y = 233 / 256;
 const PENGUIN_SCALE = 0.72;
+const PENGUIN_CROUCH_SCALE_Y = 0.72;
 const FLAG_TOUCH_RADIUS = 48;
 
 function browserStorage(): Storage | null {
@@ -52,6 +53,7 @@ export class MenuScene extends Phaser.Scene {
   private leftKeys: Phaser.Input.Keyboard.Key[] = [];
   private rightKeys: Phaser.Input.Keyboard.Key[] = [];
   private jumpKeys: Phaser.Input.Keyboard.Key[] = [];
+  private crouchKey: Phaser.Input.Keyboard.Key | null = null;
   private readonly flakes: Phaser.GameObjects.Image[] = [];
   private readonly clouds: Phaser.GameObjects.Image[] = [];
   private readonly forest: Phaser.GameObjects.Image[] = [];
@@ -117,6 +119,7 @@ export class MenuScene extends Phaser.Scene {
     this.updateScenery(dt);
     this.handleTurnInput();
     this.handleJumpInput();
+    const crouching = this.isCrouching();
     this.roam = stepFreeRoam(
       this.roam,
       dt,
@@ -126,8 +129,9 @@ export class MenuScene extends Phaser.Scene {
         maxX: this.cameras.main.width,
       },
       () => ({ y: this.groundY, slope: 0 }),
+      crouching,
     );
-    this.renderPenguin();
+    this.renderPenguin(crouching);
     if (this.touchesFlag()) {
       this.startGame();
     }
@@ -201,10 +205,18 @@ export class MenuScene extends Phaser.Scene {
     if (this.started) {
       return;
     }
-    this.roam = tryFreeRoamJump(this.roam, freeRoamDefaults);
+    this.roam = tryFreeRoamJump(
+      this.roam,
+      freeRoamDefaults,
+      this.isCrouching(),
+    );
   }
 
-  private renderPenguin(): void {
+  private isCrouching(): boolean {
+    return this.crouchKey !== null && this.crouchKey.isDown;
+  }
+
+  private renderPenguin(crouching = this.isCrouching()): void {
     const pose = poseForFreeRoam(this.roam);
     const frame = PENGUIN_FRAMES[pose];
     const originX =
@@ -216,7 +228,11 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(originX, frame.contactY / frame.height)
       .setPosition(this.roam.x, this.roam.y)
       .setFlipX(this.roam.facing > 0)
-      .setRotation(0);
+      .setRotation(0)
+      .setScale(
+        PENGUIN_SCALE,
+        crouching ? PENGUIN_SCALE * PENGUIN_CROUCH_SCALE_Y : PENGUIN_SCALE,
+      );
   }
 
   private touchesFlag(): boolean {
@@ -524,7 +540,7 @@ export class MenuScene extends Phaser.Scene {
 
   private createControlsHint(): void {
     this.add
-      .text(0, 0, "← → turn   ·   ↑ / SPACE jump", {
+      .text(0, 0, "← → turn   ·   ↑ jump   ·   ↓ crouch", {
         fontFamily: PIXEL_FONT,
         fontSize: "9px",
         color: "#3a6f8a",
@@ -637,6 +653,7 @@ export class MenuScene extends Phaser.Scene {
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
     ];
+    this.crouchKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
   }
 
   private startGame = (): void => {

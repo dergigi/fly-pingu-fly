@@ -72,19 +72,29 @@ describe("free roam hop/slide", () => {
     ).toBe("flight");
   });
 
-  it("stays stuck to a descending slope instead of popping airborne", () => {
-    let state = createFreeRoamState(100, 200, 1);
-    state = tryFreeRoamJump(state, config);
-    // Land with rightward speed on a downhill that drops as x grows.
-    state = {
-      ...state,
-      x: 100,
-      y: 200,
+  it("slides farther while crouching", () => {
+    const moving = {
+      ...createFreeRoamState(200, 400, 1),
       vx: 220,
-      vy: 0,
+    };
+    const upright = stepFreeRoam(moving, 0.5, config, flatGround, false);
+    const crouched = stepFreeRoam(moving, 0.5, config, flatGround, true);
+    expect(crouched.vx).toBeGreaterThan(upright.vx);
+    expect(crouched.x).toBeGreaterThan(upright.x);
+  });
+
+  it("jumps farther while crouching", () => {
+    const upright = tryFreeRoamJump(createFreeRoamState(200, 400, 1), config, false);
+    const crouched = tryFreeRoamJump(createFreeRoamState(200, 400, 1), config, true);
+    expect(Math.abs(crouched.vx)).toBeGreaterThan(Math.abs(upright.vx));
+  });
+
+  it("stays stuck to a descending slope instead of popping airborne", () => {
+    const state = {
+      ...createFreeRoamState(100, 200, 1),
+      vx: 220,
       grounded: true,
     };
-
     const downhill = (x: number) => ({ y: 200 + (x - 100) * 0.4, slope: 0.4 });
     const next = stepFreeRoam(state, 1 / 60, config, downhill);
     expect(next.grounded).toBe(true);

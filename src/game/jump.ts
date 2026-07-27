@@ -79,7 +79,7 @@ export function stepJump(
     case "flight":
       return stepFlight(state, dt, config, crouching);
     case "slide":
-      return stepSlide(state, dt, config);
+      return stepSlide(state, dt, config, crouching);
     case "crashed":
       return stepCrashed(state, dt, config);
     case "resting":
@@ -330,14 +330,19 @@ function stepSlide(
   state: JumpState & { phase: "slide" },
   dt: number,
   config: JumpConfig,
+  crouching: boolean,
 ): JumpState {
   const surface = sampleLanding(state.x, config);
   const tangentLength = Math.hypot(1, surface.slope);
   const slopeAcceleration =
     (config.gravity * surface.slope) / tangentLength;
+  // Crouch only cuts friction; it does not add drive, so standing still stays still.
+  const brake = crouching
+    ? config.slideDeceleration * 0.45
+    : config.slideDeceleration;
   const speed = Math.max(
     0,
-    state.speed + (slopeAcceleration - config.slideDeceleration) * dt,
+    state.speed + (slopeAcceleration - brake) * dt,
   );
   const averageSpeed = (state.speed + speed) / 2;
   const x = state.x + (averageSpeed / tangentLength) * dt;
