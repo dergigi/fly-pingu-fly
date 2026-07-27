@@ -30,7 +30,7 @@ Fly Pingu Fly reaches its MVP through three playable vertical slices: first the 
   3. The same accepted takeoff produces the same flight regardless of display size or refresh rate, while the camera keeps the relevant ramp, flight, and landing area readable.
   4. The provided penguin sprite stays visually aligned with the terrain through descent, takeoff, flight, safe landing, and the final slide to rest.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 **Wave 1**
 
@@ -38,7 +38,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Complete deterministic takeoff, landing, and one-shot input rules.
+- [x] 01-02-PLAN.md — Complete deterministic takeoff, landing, and one-shot input rules.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -86,6 +86,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Playable Jump | 1/3 | In Progress | |
+| 1. Playable Jump | 2/3 | In Progress|  |
 | 2. Child-Ready Browser Play | 0/TBD | Not started | - |
 | 3. Results and Replay Loop | 0/TBD | Not started | - |

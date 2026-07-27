@@ -8,7 +8,7 @@
 ### Jump
 
 - [x] **JUMP-01**: The penguin automatically accelerates down the same ski ramp at the start of every attempt.
-- [ ] **JUMP-02**: The penguin's takeoff position determines launch quality through a forgiving, continuous timing curve.
+- [x] **JUMP-02**: The penguin's takeoff position determines launch quality through a forgiving, continuous timing curve.
 - [x] **JUMP-03**: A missed takeoff input produces a safe weak jump rather than a crash or blocked attempt.
 - [x] **JUMP-04**: The penguin follows a deterministic flight path independent of display size and refresh rate.
 - [x] **JUMP-05**: The penguin lands safely, slides to a stop, and completes the attempt without another player input.
@@ -76,7 +76,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | JUMP-01 | Phase 1 | Complete |
-| JUMP-02 | Phase 1 | Pending |
+| JUMP-02 | Phase 1 | Complete |
 | JUMP-03 | Phase 1 | Complete |
 | JUMP-04 | Phase 1 | Complete |
 | JUMP-05 | Phase 1 | Complete |
