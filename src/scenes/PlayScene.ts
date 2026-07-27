@@ -641,6 +641,20 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeRunoutScenery(): void {
+    // Content bottoms sit above the canvas edge on these sprites; plant from there.
+    const originY: Record<string, number> = {
+      "rock-cluster": 204 / 256,
+      "snow-pile": 206 / 256,
+      igloo: 206 / 256,
+      "wood-pile": 207 / 256,
+      "lantern-post": 238 / 256,
+      "snow-village": 214 / 256,
+      "snow-storage": 205 / 256,
+      "hot-spring": 224 / 256,
+      snowman: 231 / 256,
+      watchtower: 230 / 256,
+    };
+
     // Clustered little village along the runout, not a scattered prop line.
     const clusters: ReadonlyArray<{
       anchorX: number;
@@ -719,7 +733,7 @@ export class PlayScene extends Phaser.Scene {
         const surface = sampleLanding(x, jumpConfig);
         this.add
           .image(x, surface.y + prop.sink, prop.key)
-          .setOrigin(0.5, 1)
+          .setOrigin(0.5, originY[prop.key] ?? 1)
           .setScale(prop.scale)
           .setDepth(prop.depth);
       }
