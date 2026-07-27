@@ -38,6 +38,7 @@ export class PlayScene extends Phaser.Scene {
   private simulationTimeMs = 0;
   private penguin!: Phaser.GameObjects.Sprite;
   private hudText!: Phaser.GameObjects.Text;
+  private takeoffKeys: Phaser.Input.Keyboard.Key[] = [];
   private takeoffPosePending = false;
 
   constructor() {
@@ -86,6 +87,12 @@ export class PlayScene extends Phaser.Scene {
       this.simulationTimeMs = time;
     }
 
+    if (
+      this.takeoffKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))
+    ) {
+      this.queuePress();
+    }
+
     this.accumulator += Math.min(deltaMs / 1000, MAX_FRAME_DELTA);
     let steps = 0;
 
@@ -132,20 +139,17 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
-    const keys = [
+    keyboard.addCapture([
+      Phaser.Input.Keyboard.KeyCodes.SPACE,
+      Phaser.Input.Keyboard.KeyCodes.ENTER,
+      Phaser.Input.Keyboard.KeyCodes.UP,
+    ]);
+
+    this.takeoffKeys = [
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
       keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
     ];
-
-    for (const key of keys) {
-      key.on("down", (event: KeyboardEvent) => {
-        if (!event.repeat) {
-          event.preventDefault();
-          this.queuePress();
-        }
-      });
-    }
   }
 
   private queuePress(): void {
