@@ -605,10 +605,29 @@ export class PlayScene extends Phaser.Scene {
     // Marks the far end of the landing hill before the village runout.
     const x = jumpConfig.landingEndX;
     const surface = sampleLanding(x, jumpConfig);
+
+    // Yellow stripe painted across the hill, perpendicular to the slope.
+    const halfLen = 58;
+    const tangentLen = Math.hypot(1, surface.slope);
+    const nx = -surface.slope / tangentLen;
+    const ny = 1 / tangentLen;
+    const mark = this.add.graphics();
+    mark.setDepth(4);
+    mark.lineStyle(8, 0xf0b400, 1);
+    mark.beginPath();
+    mark.moveTo(x - nx * halfLen, surface.y - ny * halfLen + 3);
+    mark.lineTo(x + nx * halfLen, surface.y + ny * halfLen + 3);
+    mark.strokePath();
+    mark.lineStyle(4, 0xffe066, 1);
+    mark.beginPath();
+    mark.moveTo(x - nx * halfLen, surface.y - ny * halfLen + 3);
+    mark.lineTo(x + nx * halfLen, surface.y + ny * halfLen + 3);
+    mark.strokePath();
+
     const flagScale =
       (PENGUIN_FRAMES.ready.height * PENGUIN_SCALE) / 128;
     this.add
-      .image(x, surface.y + 4, "village-flag")
+      .image(x + 10, surface.y + 4, "village-flag")
       .setOrigin(0.2, 1)
       .setScale(flagScale)
       .setDepth(5);
