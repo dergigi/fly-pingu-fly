@@ -208,15 +208,30 @@ function stepRamp(
   return next;
 }
 
+function flightGravity(
+  state: FlightState,
+  crouching: boolean,
+  config: JumpConfig,
+): number {
+  if (!crouching) {
+    return config.gravity;
+  }
+
+  // Screen y grows downward: negative vy is ascent.
+  if (state.vy < 0) {
+    return config.gravity * config.flightCrouchAscentGravityScale;
+  }
+
+  return config.gravity * config.flightCrouchGravityScale;
+}
+
 function stepFlight(
   state: JumpState & { phase: "flight" },
   dt: number,
   config: JumpConfig,
   crouching: boolean,
 ): JumpState {
-  const gravity = crouching
-    ? config.gravity * config.flightCrouchGravityScale
-    : config.gravity;
+  const gravity = flightGravity(state, crouching, config);
   const nextVy = state.vy + gravity * dt;
   const nextX = state.x + state.vx * dt;
   const nextY = state.y + state.vy * dt + 0.5 * gravity * dt * dt;

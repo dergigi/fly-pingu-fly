@@ -228,8 +228,8 @@ describe("jump tracer", () => {
     );
   });
 
-  it("glides with weaker gravity while squeezing in flight", () => {
-    const airborne = {
+  it("ends the climb when squeezing on ascent, and glides only after the peak", () => {
+    const climbing = {
       ...createInitialJumpState(jumpConfig),
       phase: "flight",
       x: jumpConfig.lipX + 40,
@@ -242,23 +242,28 @@ describe("jump tracer", () => {
       distance: 40,
     } as FlightState;
 
-    const open = stepJump(airborne, null, FIXED_STEP, jumpConfig, false);
-    const tucked = stepJump(airborne, null, FIXED_STEP, jumpConfig, true);
+    const openClimb = stepJump(climbing, null, FIXED_STEP, jumpConfig, false);
+    const tuckedClimb = stepJump(climbing, null, FIXED_STEP, jumpConfig, true);
+    expect(openClimb.phase).toBe("flight");
+    expect(tuckedClimb.phase).toBe("flight");
+    expect(tuckedClimb.vy - climbing.vy).toBeCloseTo(
+      jumpConfig.gravity * jumpConfig.flightCrouchAscentGravityScale * FIXED_STEP,
+      8,
+    );
+    expect(tuckedClimb.vy).toBeGreaterThan(openClimb.vy);
+    expect(tuckedClimb.y).toBeGreaterThan(openClimb.y);
 
-    expect(open.phase).toBe("flight");
-    expect(tucked.phase).toBe("flight");
-    expect(tucked.vy - airborne.vy).toBeCloseTo(
+    const falling = { ...climbing, vy: 200 } as FlightState;
+    const openFall = stepJump(falling, null, FIXED_STEP, jumpConfig, false);
+    const tuckedFall = stepJump(falling, null, FIXED_STEP, jumpConfig, true);
+    expect(tuckedFall.vy - falling.vy).toBeCloseTo(
       jumpConfig.gravity * jumpConfig.flightCrouchGravityScale * FIXED_STEP,
       8,
     );
-    expect(open.vy - airborne.vy).toBeCloseTo(
-      jumpConfig.gravity * FIXED_STEP,
-      8,
+    expect(Math.abs(tuckedFall.vy - falling.vy)).toBeLessThan(
+      Math.abs(openFall.vy - falling.vy),
     );
-    expect(Math.abs(tucked.vy - airborne.vy)).toBeLessThan(
-      Math.abs(open.vy - airborne.vy),
-    );
-    expect(tucked.y).toBeLessThan(open.y);
+    expect(tuckedFall.y).toBeLessThan(openFall.y);
   });
 
   it("holds at the lip while crouching instead of auto-jumping", () => {

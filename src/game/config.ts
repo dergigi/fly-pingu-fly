@@ -48,6 +48,7 @@ export type JumpConfig = Readonly<
   maximumLaunchY: number;
   gravity: number;
   flightCrouchGravityScale: number;
+  flightCrouchAscentGravityScale: number;
   slideDeceleration: number;
   stopSpeed: number;
     }
@@ -78,6 +79,7 @@ export const jumpConfig: JumpConfig = Object.freeze({
   maximumLaunchY: 940,
   gravity: 640,
   flightCrouchGravityScale: 0.55,
+  flightCrouchAscentGravityScale: 1.85,
   landingStartX: 980,
   landingY: 690,
   landingSlope: -0.55,
@@ -213,6 +215,15 @@ export function assertValidJumpConfig(config: JumpConfig): void {
   ) {
     throw new RangeError(
       "flightCrouchGravityScale must be greater than zero and at most one",
+    );
+  }
+  assertFinite(
+    "flightCrouchAscentGravityScale",
+    config.flightCrouchAscentGravityScale,
+  );
+  if (config.flightCrouchAscentGravityScale < 1) {
+    throw new RangeError(
+      "flightCrouchAscentGravityScale must be at least one",
     );
   }
 }
