@@ -8,6 +8,8 @@ export type PenguinPose =
   | "flight"
   | "landing"
   | "slide"
+  | "crash"
+  | "crashed"
   | "resting";
 
 export type PenguinFrame = Readonly<{
@@ -72,6 +74,22 @@ export const PENGUIN_FRAMES: Readonly<Record<PenguinPose, PenguinFrame>> =
       contactX: 43,
       contactY: 57,
     },
+    crash: {
+      x: 3,
+      y: 177,
+      width: 79,
+      height: 63,
+      contactX: 40,
+      contactY: 58,
+    },
+    crashed: {
+      x: 80,
+      y: 179,
+      width: 85,
+      height: 61,
+      contactX: 43,
+      contactY: 57,
+    },
     resting: {
       x: 91,
       y: 88,
@@ -102,6 +120,8 @@ export function poseForJumpPhase(
         : "flight";
     case "slide":
       return "flight";
+    case "crashed":
+      return state.speed > 50 ? "crash" : "crashed";
     case "resting":
       return "resting";
   }

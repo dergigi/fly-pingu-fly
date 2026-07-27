@@ -8,6 +8,7 @@ export type JumpPhase =
   | "ramp"
   | "flight"
   | "slide"
+  | "crashed"
   | "resting";
 export type PressCommand = { pressedAtMs: number } | null;
 
@@ -27,6 +28,7 @@ export type DropState = MotionState & { phase: "drop" };
 export type RampState = MotionState & { phase: "ramp" };
 export type FlightState = MotionState & { phase: "flight" };
 export type SlideState = MotionState & { phase: "slide" };
+export type CrashedState = MotionState & { phase: "crashed" };
 export type RestingState = MotionState & { phase: "resting" };
 export type JumpState =
   | ReadyState
@@ -34,7 +36,11 @@ export type JumpState =
   | RampState
   | FlightState
   | SlideState
+  | CrashedState
   | RestingState;
+
+const FLIGHT_CONTACT_STEP = 6;
+const CRASH_DECELERATION = 420;
 
 export function createInitialJumpState(config: JumpConfig): JumpState {
   assertValidJumpConfig(config);
@@ -74,6 +80,8 @@ export function stepJump(
       return stepFlight(state, dt, config);
     case "slide":
       return stepSlide(state, dt, config);
+    case "crashed":
+      return stepCrashed(state, dt, config);
     case "resting":
       return state;
   }
@@ -197,36 +205,9 @@ function stepFlight(
   const nextVy = state.vy + config.gravity * dt;
   const nextX = state.x + state.vx * dt;
   const nextY = state.y + state.vy * dt + 0.5 * config.gravity * dt * dt;
-  const nextAirtime = state.airtime + dt;
-  const nextDistance = Math.max(0, nextX - config.lipX);
-
-  const previousSurface = sampleLanding(state.x, config);
-  const nextSurface = sampleLanding(nextX, config);
-  const previousGap = state.y - previousSurface.y;
-  const nextGap = nextY - nextSurface.y;
-
-  if (previousGap <= 0 && nextGap >= 0) {
-    const fraction = crossingFraction(previousGap, nextGap);
-    const contactX = state.x + (nextX - state.x) * fraction;
-    const contact = sampleLanding(contactX, config);
-    const contactVy = state.vy + config.gravity * dt * fraction;
-    const tangentLength = Math.hypot(1, contact.slope);
-    const slideSpeed = Math.max(
-      0,
-      (state.vx + contactVy * contact.slope) / tangentLength,
-    );
-
-    return {
-      phase: "slide",
-      x: contactX,
-      y: contact.y,
-      vx: slideSpeed / tangentLength,
-      vy: (slideSpeed * contact.slope) / tangentLength,
-      speed: slideSpeed,
-      elapsed: state.elapsed + dt * fraction,
-      airtime: state.airtime + dt * fraction,
-      distance: Math.max(0, contactX - config.lipX),
-    };
+  const contact = findLandingContact(state, nextX, nextY, dt, config);
+  if (contact !== null) {
+    return contact;
   }
 
   return {
@@ -235,8 +216,87 @@ function stepFlight(
     y: nextY,
     vy: nextVy,
     elapsed: state.elapsed + dt,
-    airtime: nextAirtime,
-    distance: nextDistance,
+    airtime: state.airtime + dt,
+    distance: Math.max(0, nextX - config.lipX),
+  };
+}
+
+function findLandingContact(
+  state: FlightState,
+  nextX: number,
+  nextY: number,
+  dt: number,
+  config: JumpConfig,
+): JumpState | null {
+  const travel = Math.hypot(nextX - state.x, nextY - state.y);
+  const samples = Math.max(1, Math.ceil(travel / FLIGHT_CONTACT_STEP));
+  let previousGap = state.y - sampleLanding(state.x, config).y;
+
+  if (previousGap > 0) {
+    return settleOnLanding(state, state.x, 0, dt, config);
+  }
+
+  for (let index = 1; index <= samples; index += 1) {
+    const endT = index / samples;
+    const x = state.x + (nextX - state.x) * endT;
+    const y = state.y + (nextY - state.y) * endT;
+    const gap = y - sampleLanding(x, config).y;
+
+    if (previousGap <= 0 && gap >= 0) {
+      const startT = (index - 1) / samples;
+      const local = crossingFraction(previousGap, gap);
+      const fraction = startT + (endT - startT) * local;
+      const contactX = state.x + (nextX - state.x) * fraction;
+      return settleOnLanding(state, contactX, fraction, dt, config);
+    }
+
+    previousGap = gap;
+  }
+
+  return null;
+}
+
+function settleOnLanding(
+  state: FlightState,
+  contactX: number,
+  fraction: number,
+  dt: number,
+  config: JumpConfig,
+): JumpState {
+  const contact = sampleLanding(contactX, config);
+  const contactVy = state.vy + config.gravity * dt * fraction;
+  const tangentLength = Math.hypot(1, contact.slope);
+  const alongTrack = (state.vx + contactVy * contact.slope) / tangentLength;
+  const distance = Math.max(0, contactX - config.lipX);
+  const airtime = state.airtime + dt * fraction;
+  const elapsed = state.elapsed + dt * fraction;
+
+  if (contactX < config.landingCrestX) {
+    const crashSpeed = Math.max(0, Math.min(220, Math.abs(alongTrack) * 0.45));
+    return {
+      phase: "crashed",
+      x: contactX,
+      y: contact.y,
+      vx: crashSpeed / tangentLength,
+      vy: (crashSpeed * contact.slope) / tangentLength,
+      speed: crashSpeed,
+      elapsed,
+      airtime,
+      distance,
+    };
+  }
+
+  const slideSpeed = Math.max(0, alongTrack);
+  return {
+    phase: "slide",
+    x: contactX,
+    y: contact.y,
+    vx: slideSpeed / tangentLength,
+    vy: (slideSpeed * contact.slope) / tangentLength,
+    speed: slideSpeed,
+    elapsed,
+    airtime,
+    distance,
   };
 }
 
@@ -265,6 +325,32 @@ function stepSlide(
     vx: resting ? 0 : speed / tangentLength,
     vy: resting ? 0 : (speed * nextSurface.slope) / tangentLength,
     speed: resting ? 0 : speed,
+    elapsed: state.elapsed + dt,
+    airtime: state.airtime,
+    distance: state.distance,
+  };
+}
+
+function stepCrashed(
+  state: CrashedState,
+  dt: number,
+  config: JumpConfig,
+): JumpState {
+  const surface = sampleLanding(state.x, config);
+  const tangentLength = Math.hypot(1, surface.slope);
+  const speed = Math.max(0, state.speed - CRASH_DECELERATION * dt);
+  const averageSpeed = (state.speed + speed) / 2;
+  const x = state.x + (averageSpeed / tangentLength) * dt;
+  const nextSurface = sampleLanding(x, config);
+
+  return {
+    phase: "crashed",
+    x,
+    y: nextSurface.y,
+    vx: speed <= config.stopSpeed ? 0 : speed / tangentLength,
+    vy:
+      speed <= config.stopSpeed ? 0 : (speed * nextSurface.slope) / tangentLength,
+    speed: speed <= config.stopSpeed ? 0 : speed,
     elapsed: state.elapsed + dt,
     airtime: state.airtime,
     distance: state.distance,

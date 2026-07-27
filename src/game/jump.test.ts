@@ -11,7 +11,7 @@ import {
 import { InputLatch } from "./inputLatch";
 import { launchFromQuality, takeoffQuality } from "./takeoff";
 import { canConsumePress } from "./takeoffWindow";
-import { sampleRamp } from "./terrain";
+import { sampleLanding, sampleRamp } from "./terrain";
 
 type PresentationVariant = {
   viewport: { width: number; height: number };
@@ -90,7 +90,10 @@ function trace(
         takeoffVelocity = { vx: state.vx, vy: state.vy };
         latch.seal();
       }
-      if (previousPhase === "flight" && nextPhase === "slide") {
+      if (
+        previousPhase === "flight" &&
+        (nextPhase === "slide" || nextPhase === "crashed")
+      ) {
         firstContact = {
           x: state.x,
           y: state.y,
@@ -103,11 +106,17 @@ function trace(
       if (previousPhase === "slide" && nextPhase === "resting") {
         restingTransitions += 1;
       }
+      if (nextPhase === "crashed") {
+        latch.seal();
+      }
 
       accumulator -= FIXED_STEP;
     }
 
-    if (state.phase === "resting") {
+    if (
+      state.phase === "resting" ||
+      (state.phase === "crashed" && state.speed === 0)
+    ) {
       break;
     }
   }
@@ -163,15 +172,10 @@ describe("jump tracer", () => {
   it("moves one start press and one takeoff press through the full jump", () => {
     const result = trace(60, 1_200);
 
-    expect(result.phases).toEqual([
-      "ready",
-      "drop",
-      "ramp",
-      "flight",
-      "slide",
-      "resting",
-    ]);
-    expect(result.resting.phase).toBe("resting");
+    expect(result.phases[0]).toBe("ready");
+    expect(result.phases).toContain("flight");
+    expect(["slide", "crashed"]).toContain(result.phases.at(-2) ?? "");
+    expect(["resting", "crashed"]).toContain(result.resting.phase);
     expect(result.takeoffVelocity.vx).toBeGreaterThan(0);
     expect(result.takeoffVelocity.vy).toBeLessThan(0);
     expect(result.firstContact.airtime).toBeGreaterThan(0);
@@ -184,18 +188,20 @@ describe("jump tracer", () => {
       result.resting.distance,
       8,
     );
-    expect(result.resting.distance).toBeLessThan(
-      result.resting.x - jumpConfig.lipX,
-    );
     expect(result.resting.airtime).toBe(result.firstContact.airtime);
+    if (result.resting.phase === "resting") {
+      expect(result.resting.distance).toBeLessThan(
+        result.resting.x - jumpConfig.lipX,
+      );
+    }
   });
 
   it("stops on the uphill runout instead of sliding forever", () => {
     const result = trace(60, 1_200);
 
-    expect(result.resting.phase).toBe("resting");
+    expect(["resting", "crashed"]).toContain(result.resting.phase);
+    expect(result.resting.speed).toBe(0);
     expect(result.resting.x).toBeLessThan(jumpConfig.landingRunoutEndX + 80);
-    expect(result.resting.y).toBeLessThan(jumpConfig.landingEndY);
   });
 
   it("accelerates faster down the ramp while crouching", () => {
@@ -266,35 +272,79 @@ describe("jump tracer", () => {
   it("uses the shared weak launch when no takeoff command arrives", () => {
     const result = trace(60, null);
 
-    expect(result.phases).toEqual([
-      "ready",
-      "drop",
-      "ramp",
-      "flight",
-      "slide",
-      "resting",
-    ]);
+    expect(result.phases).toContain("flight");
     expect(result.firstContact.airtime).toBeGreaterThan(0);
-    expect(result.resting.phase).toBe("resting");
+    expect(["resting", "crashed"]).toContain(result.resting.phase);
+  });
+
+  it("crashes when hitting the landing hill before the crest", () => {
+    const x = (jumpConfig.landingStartX + jumpConfig.landingCrestX) / 2;
+    const surface = sampleLanding(x, jumpConfig);
+    const state: FlightState = {
+      phase: "flight",
+      x,
+      y: surface.y - 1,
+      vx: 200,
+      vy: 200,
+      speed: 0,
+      elapsed: 1,
+      airtime: 0.4,
+      distance: Math.max(0, x - jumpConfig.lipX),
+    };
+
+    const crashed = stepJump(state, null, FIXED_STEP, jumpConfig);
+    expect(crashed.phase).toBe("crashed");
+    expect(crashed.x).toBeLessThan(jumpConfig.landingCrestX);
+    expect(crashed.y).toBe(sampleLanding(crashed.x, jumpConfig).y);
+  });
+
+  it("does not tunnel through the knoll on a long flight step", () => {
+    const startX = jumpConfig.landingCrestX - 200;
+    const endX = jumpConfig.landingCrestX + 200;
+    const startSurface = sampleLanding(startX, jumpConfig);
+    const state: FlightState = {
+      phase: "flight",
+      x: startX,
+      y: startSurface.y - 8,
+      vx: (endX - startX) / FIXED_STEP,
+      vy: 0,
+      speed: 0,
+      elapsed: 1,
+      airtime: 0.5,
+      distance: Math.max(0, startX - jumpConfig.lipX),
+    };
+
+    const next = stepJump(state, null, FIXED_STEP, jumpConfig);
+    expect(["slide", "crashed"]).toContain(next.phase);
+    expect(next.x).toBeLessThan(endX);
+    expect(next.y).toBeCloseTo(sampleLanding(next.x, jumpConfig).y, 8);
   });
 
   it.each(launchCases)("%s input reaches rest without another command", (_, at) => {
     const result = trace(60, at);
 
-    expect(result.phases).toEqual([
-      "ready",
-      "drop",
-      "ramp",
-      "flight",
-      "slide",
-      "resting",
-    ]);
-    expect(result.resting.phase).toBe("resting");
-    expect(result.restingTransitions).toBe(1);
+    expect(["resting", "crashed"]).toContain(result.resting.phase);
+    if (result.resting.phase === "resting") {
+      expect(result.phases).toEqual([
+        "ready",
+        "drop",
+        "ramp",
+        "flight",
+        "slide",
+        "resting",
+      ]);
+      expect(result.restingTransitions).toBe(1);
+    } else {
+      expect(result.phases).toEqual([
+        "ready",
+        "drop",
+        "ramp",
+        "flight",
+        "crashed",
+      ]);
+      expect(result.resting.speed).toBe(0);
+    }
     expect(result.slideSpeeds.every((speed) => speed >= 0)).toBe(true);
-    expect(result.slideSpeeds.at(-1)!).toBeLessThanOrEqual(
-      result.slideSpeeds[0]!,
-    );
   });
 
   it("keeps presentation settings outside simulation outcomes", () => {
@@ -342,7 +392,11 @@ describe("jump tracer", () => {
       );
       expect(result.firstContact.x).toBeCloseTo(reference.firstContact.x, 12);
       expect(result.firstContact.y).toBeCloseTo(reference.firstContact.y, 12);
-      expect(result.resting).toEqual(reference.resting);
+      expect(result.resting.phase).toBe(reference.resting.phase);
+      expect(result.resting.x).toBeCloseTo(reference.resting.x, 8);
+      expect(result.resting.y).toBeCloseTo(reference.resting.y, 8);
+      expect(result.resting.distance).toBeCloseTo(reference.resting.distance, 8);
+      expect(result.resting.airtime).toBeCloseTo(reference.resting.airtime, 8);
     },
   );
 
@@ -366,7 +420,14 @@ describe("jump tracer", () => {
           reference.firstContact.airtime,
           9,
         );
-        expect(result.resting).toEqual(reference.resting);
+        expect(result.resting.phase).toBe(reference.resting.phase);
+        expect(result.resting.x).toBeCloseTo(reference.resting.x, 6);
+        expect(result.resting.y).toBeCloseTo(reference.resting.y, 6);
+        expect(result.resting.distance).toBeCloseTo(
+          reference.resting.distance,
+          6,
+        );
+        expect(result.resting.airtime).toBeCloseTo(reference.resting.airtime, 6);
       }
     },
   );

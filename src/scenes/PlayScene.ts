@@ -119,9 +119,14 @@ export class PlayScene extends Phaser.Scene {
         this.isCrouching(),
       );
       this.jumpState = nextState;
-      if (previousPhase === "ramp" && nextState.phase === "flight") {
+      if (
+        (previousPhase === "ramp" && nextState.phase === "flight") ||
+        nextState.phase === "crashed"
+      ) {
         this.inputLatch.seal();
-        this.takeoffPosePending = true;
+        if (previousPhase === "ramp" && nextState.phase === "flight") {
+          this.takeoffPosePending = true;
+        }
       }
       this.accumulator -= FIXED_STEP;
       steps += 1;

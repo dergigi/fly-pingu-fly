@@ -19,6 +19,8 @@ const poses = [
   "flight",
   "landing",
   "slide",
+  "crash",
+  "crashed",
   "resting",
 ] as const satisfies readonly PenguinPose[];
 
@@ -77,6 +79,13 @@ describe("penguin frame manifest", () => {
       airtime: 0.8,
     };
     const slide: JumpState = { ...landing, speed: 120 };
+    const crash: JumpState = {
+      ...accepted,
+      phase: "crashed",
+      speed: 120,
+      airtime: 0.5,
+    };
+    const crashed: JumpState = { ...crash, speed: 0 };
     const resting: JumpState = { ...slide, phase: "resting", speed: 0 };
 
     expect(poseForJumpPhase(ready)).toBe("ready");
@@ -86,6 +95,8 @@ describe("penguin frame manifest", () => {
     expect(poseForJumpPhase(flight)).toBe("flight");
     expect(poseForJumpPhase(landing)).toBe("flight");
     expect(poseForJumpPhase(slide)).toBe("flight");
+    expect(poseForJumpPhase(crash)).toBe("crash");
+    expect(poseForJumpPhase(crashed)).toBe("crashed");
     expect(poseForJumpPhase(resting)).toBe("resting");
   });
 });

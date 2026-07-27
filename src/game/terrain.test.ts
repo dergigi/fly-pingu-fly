@@ -141,7 +141,7 @@ describe("terrain sampling", () => {
       distance: Math.max(0, x - jumpConfig.lipX),
     };
 
-    expect(stepJump(state, null, 1 / 120, jumpConfig).phase).toBe("slide");
+    expect(stepJump(state, null, 1 / 120, jumpConfig).phase).toBe("crashed");
   });
 
   it("does not land while still clearly above the hill", () => {
@@ -183,9 +183,27 @@ describe("terrain sampling", () => {
     );
     const landed = stepJump(state, null, dt, jumpConfig);
 
-    expect(landed.phase).toBe("slide");
+    expect(landed.phase).toBe("crashed");
     expect(landed.y).toBe(surface.y);
     expect(landed.elapsed).toBeCloseTo(state.elapsed + dt * fraction, 12);
     expect(landed.airtime).toBeCloseTo(state.airtime + dt * fraction, 12);
+  });
+
+  it("slides when contacting past the crest", () => {
+    const x = jumpConfig.landingCrestX + 40;
+    const surface = sampleLanding(x, jumpConfig);
+    const state: FlightState = {
+      phase: "flight",
+      x,
+      y: surface.y - 1,
+      vx: 120,
+      vy: 180,
+      speed: 0,
+      elapsed: 1,
+      airtime: 0.8,
+      distance: Math.max(0, x - jumpConfig.lipX),
+    };
+
+    expect(stepJump(state, null, 1 / 120, jumpConfig).phase).toBe("slide");
   });
 });
