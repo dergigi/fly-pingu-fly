@@ -497,12 +497,10 @@ export class PlayScene extends Phaser.Scene {
       forestX += 28 + Math.floor(n * 34);
     }
 
-    // Sparse pines only: keep the village readable.
+    // Sparse pines before the village; end rocks get their own foreground trees.
     const runoutPines = [
       { x: hillEndX + 180, scale: 0.42 },
       { x: hillEndX + 520, scale: 0.36 },
-      { x: 7900, scale: 0.4 },
-      { x: 8120, scale: 0.34 },
     ] as const;
     for (const pine of runoutPines) {
       const n = this.forestNoise(pine.x, 2);
@@ -516,7 +514,7 @@ export class PlayScene extends Phaser.Scene {
         .setDepth(-2);
     }
 
-    const bankX = [hillEndX + 260, 8050] as const;
+    const bankX = [hillEndX + 260] as const;
     for (const x of bankX) {
       const n = this.forestNoise(x, 5);
       const surfaceY = this.forestSurfaceY(x);
@@ -742,6 +740,7 @@ export class PlayScene extends Phaser.Scene {
       "hot-spring": 224 / 256,
       watchtower: 230 / 256,
       geyser: 225 / 256,
+      "pine-tree": 233 / 256,
     };
 
     // Compact village shortly after the far-landing mark, then stones at the end.
@@ -769,18 +768,24 @@ export class PlayScene extends Phaser.Scene {
         ],
       },
       {
-        // Rocky end of the runout.
+        // Rocky end of the runout, with pines beside and in front of the stones.
         anchorX: 8100,
         props: [
+          { key: "pine-tree", dx: -620, scale: 0.78, sink: 160, depth: 16 },
           { key: "rock-cluster", dx: -480, scale: 0.7, sink: 135, depth: 13 },
+          { key: "pine-tree", dx: -390, scale: 0.7, sink: 168, depth: 16 },
           { key: "snow-pile", dx: -300, scale: 0.55, sink: 122, depth: 13 },
           { key: "rock-cluster", dx: -100, scale: 0.82, sink: 148, depth: 13 },
+          { key: "pine-tree", dx: 10, scale: 0.85, sink: 175, depth: 16 },
           { key: "geyser", dx: 120, scale: 0.72, sink: 130, depth: 13 },
           { key: "watchtower", dx: 340, scale: 1.05, sink: 145, depth: 15 },
+          { key: "pine-tree", dx: 450, scale: 0.74, sink: 170, depth: 16 },
           { key: "rock-cluster", dx: 560, scale: 0.65, sink: 138, depth: 13 },
           { key: "snow-pile", dx: 740, scale: 0.58, sink: 124, depth: 13 },
+          { key: "pine-tree", dx: 840, scale: 0.8, sink: 178, depth: 16 },
           { key: "rock-cluster", dx: 940, scale: 0.78, sink: 152, depth: 13 },
           { key: "snow-pile", dx: 1120, scale: 0.5, sink: 120, depth: 13 },
+          { key: "pine-tree", dx: 1240, scale: 0.72, sink: 165, depth: 16 },
         ],
       },
     ];
