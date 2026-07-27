@@ -312,9 +312,7 @@ export class PlayScene extends Phaser.Scene {
 
   private isCrouching(): boolean {
     return (
-      (this.jumpState.phase === "ramp" ||
-        this.jumpState.phase === "flight" ||
-        this.jumpState.phase === "slide") &&
+      (this.jumpState.phase === "ramp" || this.jumpState.phase === "flight") &&
       this.crouchKey !== null &&
       this.crouchKey.isDown
     );

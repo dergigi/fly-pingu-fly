@@ -27,7 +27,6 @@ const fieldInvariants = {
   initialSpeed: "positive",
   rampAcceleration: "positive",
   crouchRampAcceleration: "positive",
-  crouchSlideAcceleration: "positive",
   rampStartSlope: "finite",
   takeoffStartX: "finite",
   lipX: "finite",
