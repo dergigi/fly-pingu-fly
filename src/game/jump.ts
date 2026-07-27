@@ -200,35 +200,33 @@ function stepFlight(
   const nextAirtime = state.airtime + dt;
   const nextDistance = Math.max(0, nextX - config.lipX);
 
-  if (nextVy > 0) {
-    const previousSurface = sampleLanding(state.x, config);
-    const nextSurface = sampleLanding(nextX, config);
-    const previousGap = state.y - previousSurface.y;
-    const nextGap = nextY - nextSurface.y;
+  const previousSurface = sampleLanding(state.x, config);
+  const nextSurface = sampleLanding(nextX, config);
+  const previousGap = state.y - previousSurface.y;
+  const nextGap = nextY - nextSurface.y;
 
-    if (previousGap <= 0 && nextGap >= 0) {
-      const fraction = crossingFraction(previousGap, nextGap);
-      const contactX = state.x + (nextX - state.x) * fraction;
-      const contact = sampleLanding(contactX, config);
-      const contactVy = state.vy + config.gravity * dt * fraction;
-      const tangentLength = Math.hypot(1, contact.slope);
-      const slideSpeed = Math.max(
-        0,
-        (state.vx + contactVy * contact.slope) / tangentLength,
-      );
+  if (previousGap <= 0 && nextGap >= 0) {
+    const fraction = crossingFraction(previousGap, nextGap);
+    const contactX = state.x + (nextX - state.x) * fraction;
+    const contact = sampleLanding(contactX, config);
+    const contactVy = state.vy + config.gravity * dt * fraction;
+    const tangentLength = Math.hypot(1, contact.slope);
+    const slideSpeed = Math.max(
+      0,
+      (state.vx + contactVy * contact.slope) / tangentLength,
+    );
 
-      return {
-        phase: "slide",
-        x: contactX,
-        y: contact.y,
-        vx: slideSpeed / tangentLength,
-        vy: (slideSpeed * contact.slope) / tangentLength,
-        speed: slideSpeed,
-        elapsed: state.elapsed + dt * fraction,
-        airtime: state.airtime + dt * fraction,
-        distance: Math.max(0, contactX - config.lipX),
-      };
-    }
+    return {
+      phase: "slide",
+      x: contactX,
+      y: contact.y,
+      vx: slideSpeed / tangentLength,
+      vy: (slideSpeed * contact.slope) / tangentLength,
+      speed: slideSpeed,
+      elapsed: state.elapsed + dt * fraction,
+      airtime: state.airtime + dt * fraction,
+      distance: Math.max(0, contactX - config.lipX),
+    };
   }
 
   return {

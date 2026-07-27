@@ -58,10 +58,15 @@ describe("terrain sampling", () => {
     );
   });
 
-  it("uses a rounded landing hill that eases into a shallow runout", () => {
+  it("uses a knoll landing hill that rises then falls into the runout", () => {
     const start = sampleLanding(jumpConfig.landingStartX, jumpConfig);
-    const middle = sampleLanding(
-      (jumpConfig.landingStartX + jumpConfig.landingEndX) / 2,
+    const climb = sampleLanding(
+      (jumpConfig.landingStartX + jumpConfig.landingCrestX) / 2,
+      jumpConfig,
+    );
+    const crest = sampleLanding(jumpConfig.landingCrestX, jumpConfig);
+    const descent = sampleLanding(
+      (jumpConfig.landingCrestX + jumpConfig.landingEndX) / 2,
       jumpConfig,
     );
     const end = sampleLanding(jumpConfig.landingEndX, jumpConfig);
@@ -71,10 +76,14 @@ describe("terrain sampling", () => {
       y: jumpConfig.landingY,
       slope: jumpConfig.landingSlope,
     });
-    expect(middle.y).toBeGreaterThan(start.y);
-    expect(middle.y).toBeLessThan(end.y);
-    expect(middle.slope).toBeLessThan(start.slope);
-    expect(middle.slope).toBeGreaterThan(end.slope);
+    expect(climb.y).toBeLessThan(start.y);
+    expect(climb.y).toBeGreaterThan(crest.y);
+    expect(crest).toEqual({
+      y: jumpConfig.landingCrestY,
+      slope: jumpConfig.landingCrestSlope,
+    });
+    expect(descent.y).toBeGreaterThan(crest.y);
+    expect(descent.y).toBeLessThan(end.y);
     expect(end).toEqual({
       y: jumpConfig.landingEndY,
       slope: jumpConfig.landingEndSlope,
@@ -102,12 +111,33 @@ describe("terrain sampling", () => {
     expect(crossingFraction(1, 2)).toBe(0);
   });
 
-  it("does not land while moving upward", () => {
+  it("lands when the flight path crosses rising terrain", () => {
+    const x = jumpConfig.landingCrestX - 120;
+    const surface = sampleLanding(x, jumpConfig);
+    const ahead = sampleLanding(x + 30, jumpConfig);
+    expect(ahead.y).toBeLessThan(surface.y);
+
+    const state: FlightState = {
+      phase: "flight",
+      x,
+      y: surface.y - 0.5,
+      vx: 30 / (1 / 120),
+      vy: 0,
+      speed: 0,
+      elapsed: 1,
+      airtime: 0.2,
+      distance: Math.max(0, x - jumpConfig.lipX),
+    };
+
+    expect(stepJump(state, null, 1 / 120, jumpConfig).phase).toBe("slide");
+  });
+
+  it("does not land while still clearly above the hill", () => {
     const surface = sampleLanding(jumpConfig.landingStartX, jumpConfig);
     const state: FlightState = {
       phase: "flight",
       x: jumpConfig.landingStartX,
-      y: surface.y + 1,
+      y: surface.y - 40,
       vx: 100,
       vy: -100,
       speed: 0,

@@ -117,12 +117,24 @@ export function sampleLanding(
     return { y: config.landingY, slope: config.landingSlope };
   }
 
-  if (x < config.landingEndX) {
+  if (x < config.landingCrestX) {
     return sampleHermite(
       x,
       config.landingStartX,
       config.landingY,
       config.landingSlope,
+      config.landingCrestX,
+      config.landingCrestY,
+      config.landingCrestSlope,
+    );
+  }
+
+  if (x < config.landingEndX) {
+    return sampleHermite(
+      x,
+      config.landingCrestX,
+      config.landingCrestY,
+      config.landingCrestSlope,
       config.landingEndX,
       config.landingEndY,
       config.landingEndSlope,

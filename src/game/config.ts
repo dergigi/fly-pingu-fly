@@ -20,6 +20,9 @@ export type TerrainConfig = Readonly<{
   landingStartX: number;
   landingY: number;
   landingSlope: number;
+  landingCrestX: number;
+  landingCrestY: number;
+  landingCrestSlope: number;
   landingEndX: number;
   landingEndY: number;
   landingEndSlope: number;
@@ -47,35 +50,38 @@ export type JumpConfig = Readonly<
 >;
 
 export const jumpConfig: JumpConfig = Object.freeze({
-  readyX: 52,
-  readyY: 28,
+  readyX: 48,
+  readyY: 18,
   startHopVx: 90,
   startHopVy: -85,
-  startX: 78,
-  startY: 48,
-  initialSpeed: 110,
-  rampAcceleration: 80,
-  crouchRampAcceleration: 170,
-  rampStartSlope: 1.35,
-  takeoffStartX: 820,
-  lipX: 980,
-  lipY: 455,
-  lipSlope: -0.06,
-  lateBoundaryX: 980,
+  startX: 72,
+  startY: 36,
+  initialSpeed: 120,
+  rampAcceleration: 95,
+  crouchRampAcceleration: 200,
+  rampStartSlope: 2.05,
+  takeoffStartX: 760,
+  lipX: 900,
+  lipY: 620,
+  lipSlope: -0.09,
+  lateBoundaryX: 900,
   minimumQuality: 0.35,
-  earlySpan: 280,
-  lateSpan: 80,
-  minimumLaunchX: 420,
-  maximumLaunchX: 600,
-  minimumLaunchY: 300,
-  maximumLaunchY: 460,
-  gravity: 700,
-  landingStartX: 1080,
-  landingY: 525,
-  landingSlope: 0.72,
-  landingEndX: 2350,
-  landingEndY: 790,
-  landingEndSlope: 0.035,
+  earlySpan: 220,
+  lateSpan: 70,
+  minimumLaunchX: 560,
+  maximumLaunchX: 820,
+  minimumLaunchY: 480,
+  maximumLaunchY: 760,
+  gravity: 640,
+  landingStartX: 980,
+  landingY: 690,
+  landingSlope: -0.55,
+  landingCrestX: 1500,
+  landingCrestY: 320,
+  landingCrestSlope: 0.02,
+  landingEndX: 3100,
+  landingEndY: 980,
+  landingEndSlope: 0.03,
   slideDeceleration: 95,
   stopSpeed: 1,
 });
@@ -132,6 +138,9 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
     "landingStartX",
     "landingY",
     "landingSlope",
+    "landingCrestX",
+    "landingCrestY",
+    "landingCrestSlope",
     "landingEndX",
     "landingEndY",
     "landingEndSlope",
@@ -147,6 +156,12 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
   }
   if (config.landingStartX <= config.lipX) {
     throw new RangeError("landingStartX must be beyond the takeoff lip");
+  }
+  if (
+    config.landingCrestX <= config.landingStartX ||
+    config.landingCrestX >= config.landingEndX
+  ) {
+    throw new RangeError("landingCrestX must lie inside the landing hill");
   }
   if (config.landingEndX <= config.landingStartX) {
     throw new RangeError("landingEndX must be beyond landingStartX");

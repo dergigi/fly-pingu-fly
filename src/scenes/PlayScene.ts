@@ -26,8 +26,8 @@ import {
   sampleRampCurve,
 } from "../game/terrain";
 
-const WORLD_WIDTH = 4700;
-const WORLD_HEIGHT = 1000;
+const WORLD_WIDTH = 5600;
+const WORLD_HEIGHT = 1200;
 const CAMERA_TOP_PAD = 140;
 const PENGUIN_SCALE = 0.3825;
 const PENGUIN_CROUCH_SCALE_Y = 0.72;
@@ -242,9 +242,9 @@ export class PlayScene extends Phaser.Scene {
       .setScale(LOG_SCALE)
       .setDepth(4);
 
-    const pileSurface = sampleLanding(2200, jumpConfig);
+    const pileSurface = sampleLanding(2400, jumpConfig);
     this.add
-      .image(2200, pileSurface.y - 23, "snow-pile")
+      .image(2400, pileSurface.y - 18, "snow-pile")
       .setScale(0.35)
       .setDepth(2);
   }

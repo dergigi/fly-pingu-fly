@@ -44,6 +44,9 @@ const fieldInvariants = {
   landingStartX: "finite",
   landingY: "finite",
   landingSlope: "finite",
+  landingCrestX: "finite",
+  landingCrestY: "finite",
+  landingCrestSlope: "finite",
   landingEndX: "finite",
   landingEndY: "finite",
   landingEndSlope: "finite",
@@ -72,8 +75,8 @@ describe("takeoff quality", () => {
   });
 
   it("falls monotonically over broad early and short late spans", () => {
-    expect(config.earlySpan).toBe(280);
-    expect(config.lateSpan).toBe(80);
+    expect(config.earlySpan).toBe(220);
+    expect(config.lateSpan).toBe(70);
 
     const early = Array.from({ length: config.earlySpan + 1 }, (_, offset) =>
       takeoffQuality(config.lipX - offset, config),
