@@ -1,6 +1,15 @@
 import Phaser from "phaser";
 
-import { PENGUIN_FRAMES, type PenguinPose } from "../game/penguinFrames";
+import {
+  createFreeRoamState,
+  freeRoamDefaults,
+  poseForFreeRoam,
+  setFreeRoamFacing,
+  stepFreeRoam,
+  tryFreeRoamJump,
+  type FreeRoamState,
+} from "../game/freeRoam";
+import { PENGUIN_FRAMES } from "../game/penguinFrames";
 import { formatLeaderboard, readLeaderboard } from "../game/leaderboard";
 import { GAME_VERSION } from "../game/version";
 
@@ -15,11 +24,6 @@ const SNOW_FILL = 0xffffff;
 const SNOW_EDGE = 0xd9f5ff;
 const PINE_ORIGIN_Y = 233 / 256;
 const PENGUIN_SCALE = 0.72;
-const GRAVITY = 1400;
-const JUMP_VY = -380;
-const JUMP_VX = 300;
-const SLIDE_FRICTION = 280;
-const STOP_SPEED = 12;
 const FLAG_TOUCH_RADIUS = 48;
 
 function browserStorage(): Storage | null {
@@ -44,12 +48,7 @@ export class MenuScene extends Phaser.Scene {
   private creditLink!: Phaser.GameObjects.Text;
   private started = false;
   private groundY = 0;
-  private penguinX = 0;
-  private penguinY = 0;
-  private vx = 0;
-  private vy = 0;
-  private facing = 1;
-  private grounded = true;
+  private roam: FreeRoamState = createFreeRoamState(0, 0, 1);
   private leftKeys: Phaser.Input.Keyboard.Key[] = [];
   private rightKeys: Phaser.Input.Keyboard.Key[] = [];
   private jumpKeys: Phaser.Input.Keyboard.Key[] = [];
@@ -83,10 +82,7 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     this.started = false;
-    this.vx = 0;
-    this.vy = 0;
-    this.facing = 1;
-    this.grounded = true;
+    this.roam = createFreeRoamState(0, 0, 1);
     this.cameras.main.setBackgroundColor(SKY);
     this.registerPenguinFrames();
     this.ensureFogTexture();
@@ -121,7 +117,16 @@ export class MenuScene extends Phaser.Scene {
     this.updateScenery(dt);
     this.handleTurnInput();
     this.handleJumpInput();
-    this.stepPenguin(dt);
+    this.roam = stepFreeRoam(
+      this.roam,
+      dt,
+      {
+        ...freeRoamDefaults,
+        minX: 0,
+        maxX: this.cameras.main.width,
+      },
+      () => ({ y: this.groundY, slope: 0 }),
+    );
     this.renderPenguin();
     if (this.touchesFlag()) {
       this.startGame();
@@ -176,10 +181,10 @@ export class MenuScene extends Phaser.Scene {
 
   private handleTurnInput(): void {
     if (this.leftKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
-      this.facing = -1;
+      this.roam = setFreeRoamFacing(this.roam, -1);
     }
     if (this.rightKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))) {
-      this.facing = 1;
+      this.roam = setFreeRoamFacing(this.roam, 1);
     }
   }
 
@@ -193,72 +198,26 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private tryJump(): void {
-    if (!this.grounded || this.started) {
+    if (this.started) {
       return;
     }
-    this.grounded = false;
-    this.vy = JUMP_VY;
-    this.vx = this.facing * JUMP_VX;
-  }
-
-  private stepPenguin(dt: number): void {
-    const w = this.cameras.main.width;
-    const margin = 36;
-
-    if (!this.grounded) {
-      this.vy += GRAVITY * dt;
-    }
-
-    this.penguinX += this.vx * dt;
-    this.penguinY += this.vy * dt;
-
-    if (this.penguinX < margin) {
-      this.penguinX = margin;
-      this.vx = Math.abs(this.vx) * 0.35;
-      this.facing = 1;
-    } else if (this.penguinX > w - margin) {
-      this.penguinX = w - margin;
-      this.vx = -Math.abs(this.vx) * 0.35;
-      this.facing = -1;
-    }
-
-    if (this.penguinY >= this.groundY) {
-      this.penguinY = this.groundY;
-      this.vy = 0;
-      this.grounded = true;
-      if (Math.abs(this.vx) > STOP_SPEED) {
-        const sign = Math.sign(this.vx);
-        this.vx -= sign * SLIDE_FRICTION * dt;
-        if (Math.sign(this.vx) !== sign) {
-          this.vx = 0;
-        }
-      } else {
-        this.vx = 0;
-      }
-    } else {
-      this.grounded = false;
-    }
+    this.roam = tryFreeRoamJump(this.roam, freeRoamDefaults);
   }
 
   private renderPenguin(): void {
-    let pose: PenguinPose = "ready";
-    if (!this.grounded) {
-      pose = this.vy < 0 ? "takeoff" : "flight";
-    } else if (Math.abs(this.vx) > STOP_SPEED) {
-      pose = "slide";
-    }
+    const pose = poseForFreeRoam(this.roam);
     const frame = PENGUIN_FRAMES[pose];
     this.penguin
       .setFrame(pose)
       .setOrigin(frame.contactX / frame.width, frame.contactY / frame.height)
-      .setPosition(this.penguinX, this.penguinY)
+      .setPosition(this.roam.x, this.roam.y)
       // Sheet faces left; flipX true shows facing right.
-      .setFlipX(this.facing > 0);
+      .setFlipX(this.roam.facing > 0);
   }
 
   private touchesFlag(): boolean {
-    const dx = this.penguinX - this.flag.x;
-    const dy = this.penguinY - this.groundY;
+    const dx = this.roam.x - this.flag.x;
+    const dy = this.roam.y - this.groundY;
     return Math.hypot(dx, dy) <= FLAG_TOUCH_RADIUS;
   }
 
@@ -648,9 +607,9 @@ export class MenuScene extends Phaser.Scene {
       const x = pointer.x;
       const w = this.cameras.main.width;
       if (x < w * 0.33) {
-        this.facing = -1;
+        this.roam = setFreeRoamFacing(this.roam, -1);
       } else if (x > w * 0.66) {
-        this.facing = 1;
+        this.roam = setFreeRoamFacing(this.roam, 1);
       } else {
         this.tryJump();
       }
@@ -741,21 +700,17 @@ export class MenuScene extends Phaser.Scene {
 
     const spawnX = cx - Math.min(200, w * 0.2);
     const needsReset =
-      this.penguinX === 0 ||
-      this.penguinX < 20 ||
-      this.penguinX > w - 20;
+      this.roam.x === 0 ||
+      this.roam.x < 20 ||
+      this.roam.x > w - 20;
     if (needsReset) {
-      this.penguinX = spawnX;
-      this.vx = 0;
-      this.vy = 0;
-      this.grounded = true;
-      this.facing = 1;
-    }
-    this.penguinY = this.groundY;
-    this.grounded = this.vy === 0 || this.penguinY >= this.groundY;
-    if (this.grounded) {
-      this.penguinY = this.groundY;
-      this.vy = 0;
+      this.roam = createFreeRoamState(spawnX, this.groundY, 1);
+    } else if (this.roam.grounded) {
+      this.roam = {
+        ...this.roam,
+        y: this.groundY,
+        vy: 0,
+      };
     }
     this.renderPenguin();
 
