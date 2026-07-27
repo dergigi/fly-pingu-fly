@@ -350,12 +350,11 @@ export class MenuScene extends Phaser.Scene {
 
   private createTitle(): void {
     this.add
-      .text(0, 0, "FLY PINGU\nFLY", {
+      .text(0, 0, "FLY PINGU FLY", {
         fontFamily: PIXEL_FONT,
         fontSize: "52px",
         color: "#0b3a55",
         align: "center",
-        lineSpacing: 18,
       })
       .setOrigin(0.5)
       .setDepth(10)
@@ -363,14 +362,13 @@ export class MenuScene extends Phaser.Scene {
       .setName("title-shadow");
 
     this.add
-      .text(0, 0, "FLY PINGU\nFLY", {
+      .text(0, 0, "FLY PINGU FLY", {
         fontFamily: PIXEL_FONT,
         fontSize: "52px",
         color: "#ffe566",
         align: "center",
         stroke: "#0b4f73",
         strokeThickness: 8,
-        lineSpacing: 18,
       })
       .setOrigin(0.5)
       .setDepth(11)
@@ -509,14 +507,14 @@ export class MenuScene extends Phaser.Scene {
     ) as Phaser.GameObjects.Image | null;
 
     const titleY = Math.max(90, h * 0.18);
-    const titleSize = Math.round(Phaser.Math.Clamp(w * 0.055, 28, 56));
+    const titleSize = Math.round(Phaser.Math.Clamp(w * 0.042, 18, 44));
     if (title && shadow) {
       title.setFontSize(titleSize);
       shadow.setFontSize(titleSize);
       title.setPosition(cx, titleY);
       shadow.setPosition(cx + 4, titleY + 4);
     }
-    subtitle?.setPosition(cx, titleY + titleSize * 1.55);
+    subtitle?.setPosition(cx, titleY + titleSize * 1.15);
     leaderboard?.setPosition(w - 28, 18);
 
     this.penguin.setPosition(cx, this.groundY);
