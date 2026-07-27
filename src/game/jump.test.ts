@@ -29,8 +29,8 @@ type TraceResult = {
 
 const launchCases = [
   ["early", 200],
-  ["ideal", 2_200],
-  ["late", 2_800],
+  ["ideal", 1_800],
+  ["late", 2_000],
   ["no-input", null],
 ] as const;
 
@@ -170,7 +170,7 @@ describe("jump tracer", () => {
   });
 
   it("moves one start press and one takeoff press through the full jump", () => {
-    const result = trace(60, 2_800);
+    const result = trace(60, 1_800);
 
     expect(result.phases[0]).toBe("ready");
     expect(result.phases).toContain("flight");
@@ -182,7 +182,7 @@ describe("jump tracer", () => {
   });
 
   it("freezes jump distance at landing instead of counting the slide", () => {
-    const result = trace(60, 2_800);
+    const result = trace(60, 1_800);
 
     expect(result.firstContact.x - jumpConfig.lipX).toBeCloseTo(
       result.resting.distance,
@@ -197,7 +197,7 @@ describe("jump tracer", () => {
   });
 
   it("stops on the uphill runout instead of sliding forever", () => {
-    const result = trace(60, 2_800);
+    const result = trace(60, 1_800);
 
     expect(["resting", "crashed"]).toContain(result.resting.phase);
     expect(result.resting.speed).toBe(0);
@@ -377,11 +377,11 @@ describe("jump tracer", () => {
   });
 
   it("keeps presentation settings outside simulation outcomes", () => {
-    const compact = trace(60, 2_200, {
+    const compact = trace(60, 1_800, {
       viewport: { width: 640, height: 360 },
       cameraLead: 200,
     });
-    const wide = trace(60, 2_200, {
+    const wide = trace(60, 1_800, {
       viewport: { width: 1920, height: 1080 },
       cameraLead: 600,
     });
