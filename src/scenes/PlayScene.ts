@@ -624,13 +624,9 @@ export class PlayScene extends Phaser.Scene {
           i += 1;
           continue;
         }
-        // Upper third: brown geysers. Lower half: black rock. Blend in between.
-        const geyserChance = t < 0.28 ? 0.7 : t < 0.55 ? 0.45 - (t - 0.28) : 0.08;
-        // Thin the tip so it is not a brown cluster.
-        if (t < 0.18 && n > 0.55 && n < geyserChance) {
-          i += 1;
-          continue;
-        }
+        // Upper slopes may use brown geysers; the tip itself is a single anchor.
+        const geyserChance =
+          t < 0.12 ? 0 : t < 0.28 ? 0.55 : t < 0.55 ? 0.4 - (t - 0.28) : 0.08;
         const key = n < geyserChance ? "geyser" : "rock-cluster";
         const scale =
           key === "geyser"
@@ -650,8 +646,6 @@ export class PlayScene extends Phaser.Scene {
 
     const anchors = [
       { key: "geyser" as const, x: tipX, y: tipY + 10, scale: 1.05, depth: 3 },
-      { key: "geyser" as const, x: tipX + 40, y: tipY + 70, scale: 0.92, depth: 3 },
-      { key: "geyser" as const, x: tipX - 10, y: tipY + 130, scale: 0.8, depth: 2 },
       { key: "rock-cluster" as const, x: tipX - 70, y: tipY + 420, scale: 1.15, depth: 2 },
       { key: "rock-cluster" as const, x: tipX + 30, y: tipY + 460, scale: 1.2, depth: 3 },
       { key: "rock-cluster" as const, x: tipX - 20, y: tipY + 560, scale: 1.25, depth: 3 },
