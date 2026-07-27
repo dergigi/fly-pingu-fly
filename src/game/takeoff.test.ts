@@ -41,6 +41,7 @@ const fieldInvariants = {
   minimumLaunchY: "positive",
   maximumLaunchY: "positive",
   gravity: "positive",
+  flightCrouchGravityScale: "finite",
   landingStartX: "finite",
   landingY: "finite",
   landingSlope: "finite",
@@ -150,6 +151,21 @@ describe("jump config validation", () => {
     ).toThrow(RangeError);
     expect(() =>
       assertValidJumpConfig(withField("minimumQuality", 1 + Number.EPSILON)),
+    ).toThrow(RangeError);
+  });
+
+  it("requires flight crouch gravity scale in (0, 1]", () => {
+    expect(() =>
+      assertValidJumpConfig(withField("flightCrouchGravityScale", 1)),
+    ).not.toThrow();
+    expect(() =>
+      assertValidJumpConfig(withField("flightCrouchGravityScale", 0.55)),
+    ).not.toThrow();
+    expect(() =>
+      assertValidJumpConfig(withField("flightCrouchGravityScale", 0)),
+    ).toThrow(RangeError);
+    expect(() =>
+      assertValidJumpConfig(withField("flightCrouchGravityScale", 1.01)),
     ).toThrow(RangeError);
   });
 

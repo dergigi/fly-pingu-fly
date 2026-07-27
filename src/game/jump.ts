@@ -77,7 +77,7 @@ export function stepJump(
     case "ramp":
       return stepRamp(state, command, dt, config, crouching);
     case "flight":
-      return stepFlight(state, dt, config);
+      return stepFlight(state, dt, config, crouching);
     case "slide":
       return stepSlide(state, dt, config);
     case "crashed":
@@ -212,11 +212,15 @@ function stepFlight(
   state: JumpState & { phase: "flight" },
   dt: number,
   config: JumpConfig,
+  crouching: boolean,
 ): JumpState {
-  const nextVy = state.vy + config.gravity * dt;
+  const gravity = crouching
+    ? config.gravity * config.flightCrouchGravityScale
+    : config.gravity;
+  const nextVy = state.vy + gravity * dt;
   const nextX = state.x + state.vx * dt;
-  const nextY = state.y + state.vy * dt + 0.5 * config.gravity * dt * dt;
-  const contact = findLandingContact(state, nextX, nextY, dt, config);
+  const nextY = state.y + state.vy * dt + 0.5 * gravity * dt * dt;
+  const contact = findLandingContact(state, nextX, nextY, dt, config, gravity);
   if (contact !== null) {
     return contact;
   }
@@ -238,13 +242,14 @@ function findLandingContact(
   nextY: number,
   dt: number,
   config: JumpConfig,
+  gravity: number,
 ): JumpState | null {
   const travel = Math.hypot(nextX - state.x, nextY - state.y);
   const samples = Math.max(1, Math.ceil(travel / FLIGHT_CONTACT_STEP));
   let previousGap = state.y - sampleLanding(state.x, config).y;
 
   if (previousGap > 0) {
-    return settleOnLanding(state, state.x, 0, dt, config);
+    return settleOnLanding(state, state.x, 0, dt, config, gravity);
   }
 
   for (let index = 1; index <= samples; index += 1) {
@@ -258,7 +263,7 @@ function findLandingContact(
       const local = crossingFraction(previousGap, gap);
       const fraction = startT + (endT - startT) * local;
       const contactX = state.x + (nextX - state.x) * fraction;
-      return settleOnLanding(state, contactX, fraction, dt, config);
+      return settleOnLanding(state, contactX, fraction, dt, config, gravity);
     }
 
     previousGap = gap;
@@ -273,9 +278,10 @@ function settleOnLanding(
   fraction: number,
   dt: number,
   config: JumpConfig,
+  gravity: number,
 ): JumpState {
   const contact = sampleLanding(contactX, config);
-  const contactVy = state.vy + config.gravity * dt * fraction;
+  const contactVy = state.vy + gravity * dt * fraction;
   const tangentLength = Math.hypot(1, contact.slope);
   const alongTrack = (state.vx + contactVy * contact.slope) / tangentLength;
   const distance = Math.max(0, contactX - config.lipX);

@@ -228,6 +228,39 @@ describe("jump tracer", () => {
     );
   });
 
+  it("glides with weaker gravity while squeezing in flight", () => {
+    const airborne = {
+      ...createInitialJumpState(jumpConfig),
+      phase: "flight",
+      x: jumpConfig.lipX + 40,
+      y: jumpConfig.lipY - 80,
+      vx: 700,
+      vy: -200,
+      speed: 0,
+      elapsed: 1,
+      airtime: 0.2,
+      distance: 40,
+    } as FlightState;
+
+    const open = stepJump(airborne, null, FIXED_STEP, jumpConfig, false);
+    const tucked = stepJump(airborne, null, FIXED_STEP, jumpConfig, true);
+
+    expect(open.phase).toBe("flight");
+    expect(tucked.phase).toBe("flight");
+    expect(tucked.vy - airborne.vy).toBeCloseTo(
+      jumpConfig.gravity * jumpConfig.flightCrouchGravityScale * FIXED_STEP,
+      8,
+    );
+    expect(open.vy - airborne.vy).toBeCloseTo(
+      jumpConfig.gravity * FIXED_STEP,
+      8,
+    );
+    expect(Math.abs(tucked.vy - airborne.vy)).toBeLessThan(
+      Math.abs(open.vy - airborne.vy),
+    );
+    expect(tucked.y).toBeLessThan(open.y);
+  });
+
   it("holds at the lip while crouching instead of auto-jumping", () => {
     const lip = sampleRamp(jumpConfig.lateBoundaryX, jumpConfig);
     const initial = {
