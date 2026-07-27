@@ -1,5 +1,5 @@
 /** World X units per displayed meter (lip-relative distance / this). */
-export const WORLD_UNITS_PER_METER = 100;
+export const WORLD_UNITS_PER_METER = 50;
 
 export type JumpHudStats = Readonly<{
   distance: number;

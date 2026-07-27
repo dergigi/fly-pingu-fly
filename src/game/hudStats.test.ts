@@ -10,13 +10,13 @@ import {
 
 describe("jump HUD stats", () => {
   it("converts world distance into display meters", () => {
-    expect(worldDistanceToMeters(271)).toBeCloseTo(2.71, 8);
+    expect(worldDistanceToMeters(271)).toBeCloseTo(5.42, 8);
     expect(jumpHudStats({ distance: 0, airtime: 0 })).toEqual({
       distance: 0,
       airtime: 0,
     });
     expect(jumpHudStats({ distance: 300, airtime: 1.24 })).toEqual({
-      distance: 3,
+      distance: 6,
       airtime: 1.24,
     });
   });
