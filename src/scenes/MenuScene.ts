@@ -100,6 +100,7 @@ export class MenuScene extends Phaser.Scene {
     this.createPlayPrompt();
     this.createLeaderboard();
     this.createControlsHint();
+    this.createCredit();
     this.bindInput();
     this.scale.on("resize", this.layout, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -571,6 +572,29 @@ export class MenuScene extends Phaser.Scene {
       .setName("controls");
   }
 
+  private createCredit(): void {
+    this.add
+      .text(
+        0,
+        0,
+        "Concept & game design by my daughter.\nThe clankers did the rest.",
+        {
+          fontFamily: "Trebuchet MS, Arial, sans-serif",
+          fontSize: "13px",
+          color: "#3a6f8a",
+          align: "right",
+          stroke: "#f4fbff",
+          strokeThickness: 3,
+          lineSpacing: 2,
+        },
+      )
+      .setOrigin(1, 1)
+      .setScrollFactor(0)
+      .setDepth(100)
+      .setAlpha(0.9)
+      .setName("credit");
+  }
+
   private bindInput(): void {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
@@ -638,6 +662,9 @@ export class MenuScene extends Phaser.Scene {
     const controls = this.children.getByName(
       "controls",
     ) as Phaser.GameObjects.Text | null;
+    const credit = this.children.getByName(
+      "credit",
+    ) as Phaser.GameObjects.Text | null;
     const pineLeft = this.children.getByName(
       "pine-left",
     ) as Phaser.GameObjects.Image | null;
@@ -689,6 +716,7 @@ export class MenuScene extends Phaser.Scene {
     this.playPrompt.setFontSize(promptSize);
     this.playPrompt.setPosition(cx, playY);
     controls?.setPosition(cx, Math.min(h - 28, playY + 36));
+    credit?.setPosition(w - 18, h - 14);
 
     pineLeft?.setPosition(
       cx - Math.min(420, w * 0.38),
