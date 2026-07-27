@@ -111,11 +111,13 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private bindInput(): void {
-    this.input.on(
-      "pointerdown",
-      (pointer: Phaser.Input.Pointer) =>
-        this.inputLatch.tryQueuePress(pointer.downTime),
-    );
+    this.game.canvas.setAttribute("tabindex", "0");
+    this.game.canvas.style.outline = "none";
+
+    this.input.on("pointerdown", () => {
+      this.game.canvas.focus();
+      this.queuePress();
+    });
 
     const keyboard = this.input.keyboard;
     if (keyboard === null) {
@@ -131,10 +133,17 @@ export class PlayScene extends Phaser.Scene {
     for (const key of keys) {
       key.on("down", (event: KeyboardEvent) => {
         if (!event.repeat) {
-          this.inputLatch.tryQueuePress(event.timeStamp);
+          event.preventDefault();
+          this.queuePress();
         }
       });
     }
+  }
+
+  private queuePress(): void {
+    const pressedAtMs =
+      this.simulationTimeMs > 0 ? this.simulationTimeMs : this.time.now;
+    this.inputLatch.tryQueuePress(pressedAtMs);
   }
 
   private drawWorld(): void {
