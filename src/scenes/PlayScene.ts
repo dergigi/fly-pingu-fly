@@ -499,9 +499,10 @@ export class PlayScene extends Phaser.Scene {
             ? 0.1 + Math.random() * 0.12
             : 0.028 + Math.random() * 0.03,
         );
-      flake.setData("vx", -12 + Math.random() * 24);
-      flake.setData("vy", 16 + Math.random() * 26);
-      flake.setData("spin", (-0.5 + Math.random()) * 0.9);
+      flake.setData("vx", -28 + Math.random() * 56);
+      flake.setData("vy", 70 + Math.random() * 90);
+      const spinDir = Math.random() < 0.5 ? -1 : 1;
+      flake.setData("spin", spinDir * (2.2 + Math.random() * 3.4));
       this.snowflakes.push(flake);
     }
   }
