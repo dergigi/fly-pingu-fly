@@ -420,7 +420,7 @@ export class PlayScene extends Phaser.Scene {
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
 
     this.add
-      .image(gapCenterX, lip.y + 160, "waterfall")
+      .image(gapCenterX, lip.y + 260, "waterfall")
       .setScale(1.35)
       .setAlpha(0.96)
       .setDepth(1);
