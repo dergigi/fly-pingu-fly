@@ -26,8 +26,8 @@ import {
   sampleRampCurve,
 } from "../game/terrain";
 
-const WORLD_WIDTH = 8000;
-const WORLD_HEIGHT = 1300;
+const WORLD_WIDTH = 10000;
+const WORLD_HEIGHT = 1950;
 const CAMERA_TOP_PAD = 140;
 const PENGUIN_SCALE = 0.3825;
 const PENGUIN_CROUCH_SCALE_Y = 0.72;
@@ -262,14 +262,14 @@ export class PlayScene extends Phaser.Scene {
 
   private placeRunoutScenery(): void {
     const props = [
-      { key: "snow-pile", x: 4400, scale: 0.32, sink: 20, depth: 2 },
-      { key: "snow-pile", x: 4950, scale: 0.28, sink: 18, depth: 2 },
-      { key: "igloo", x: 4650, scale: 0.42, sink: 48, depth: 3 },
-      { key: "snowman", x: 5300, scale: 0.38, sink: 44, depth: 3 },
-      { key: "lantern-post", x: 5580, scale: 0.4, sink: 52, depth: 3 },
-      { key: "snow-village", x: 6050, scale: 0.55, sink: 58, depth: 3 },
-      { key: "snow-pile", x: 6450, scale: 0.34, sink: 22, depth: 2 },
-      { key: "snow-pile", x: 6850, scale: 0.3, sink: 18, depth: 2 },
+      { key: "snow-pile", x: 5150, scale: 0.32, sink: 20, depth: 2 },
+      { key: "snow-pile", x: 5700, scale: 0.28, sink: 18, depth: 2 },
+      { key: "igloo", x: 5400, scale: 0.42, sink: 48, depth: 3 },
+      { key: "snowman", x: 6100, scale: 0.38, sink: 44, depth: 3 },
+      { key: "lantern-post", x: 6450, scale: 0.4, sink: 52, depth: 3 },
+      { key: "snow-village", x: 7000, scale: 0.55, sink: 58, depth: 3 },
+      { key: "snow-pile", x: 7550, scale: 0.34, sink: 22, depth: 2 },
+      { key: "snow-pile", x: 8000, scale: 0.3, sink: 18, depth: 2 },
     ] as const;
 
     for (const prop of props) {
