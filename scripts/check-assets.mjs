@@ -7,6 +7,7 @@ const REQUIRED_ASSETS = [
   { name: "sprite_penguin.png", format: "png", width: 640, height: 240 },
   { name: "winter-forest.webp", format: "webp" },
   { name: "snow-pile.webp", format: "webp" },
+  { name: "snow-covered-fallen-log.webp", format: "webp" },
 ];
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);

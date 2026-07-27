@@ -8,7 +8,11 @@ export function jumpHudStats(
   lipX: number,
 ): JumpHudStats {
   const distance =
-    state.phase === "ramp" ? 0 : Math.max(0, state.x - lipX);
+    state.phase === "ready" ||
+    state.phase === "drop" ||
+    state.phase === "ramp"
+      ? 0
+      : Math.max(0, state.x - lipX);
 
   return {
     distance,

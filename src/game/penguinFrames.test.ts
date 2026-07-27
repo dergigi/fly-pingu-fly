@@ -11,6 +11,8 @@ import {
 import { createInitialJumpState, stepJump, type JumpState } from "./jump";
 
 const poses = [
+  "ready",
+  "drop",
   "ramp",
   "takeoff",
   "flight",
@@ -50,7 +52,15 @@ describe("penguin frame manifest", () => {
   });
 
   it("maps every phase and the accepted transition to inspected poses", () => {
-    const ramp = createInitialJumpState(jumpConfig);
+    const ready = createInitialJumpState(jumpConfig);
+    const drop = stepJump(ready, { pressedAtMs: 0 }, 1 / 120, jumpConfig);
+    const ramp: JumpState = {
+      ...drop,
+      phase: "ramp",
+      x: jumpConfig.startX,
+      y: jumpConfig.startY,
+      speed: jumpConfig.initialSpeed,
+    };
     const accepted = stepJump(
       ramp,
       { pressedAtMs: 0 },
@@ -67,6 +77,8 @@ describe("penguin frame manifest", () => {
     const slide: JumpState = { ...landing, speed: 120 };
     const resting: JumpState = { ...slide, phase: "resting", speed: 0 };
 
+    expect(poseForJumpPhase(ready)).toBe("ready");
+    expect(poseForJumpPhase(drop)).toBe("drop");
     expect(poseForJumpPhase(ramp)).toBe("ramp");
     expect(poseForJumpPhase(accepted)).toBe("takeoff");
     expect(poseForJumpPhase(flight)).toBe("flight");

@@ -26,35 +26,45 @@ type TraceResult = {
 };
 
 const launchCases = [
-  ["early", 500],
-  ["ideal", 2_400],
-  ["late", 2_550],
+  ["early", 200],
+  ["ideal", 2_200],
+  ["late", 2_800],
   ["no-input", null],
 ] as const;
 
 function trace(
   renderHz: number,
-  commandAtMs: number | null,
+  takeoffDelayMs: number | null,
   _presentation?: PresentationVariant,
 ): TraceResult {
   let state = createInitialJumpState(jumpConfig);
   let accumulator = 0;
   let simulationTimeMs = 0;
   const latch = new InputLatch();
-  if (commandAtMs !== null) {
-    latch.tryQueuePress(commandAtMs);
-  }
+  latch.tryQueuePress(0);
+  let rampEnteredAtMs: number | null = null;
+  let takeoffQueued = false;
   let takeoffVelocity: TraceResult["takeoffVelocity"] | null = null;
   let firstContact: TraceResult["firstContact"] | null = null;
   const phases: JumpState["phase"][] = [state.phase];
   const slideSpeeds: number[] = [];
   let restingTransitions = 0;
 
-  for (let frame = 0; frame < renderHz * 30; frame += 1) {
+  for (let frame = 0; frame < renderHz * 40; frame += 1) {
     accumulator += 1 / renderHz;
 
     while (accumulator + Number.EPSILON >= FIXED_STEP) {
       simulationTimeMs += FIXED_STEP * 1000;
+      if (
+        rampEnteredAtMs !== null &&
+        takeoffDelayMs !== null &&
+        !takeoffQueued &&
+        simulationTimeMs >= rampEnteredAtMs + takeoffDelayMs
+      ) {
+        latch.tryQueuePress(simulationTimeMs);
+        takeoffQueued = true;
+      }
+
       const dueCommand = latch.consumeThrough(simulationTimeMs);
       const previousPhase = state.phase;
       const nextState: JumpState = stepJump(
@@ -69,8 +79,12 @@ function trace(
       if (nextPhase !== previousPhase) {
         phases.push(nextPhase);
       }
+      if (previousPhase !== "ramp" && nextPhase === "ramp") {
+        rampEnteredAtMs = simulationTimeMs;
+      }
       if (previousPhase === "ramp" && nextPhase === "flight") {
         takeoffVelocity = { vx: state.vx, vy: state.vy };
+        latch.seal();
       }
       if (previousPhase === "flight" && nextPhase === "slide") {
         firstContact = {
@@ -109,24 +123,36 @@ function trace(
 }
 
 describe("jump tracer", () => {
-  it("creates an identical finite ramp state every time", () => {
+  it("starts ready on the log until the first press", () => {
     const first = createInitialJumpState(jumpConfig);
     const second = createInitialJumpState(jumpConfig);
 
     expect(first).toEqual(second);
-    expect(first.phase).toBe("ramp");
+    expect(first.phase).toBe("ready");
+    expect(first.x).toBe(jumpConfig.readyX);
+    expect(first.y).toBe(jumpConfig.readyY);
     expect(Object.values(first).filter(Number.isFinite)).toHaveLength(7);
 
-    const advanced = stepJump(first, null, FIXED_STEP, jumpConfig);
-    expect(advanced.phase).toBe("ramp");
-    expect(advanced.x).toBeGreaterThan(first.x);
-    expect(advanced.speed).toBeGreaterThan(first.speed);
+    const waiting = stepJump(first, null, FIXED_STEP, jumpConfig);
+    expect(waiting).toEqual(first);
+
+    const hopping = stepJump(first, { pressedAtMs: 0 }, FIXED_STEP, jumpConfig);
+    expect(hopping.phase).toBe("drop");
+    expect(hopping.vx).toBe(jumpConfig.startHopVx);
+    expect(hopping.vy).toBe(jumpConfig.startHopVy);
   });
 
-  it("moves one timestamped press through flight, slide, and rest", () => {
-    const result = trace(60, 1_650);
+  it("moves one start press and one takeoff press through the full jump", () => {
+    const result = trace(60, 1_200);
 
-    expect(result.phases).toEqual(["ramp", "flight", "slide", "resting"]);
+    expect(result.phases).toEqual([
+      "ready",
+      "drop",
+      "ramp",
+      "flight",
+      "slide",
+      "resting",
+    ]);
     expect(result.resting.phase).toBe("resting");
     expect(result.takeoffVelocity.vx).toBeGreaterThan(0);
     expect(result.takeoffVelocity.vy).toBeLessThan(0);
@@ -134,7 +160,13 @@ describe("jump tracer", () => {
   });
 
   it("accepts an early press immediately at minimum quality", () => {
-    const initial = createInitialJumpState(jumpConfig) as RampState;
+    const initial = {
+      ...createInitialJumpState(jumpConfig),
+      phase: "ramp",
+      x: jumpConfig.startX,
+      y: jumpConfig.startY,
+      speed: jumpConfig.initialSpeed,
+    } as RampState;
     const launched = stepJump(
       initial,
       { pressedAtMs: 0 },
@@ -151,10 +183,17 @@ describe("jump tracer", () => {
     );
   });
 
-  it("uses the shared weak launch when no command arrives", () => {
+  it("uses the shared weak launch when no takeoff command arrives", () => {
     const result = trace(60, null);
 
-    expect(result.phases).toEqual(["ramp", "flight", "slide", "resting"]);
+    expect(result.phases).toEqual([
+      "ready",
+      "drop",
+      "ramp",
+      "flight",
+      "slide",
+      "resting",
+    ]);
     expect(result.firstContact.airtime).toBeGreaterThan(0);
     expect(result.resting.phase).toBe("resting");
   });
@@ -162,7 +201,14 @@ describe("jump tracer", () => {
   it.each(launchCases)("%s input reaches rest without another command", (_, at) => {
     const result = trace(60, at);
 
-    expect(result.phases).toEqual(["ramp", "flight", "slide", "resting"]);
+    expect(result.phases).toEqual([
+      "ready",
+      "drop",
+      "ramp",
+      "flight",
+      "slide",
+      "resting",
+    ]);
     expect(result.resting.phase).toBe("resting");
     expect(result.restingTransitions).toBe(1);
     expect(result.slideSpeeds.every((speed) => speed >= 0)).toBe(true);
@@ -174,11 +220,11 @@ describe("jump tracer", () => {
   });
 
   it("keeps presentation settings outside simulation outcomes", () => {
-    const compact = trace(60, 2_400, {
+    const compact = trace(60, 2_200, {
       viewport: { width: 640, height: 360 },
       cameraLead: 200,
     });
-    const wide = trace(60, 2_400, {
+    const wide = trace(60, 2_200, {
       viewport: { width: 1920, height: 1080 },
       cameraLead: 600,
     });
@@ -205,8 +251,8 @@ describe("jump tracer", () => {
   it.each([30, 60, 120, 144])(
     "is cadence-independent at %i Hz",
     (renderHz) => {
-      const reference = trace(120, 1_650);
-      const result = trace(renderHz, 1_650);
+      const reference = trace(120, 1_200);
+      const result = trace(renderHz, 1_200);
 
       expect(result.takeoffVelocity.vx).toBeCloseTo(
         reference.takeoffVelocity.vx,

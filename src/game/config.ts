@@ -28,6 +28,10 @@ export type TerrainConfig = Readonly<{
 export type JumpConfig = Readonly<
   TakeoffConfig &
     TerrainConfig & {
+  readyX: number;
+  readyY: number;
+  startHopVx: number;
+  startHopVy: number;
   initialSpeed: number;
   rampAcceleration: number;
   lateBoundaryX: number;
@@ -42,8 +46,12 @@ export type JumpConfig = Readonly<
 >;
 
 export const jumpConfig: JumpConfig = Object.freeze({
-  startX: 80,
-  startY: 65,
+  readyX: 52,
+  readyY: 28,
+  startHopVx: 210,
+  startHopVy: -220,
+  startX: 110,
+  startY: 78,
   initialSpeed: 70,
   rampAcceleration: 80,
   rampStartSlope: 1.35,
@@ -70,7 +78,13 @@ export const jumpConfig: JumpConfig = Object.freeze({
   stopSpeed: 1,
 });
 
-const finiteFields = ["lateBoundaryX"] as const satisfies readonly (keyof JumpConfig)[];
+const finiteFields = [
+  "readyX",
+  "readyY",
+  "startHopVx",
+  "startHopVy",
+  "lateBoundaryX",
+] as const satisfies readonly (keyof JumpConfig)[];
 
 const positiveFields = [
   "initialSpeed",

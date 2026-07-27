@@ -2,7 +2,13 @@ import { assertValidJumpConfig, type JumpConfig } from "./config";
 import { launchFromQuality, takeoffQuality } from "./takeoff";
 import { crossingFraction, sampleLanding, sampleRamp } from "./terrain";
 
-export type JumpPhase = "ramp" | "flight" | "slide" | "resting";
+export type JumpPhase =
+  | "ready"
+  | "drop"
+  | "ramp"
+  | "flight"
+  | "slide"
+  | "resting";
 export type PressCommand = { pressedAtMs: number } | null;
 
 type MotionState = Readonly<{
@@ -15,21 +21,29 @@ type MotionState = Readonly<{
   airtime: number;
 }>;
 
+export type ReadyState = MotionState & { phase: "ready" };
+export type DropState = MotionState & { phase: "drop" };
 export type RampState = MotionState & { phase: "ramp" };
 export type FlightState = MotionState & { phase: "flight" };
 export type SlideState = MotionState & { phase: "slide" };
 export type RestingState = MotionState & { phase: "resting" };
-export type JumpState = RampState | FlightState | SlideState | RestingState;
+export type JumpState =
+  | ReadyState
+  | DropState
+  | RampState
+  | FlightState
+  | SlideState
+  | RestingState;
 
 export function createInitialJumpState(config: JumpConfig): JumpState {
   assertValidJumpConfig(config);
   return {
-    phase: "ramp",
-    x: config.startX,
-    y: config.startY,
+    phase: "ready",
+    x: config.readyX,
+    y: config.readyY,
     vx: 0,
     vy: 0,
-    speed: config.initialSpeed,
+    speed: 0,
     elapsed: 0,
     airtime: 0,
   };
@@ -47,6 +61,10 @@ export function stepJump(
   }
 
   switch (state.phase) {
+    case "ready":
+      return stepReady(state, command, config);
+    case "drop":
+      return stepDrop(state, dt, config);
     case "ramp":
       return stepRamp(state, command, dt, config);
     case "flight":
@@ -56,6 +74,67 @@ export function stepJump(
     case "resting":
       return state;
   }
+}
+
+function stepReady(
+  state: ReadyState,
+  command: PressCommand,
+  config: JumpConfig,
+): JumpState {
+  if (command === null || !Number.isFinite(command.pressedAtMs)) {
+    return state;
+  }
+
+  return {
+    ...state,
+    phase: "drop",
+    vx: config.startHopVx,
+    vy: config.startHopVy,
+    speed: 0,
+  };
+}
+
+function stepDrop(
+  state: DropState,
+  dt: number,
+  config: JumpConfig,
+): JumpState {
+  const nextVy = state.vy + config.gravity * dt;
+  const nextX = state.x + state.vx * dt;
+  const nextY = state.y + state.vy * dt + 0.5 * config.gravity * dt * dt;
+
+  if (nextVy > 0 && nextX >= config.startX && nextX <= config.lipX) {
+    const previousSurface = sampleRamp(state.x, config);
+    const nextSurface = sampleRamp(nextX, config);
+    const previousGap = state.y - previousSurface.y;
+    const nextGap = nextY - nextSurface.y;
+
+    if (previousGap <= 0 && nextGap >= 0) {
+      const fraction = crossingFraction(previousGap, nextGap);
+      const contactX = state.x + (nextX - state.x) * fraction;
+      const contact = sampleRamp(contactX, config);
+      const tangentLength = Math.hypot(1, contact.slope);
+
+      return {
+        phase: "ramp",
+        x: contactX,
+        y: contact.y,
+        vx: config.initialSpeed / tangentLength,
+        vy: (config.initialSpeed * contact.slope) / tangentLength,
+        speed: config.initialSpeed,
+        elapsed: state.elapsed + dt * fraction,
+        airtime: 0,
+      };
+    }
+  }
+
+  return {
+    ...state,
+    x: nextX,
+    y: nextY,
+    vy: nextVy,
+    elapsed: state.elapsed + dt,
+  };
 }
 
 function stepRamp(

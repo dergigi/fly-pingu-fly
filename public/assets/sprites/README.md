@@ -15,10 +15,11 @@ is not the selected character and must not be used as a substitute.
 
 - `winter-forest.webp` supplies the sparse background forest.
 - `snow-pile.webp` supplies one foreground snow accent.
+- `snow-covered-fallen-log.webp` is the start platform at the top of the ramp.
 
 All other raster scenery in this directory remains unused. The first level
 keeps its scene lean and does not load unrelated fantasy, animal, vegetation,
 pine-tree, or rock-cluster art.
 
-The production prebuild validates the exact three selected paths, their image
-containers, and the penguin sheet dimensions before Vite starts.
+The production prebuild validates the selected paths, their image containers,
+and the penguin sheet dimensions before Vite starts.

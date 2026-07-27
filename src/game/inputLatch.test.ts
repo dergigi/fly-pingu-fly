@@ -12,13 +12,22 @@ describe("InputLatch", () => {
     expect(latch.consumeThrough(101)).toBeNull();
   });
 
-  it("rejects repeats, extra pointers, and every later command", () => {
+  it("allows a second press after the start hop is consumed", () => {
     const latch = new InputLatch();
 
     expect(latch.tryQueuePress(100)).toBe(true);
     expect(latch.tryQueuePress(100)).toBe(false);
-    expect(latch.tryQueuePress(101)).toBe(false);
     expect(latch.consumeThrough(100)).toEqual({ pressedAtMs: 100 });
+    expect(latch.tryQueuePress(200)).toBe(true);
+    expect(latch.consumeThrough(200)).toEqual({ pressedAtMs: 200 });
+  });
+
+  it("rejects every later command after takeoff is sealed", () => {
+    const latch = new InputLatch();
+
+    expect(latch.tryQueuePress(100)).toBe(true);
+    expect(latch.consumeThrough(100)).toEqual({ pressedAtMs: 100 });
+    latch.seal();
     expect(latch.tryQueuePress(200)).toBe(false);
   });
 

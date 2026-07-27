@@ -1,6 +1,8 @@
 import type { JumpState } from "./jump";
 
 export type PenguinPose =
+  | "ready"
+  | "drop"
   | "ramp"
   | "takeoff"
   | "flight"
@@ -21,6 +23,22 @@ export const PENGUIN_SHEET = Object.freeze({ width: 640, height: 240 });
 
 export const PENGUIN_FRAMES: Readonly<Record<PenguinPose, PenguinFrame>> =
   Object.freeze({
+    ready: {
+      x: 91,
+      y: 92,
+      width: 66,
+      height: 74,
+      contactX: 33,
+      contactY: 68,
+    },
+    drop: {
+      x: 396,
+      y: 94,
+      width: 89,
+      height: 72,
+      contactX: 20,
+      contactY: 59,
+    },
     ramp: { x: 164, y: 94, width: 80, height: 72, contactX: 39, contactY: 65 },
     takeoff: {
       x: 396,
@@ -73,6 +91,10 @@ export function poseForJumpPhase(
   }
 
   switch (state.phase) {
+    case "ready":
+      return "ready";
+    case "drop":
+      return "drop";
     case "ramp":
       return "ramp";
     case "flight":

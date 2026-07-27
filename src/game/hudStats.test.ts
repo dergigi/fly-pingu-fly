@@ -3,7 +3,15 @@ import { describe, expect, it } from "vitest";
 import { formatJumpHud, jumpHudStats } from "./hudStats";
 
 describe("jump HUD stats", () => {
-  it("keeps distance at zero while on the ramp", () => {
+  it("keeps distance at zero while waiting, hopping, or on the ramp", () => {
+    expect(jumpHudStats({ x: 900, airtime: 0, phase: "ready" }, 980)).toEqual({
+      distance: 0,
+      airtime: 0,
+    });
+    expect(jumpHudStats({ x: 900, airtime: 0, phase: "drop" }, 980)).toEqual({
+      distance: 0,
+      airtime: 0,
+    });
     expect(jumpHudStats({ x: 900, airtime: 0, phase: "ramp" }, 980)).toEqual({
       distance: 0,
       airtime: 0,

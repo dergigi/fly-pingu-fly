@@ -11,6 +11,7 @@ const REQUIRED_ASSETS = [
   "sprite_penguin.png",
   "winter-forest.webp",
   "snow-pile.webp",
+  "snow-covered-fallen-log.webp",
 ] as const;
 const fixtureRoots: string[] = [];
 
@@ -40,7 +41,7 @@ afterEach(async () => {
 });
 
 describe("required art readiness", () => {
-  test("accepts the three committed assets at their exact paths", async () => {
+  test("accepts the four committed assets at their exact paths", async () => {
     const root = await createReadyFixture();
 
     expect(() => checkRequiredAssets(root)).not.toThrow();
@@ -51,9 +52,13 @@ describe("required art readiness", () => {
     await rm(assetPath(root, "sprite_penguin.png"));
     await writeFile(assetPath(root, "winter-forest.webp"), new Uint8Array());
     await writeFile(assetPath(root, "snow-pile.webp"), "not a webp");
+    await writeFile(
+      assetPath(root, "snow-covered-fallen-log.webp"),
+      "not a webp",
+    );
 
     expect(() => checkRequiredAssets(root)).toThrowError(
-      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp/,
+      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp[\s\S]*snow-covered-fallen-log\.webp/,
     );
   });
 
@@ -61,6 +66,7 @@ describe("required art readiness", () => {
     "sprite_penguin.png",
     "winter-forest.webp",
     "snow-pile.webp",
+    "snow-covered-fallen-log.webp",
   ] as const)("rejects a truncated %s container", async (asset) => {
     const root = await createReadyFixture();
     const bytes = await readFile(assetPath(root, asset));

@@ -28,7 +28,6 @@ export class InputLatch {
 
     const command = this.pending;
     this.pending = null;
-    this.sealed = true;
     return command;
   }
 

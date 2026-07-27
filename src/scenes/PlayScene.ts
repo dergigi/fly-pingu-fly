@@ -28,6 +28,7 @@ import {
 const WORLD_WIDTH = 4700;
 const WORLD_HEIGHT = 1000;
 const PENGUIN_SCALE = 0.68;
+const LOG_SCALE = 0.72;
 
 export class PlayScene extends Phaser.Scene {
   private jumpState: JumpState = createInitialJumpState(jumpConfig);
@@ -52,6 +53,10 @@ export class PlayScene extends Phaser.Scene {
       "/assets/sprites/winter-forest.webp",
     );
     this.load.image("snow-pile", "/assets/sprites/snow-pile.webp");
+    this.load.image(
+      "fallen-log",
+      "/assets/sprites/snow-covered-fallen-log.webp",
+    );
   }
 
   create(): void {
@@ -83,13 +88,14 @@ export class PlayScene extends Phaser.Scene {
       this.simulationTimeMs += FIXED_STEP * 1000;
       const command = this.inputLatch.consumeThrough(this.simulationTimeMs);
       const previousPhase = this.jumpState.phase;
-      this.jumpState = stepJump(
+      const nextState = stepJump(
         this.jumpState,
         command,
         FIXED_STEP,
         jumpConfig,
       );
-      if (previousPhase === "ramp" && this.jumpState.phase !== "ramp") {
+      this.jumpState = nextState;
+      if (previousPhase === "ramp" && nextState.phase === "flight") {
         this.inputLatch.seal();
         this.takeoffPosePending = true;
       }
@@ -143,7 +149,7 @@ export class PlayScene extends Phaser.Scene {
     const scenery = this.add.graphics();
     scenery.fillStyle(0xffffff);
     scenery.beginPath();
-    scenery.moveTo(0, jumpConfig.startY - 45);
+    scenery.moveTo(0, jumpConfig.readyY + 18);
     scenery.lineTo(jumpConfig.startX, jumpConfig.startY);
     for (const point of sampleRampCurve(jumpConfig, 8)) {
       scenery.lineTo(point.x, point.y);
@@ -191,6 +197,11 @@ export class PlayScene extends Phaser.Scene {
     scenery.lineStyle(3, 0x55b9dd, 1);
     scenery.lineBetween(lip.x + 4, lip.y + 8, lip.x + 4, lip.y + 34);
 
+    this.add
+      .image(jumpConfig.readyX + 8, jumpConfig.readyY + 34, "fallen-log")
+      .setScale(LOG_SCALE)
+      .setDepth(4);
+
     const pileSurface = sampleLanding(2200, jumpConfig);
     this.add
       .image(2200, pileSurface.y - 23, "snow-pile")
@@ -218,7 +229,7 @@ export class PlayScene extends Phaser.Scene {
         this.jumpState.x,
         this.jumpState.y,
         "penguin-sheet",
-        "ramp",
+        "ready",
       )
       .setScale(PENGUIN_SCALE)
       .setFlipX(true)
@@ -259,11 +270,13 @@ export class PlayScene extends Phaser.Scene {
     this.takeoffPosePending = false;
 
     const rotation =
-      state.phase === "flight"
-        ? Phaser.Math.Clamp(Math.atan2(state.vy, state.vx), -0.65, 0.65)
-        : state.phase === "ramp"
-          ? Math.atan(sampleRamp(state.x, jumpConfig).slope)
-          : Math.atan(sampleLanding(state.x, jumpConfig).slope);
+      state.phase === "ready"
+        ? 0
+        : state.phase === "drop" || state.phase === "flight"
+          ? Phaser.Math.Clamp(Math.atan2(state.vy, state.vx), -0.65, 0.65)
+          : state.phase === "ramp"
+            ? Math.atan(sampleRamp(state.x, jumpConfig).slope)
+            : Math.atan(sampleLanding(state.x, jumpConfig).slope);
     this.penguin.setRotation(rotation);
   }
 }

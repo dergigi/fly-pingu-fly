@@ -18,6 +18,10 @@ type NumericField = {
 }[keyof JumpConfig];
 
 const fieldInvariants = {
+  readyX: "finite",
+  readyY: "finite",
+  startHopVx: "finite",
+  startHopVy: "finite",
   startX: "finite",
   startY: "finite",
   initialSpeed: "positive",
