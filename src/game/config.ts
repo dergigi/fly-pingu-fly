@@ -26,6 +26,9 @@ export type TerrainConfig = Readonly<{
   landingEndX: number;
   landingEndY: number;
   landingEndSlope: number;
+  landingRunoutEndX: number;
+  landingRunoutEndY: number;
+  landingRunoutEndSlope: number;
 }>;
 
 export type JumpConfig = Readonly<
@@ -79,10 +82,13 @@ export const jumpConfig: JumpConfig = Object.freeze({
   landingCrestX: 1500,
   landingCrestY: 320,
   landingCrestSlope: 0.02,
-  landingEndX: 3100,
-  landingEndY: 980,
-  landingEndSlope: 0.03,
-  slideDeceleration: 95,
+  landingEndX: 2400,
+  landingEndY: 1040,
+  landingEndSlope: 0.22,
+  landingRunoutEndX: 3100,
+  landingRunoutEndY: 680,
+  landingRunoutEndSlope: -0.4,
+  slideDeceleration: 150,
   stopSpeed: 1,
 });
 
@@ -144,6 +150,9 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
     "landingEndX",
     "landingEndY",
     "landingEndSlope",
+    "landingRunoutEndX",
+    "landingRunoutEndY",
+    "landingRunoutEndSlope",
   ] as const) {
     assertFinite(field, config[field]);
   }
@@ -165,6 +174,9 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
   }
   if (config.landingEndX <= config.landingStartX) {
     throw new RangeError("landingEndX must be beyond landingStartX");
+  }
+  if (config.landingRunoutEndX <= config.landingEndX) {
+    throw new RangeError("landingRunoutEndX must be beyond landingEndX");
   }
 }
 

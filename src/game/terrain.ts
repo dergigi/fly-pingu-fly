@@ -141,11 +141,23 @@ export function sampleLanding(
     );
   }
 
+  if (x < config.landingRunoutEndX) {
+    return sampleHermite(
+      x,
+      config.landingEndX,
+      config.landingEndY,
+      config.landingEndSlope,
+      config.landingRunoutEndX,
+      config.landingRunoutEndY,
+      config.landingRunoutEndSlope,
+    );
+  }
+
   return {
     y:
-      config.landingEndY +
-      (x - config.landingEndX) * config.landingEndSlope,
-    slope: config.landingEndSlope,
+      config.landingRunoutEndY +
+      (x - config.landingRunoutEndX) * config.landingRunoutEndSlope,
+    slope: config.landingRunoutEndSlope,
   };
 }
 

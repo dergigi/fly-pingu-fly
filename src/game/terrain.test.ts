@@ -70,7 +70,12 @@ describe("terrain sampling", () => {
       jumpConfig,
     );
     const end = sampleLanding(jumpConfig.landingEndX, jumpConfig);
-    const runout = sampleLanding(jumpConfig.landingEndX + 100, jumpConfig);
+    const climbOut = sampleLanding(
+      (jumpConfig.landingEndX + jumpConfig.landingRunoutEndX) / 2,
+      jumpConfig,
+    );
+    const runout = sampleLanding(jumpConfig.landingRunoutEndX, jumpConfig);
+    const beyond = sampleLanding(jumpConfig.landingRunoutEndX + 100, jumpConfig);
 
     expect(start).toEqual({
       y: jumpConfig.landingY,
@@ -88,8 +93,15 @@ describe("terrain sampling", () => {
       y: jumpConfig.landingEndY,
       slope: jumpConfig.landingEndSlope,
     });
-    expect(runout.y).toBeCloseTo(
-      jumpConfig.landingEndY + 100 * jumpConfig.landingEndSlope,
+    expect(climbOut.y).toBeLessThan(end.y);
+    expect(climbOut.y).toBeGreaterThan(runout.y);
+    expect(runout).toEqual({
+      y: jumpConfig.landingRunoutEndY,
+      slope: jumpConfig.landingRunoutEndSlope,
+    });
+    expect(beyond.y).toBeCloseTo(
+      jumpConfig.landingRunoutEndY +
+        100 * jumpConfig.landingRunoutEndSlope,
       12,
     );
   });

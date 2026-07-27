@@ -50,6 +50,9 @@ const fieldInvariants = {
   landingEndX: "finite",
   landingEndY: "finite",
   landingEndSlope: "finite",
+  landingRunoutEndX: "finite",
+  landingRunoutEndY: "finite",
+  landingRunoutEndSlope: "finite",
   slideDeceleration: "positive",
   stopSpeed: "positive",
 } satisfies Record<NumericField, Invariant>;

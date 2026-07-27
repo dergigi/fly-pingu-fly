@@ -245,10 +245,15 @@ function stepSlide(
   dt: number,
   config: JumpConfig,
 ): JumpState {
-  const speed = Math.max(0, state.speed - config.slideDeceleration * dt);
-  const averageSpeed = (state.speed + speed) / 2;
   const surface = sampleLanding(state.x, config);
   const tangentLength = Math.hypot(1, surface.slope);
+  const slopeAcceleration =
+    (config.gravity * surface.slope) / tangentLength;
+  const speed = Math.max(
+    0,
+    state.speed + (slopeAcceleration - config.slideDeceleration) * dt,
+  );
+  const averageSpeed = (state.speed + speed) / 2;
   const x = state.x + (averageSpeed / tangentLength) * dt;
   const nextSurface = sampleLanding(x, config);
   const resting = speed <= config.stopSpeed;

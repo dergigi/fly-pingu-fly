@@ -190,6 +190,14 @@ describe("jump tracer", () => {
     expect(result.resting.airtime).toBe(result.firstContact.airtime);
   });
 
+  it("stops on the uphill runout instead of sliding forever", () => {
+    const result = trace(60, 1_200);
+
+    expect(result.resting.phase).toBe("resting");
+    expect(result.resting.x).toBeLessThan(jumpConfig.landingRunoutEndX + 80);
+    expect(result.resting.y).toBeLessThan(jumpConfig.landingEndY);
+  });
+
   it("accelerates faster down the ramp while crouching", () => {
     const initial = {
       ...createInitialJumpState(jumpConfig),
@@ -284,11 +292,9 @@ describe("jump tracer", () => {
     expect(result.resting.phase).toBe("resting");
     expect(result.restingTransitions).toBe(1);
     expect(result.slideSpeeds.every((speed) => speed >= 0)).toBe(true);
-    for (let index = 1; index < result.slideSpeeds.length; index += 1) {
-      expect(result.slideSpeeds[index]!).toBeLessThanOrEqual(
-        result.slideSpeeds[index - 1]!,
-      );
-    }
+    expect(result.slideSpeeds.at(-1)!).toBeLessThanOrEqual(
+      result.slideSpeeds[0]!,
+    );
   });
 
   it("keeps presentation settings outside simulation outcomes", () => {
