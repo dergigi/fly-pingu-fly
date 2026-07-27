@@ -9,6 +9,7 @@ import {
   type PenguinPose,
 } from "./penguinFrames";
 import { createInitialJumpState, stepJump, type JumpState } from "./jump";
+import { sampleRamp } from "./terrain";
 
 const poses = [
   "ready",
@@ -57,9 +58,10 @@ describe("penguin frame manifest", () => {
     const ramp: JumpState = {
       ...drop,
       phase: "ramp",
-      x: jumpConfig.startX,
-      y: jumpConfig.startY,
+      x: jumpConfig.takeoffStartX,
+      y: sampleRamp(jumpConfig.takeoffStartX, jumpConfig).y,
       speed: jumpConfig.initialSpeed,
+      distance: 0,
     };
     const accepted = stepJump(
       ramp,

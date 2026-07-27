@@ -18,6 +18,7 @@ import {
   poseForJumpPhase,
   type PenguinPose,
 } from "../game/penguinFrames";
+import { canConsumePress } from "../game/takeoffWindow";
 import {
   sampleLanding,
   sampleLandingCurve,
@@ -101,7 +102,12 @@ export class PlayScene extends Phaser.Scene {
       steps < MAX_CATCH_UP_STEPS
     ) {
       this.simulationTimeMs += FIXED_STEP * 1000;
-      const command = this.inputLatch.consumeThrough(this.simulationTimeMs);
+      const command = canConsumePress(
+        this.jumpState,
+        jumpConfig.takeoffStartX,
+      )
+        ? this.inputLatch.consumeThrough(this.simulationTimeMs)
+        : null;
       const previousPhase = this.jumpState.phase;
       const nextState = stepJump(
         this.jumpState,

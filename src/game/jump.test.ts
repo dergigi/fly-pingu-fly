@@ -10,6 +10,8 @@ import {
 } from "./jump";
 import { InputLatch } from "./inputLatch";
 import { launchFromQuality, takeoffQuality } from "./takeoff";
+import { canConsumePress } from "./takeoffWindow";
+import { sampleRamp } from "./terrain";
 
 type PresentationVariant = {
   viewport: { width: number; height: number };
@@ -65,7 +67,9 @@ function trace(
         takeoffQueued = true;
       }
 
-      const dueCommand = latch.consumeThrough(simulationTimeMs);
+      const dueCommand = canConsumePress(state, jumpConfig.takeoffStartX)
+        ? latch.consumeThrough(simulationTimeMs)
+        : null;
       const previousPhase = state.phase;
       const nextState: JumpState = stepJump(
         state,
@@ -186,13 +190,34 @@ describe("jump tracer", () => {
     expect(result.resting.airtime).toBe(result.firstContact.airtime);
   });
 
-  it("accepts an early press immediately at minimum quality", () => {
+  it("ignores takeoff presses before the takeoff zone", () => {
     const initial = {
       ...createInitialJumpState(jumpConfig),
       phase: "ramp",
       x: jumpConfig.startX,
       y: jumpConfig.startY,
       speed: jumpConfig.initialSpeed,
+      distance: 0,
+    } as RampState;
+    const stillSliding = stepJump(
+      initial,
+      { pressedAtMs: 0 },
+      FIXED_STEP,
+      jumpConfig,
+    );
+
+    expect(stillSliding.phase).toBe("ramp");
+    expect(stillSliding.x).toBeGreaterThan(initial.x);
+  });
+
+  it("accepts a takeoff press once inside the takeoff zone", () => {
+    const initial = {
+      ...createInitialJumpState(jumpConfig),
+      phase: "ramp",
+      x: jumpConfig.takeoffStartX,
+      y: sampleRamp(jumpConfig.takeoffStartX, jumpConfig).y,
+      speed: jumpConfig.initialSpeed,
+      distance: 0,
     } as RampState;
     const launched = stepJump(
       initial,
@@ -202,11 +227,12 @@ describe("jump tracer", () => {
     ) as FlightState;
 
     expect(launched.phase).toBe("flight");
-    expect(takeoffQuality(initial.x, jumpConfig)).toBe(
-      jumpConfig.minimumQuality,
-    );
     expect(launched).toEqual(
-      launchFromQuality(initial, jumpConfig.minimumQuality, jumpConfig),
+      launchFromQuality(
+        initial,
+        takeoffQuality(initial.x, jumpConfig),
+        jumpConfig,
+      ),
     );
   });
 

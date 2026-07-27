@@ -147,7 +147,11 @@ function stepRamp(
   dt: number,
   config: JumpConfig,
 ): JumpState {
-  if (command !== null && Number.isFinite(command.pressedAtMs)) {
+  if (
+    command !== null &&
+    Number.isFinite(command.pressedAtMs) &&
+    state.x >= config.takeoffStartX
+  ) {
     return launchFromQuality(state, takeoffQuality(state.x, config), config);
   }
 
@@ -164,6 +168,14 @@ function stepRamp(
     vy: (speed * ramp.slope) / tangentLength,
     elapsed: state.elapsed + dt,
   };
+
+  if (
+    command !== null &&
+    Number.isFinite(command.pressedAtMs) &&
+    next.x >= config.takeoffStartX
+  ) {
+    return launchFromQuality(next, takeoffQuality(next.x, config), config);
+  }
 
   if (x >= config.lateBoundaryX) {
     return launchFromQuality(next, config.minimumQuality, config);
