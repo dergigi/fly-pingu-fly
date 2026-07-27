@@ -41,7 +41,7 @@ const LOG_SCALE = 0.36;
 const LOG_READY_OFFSET_Y = 12;
 const SNOWFLAKE_COUNT = 26;
 const SNOW_SCROLL = 0.38;
-const CLOUD_COUNT = 8;
+const CLOUD_COUNT = 4;
 const CLOUD_SCROLL_NEAR = 0.18;
 const CLOUD_SCROLL_FAR = 0.1;
 
@@ -539,25 +539,23 @@ export class PlayScene extends Phaser.Scene {
     const skyTop = jumpConfig.readyY - 70;
     const skyBottom = jumpConfig.readyY - 8;
     const span = Math.max(1200, jumpConfig.landingCrestX + 800);
+    const scales = [0.22, 0.55, 0.9, 0.35];
 
     for (let index = 0; index < CLOUD_COUNT; index += 1) {
       const solid = index % 2 === 0;
-      const far = index % 3 === 0;
+      const far = index === 0 || index === 2;
       const baseY = skyTop + Math.random() * (skyBottom - skyTop);
+      const scale = scales[index]! + (Math.random() * 0.12 - 0.06);
       const cloud = this.add
         .image(
-          (index + 0.35) * (span / CLOUD_COUNT) + (Math.random() * 120 - 60),
+          (index + 0.4) * (span / CLOUD_COUNT) + (Math.random() * 180 - 90),
           baseY,
           solid ? "cloud-solid" : "cloud-thin",
         )
         .setScrollFactor(far ? CLOUD_SCROLL_FAR : CLOUD_SCROLL_NEAR)
         .setDepth(far ? -7 : -6)
-        .setAlpha(far ? 0.4 + Math.random() * 0.2 : 0.5 + Math.random() * 0.25)
-        .setScale(
-          far
-            ? 0.38 + Math.random() * 0.35
-            : 0.45 + Math.random() * 0.45,
-        );
+        .setAlpha(far ? 0.38 + Math.random() * 0.18 : 0.48 + Math.random() * 0.22)
+        .setScale(Math.max(0.18, scale));
       const drift = (2 + Math.random() * 3.5) * (Math.random() < 0.5 ? -1 : 1);
       cloud.setData("vx", drift);
       cloud.setData("bob", 0.35 + Math.random() * 0.55);
