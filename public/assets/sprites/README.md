@@ -19,6 +19,7 @@ is not the selected character and must not be used as a substitute.
   treeline behind the ramp.
 - `snow-covered-waterfall-mini.webp`, `snow-covered-hot-spring.webp`, and
   `snow-covered-geyser.webp` sit in the cliff gap between takeoff and landing.
+- `snow-ice-crystal.png` and `snow-fall-flakes.webp` drive the light snowfall.
 - `snow-covered-fallen-log.webp` is the start platform at the top of the ramp.
 - `snow-pile.webp`, `snow-village.webp`, `igloo-snow-block-dome.webp`,
   `snowman-carrot-nose-coal.webp`, and `lantern-post-snow-capped.webp`

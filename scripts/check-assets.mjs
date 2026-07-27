@@ -14,6 +14,8 @@ const REQUIRED_ASSETS = [
   { name: "snow-covered-waterfall-mini.webp", format: "webp" },
   { name: "snow-covered-hot-spring.webp", format: "webp" },
   { name: "snow-covered-geyser.webp", format: "webp" },
+  { name: "snow-ice-crystal.png", format: "png" },
+  { name: "snow-fall-flakes.webp", format: "webp" },
   { name: "snow-pile.webp", format: "webp" },
   { name: "snow-covered-fallen-log.webp", format: "webp" },
   { name: "snow-village.webp", format: "webp" },

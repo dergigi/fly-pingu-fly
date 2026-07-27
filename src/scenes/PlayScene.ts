@@ -39,6 +39,7 @@ const PENGUIN_CROUCH_SCALE_Y = 0.72;
 const LOG_SCALE = 0.36;
 /** Image-center offset so the snow seat sits under the ready-pose feet. */
 const LOG_READY_OFFSET_Y = 12;
+const SNOWFLAKE_COUNT = 26;
 
 function browserStorage(): Storage | null {
   try {
@@ -63,6 +64,7 @@ export class PlayScene extends Phaser.Scene {
   private crouchKey: Phaser.Input.Keyboard.Key | null = null;
   private resetKey: Phaser.Input.Keyboard.Key | null = null;
   private takeoffPosePending = false;
+  private readonly snowflakes: Phaser.GameObjects.Image[] = [];
 
   constructor() {
     super("play");
@@ -121,6 +123,14 @@ export class PlayScene extends Phaser.Scene {
       "lantern-post",
       "/assets/sprites/lantern-post-snow-capped.webp",
     );
+    this.load.image(
+      "snow-crystal",
+      "/assets/sprites/snow-ice-crystal.png",
+    );
+    this.load.image(
+      "snow-flakes",
+      "/assets/sprites/snow-fall-flakes.webp",
+    );
   }
 
   create(): void {
@@ -145,6 +155,7 @@ export class PlayScene extends Phaser.Scene {
     this.cameras.main.centerOn(this.penguin.x + 180, this.penguin.y + 80);
     this.scale.on("resize", this.layoutHud, this);
     this.layoutHud();
+    this.createSnowfall();
     this.renderSnapshot();
   }
 
@@ -162,6 +173,8 @@ export class PlayScene extends Phaser.Scene {
     if (this.resetKey !== null && Phaser.Input.Keyboard.JustDown(this.resetKey)) {
       this.resetRun();
     }
+
+    this.updateSnowfall(deltaMs);
 
     this.accumulator += Math.min(deltaMs / 1000, MAX_FRAME_DELTA);
     let steps = 0;
@@ -459,6 +472,54 @@ export class PlayScene extends Phaser.Scene {
     }
     const result = recordDistance(storage, state.distance);
     this.leaderboard = [...result.entries];
+  }
+
+  private createSnowfall(): void {
+    const width = Math.max(1, this.cameras.main.width);
+    const height = Math.max(1, this.cameras.main.height);
+
+    for (let index = 0; index < SNOWFLAKE_COUNT; index += 1) {
+      const useCrystal = index % 3 !== 0;
+      const flake = this.add
+        .image(
+          Math.random() * width,
+          Math.random() * height,
+          useCrystal ? "snow-crystal" : "snow-flakes",
+        )
+        .setScrollFactor(0)
+        .setDepth(50)
+        .setAlpha(0.28 + Math.random() * 0.32)
+        .setScale(
+          useCrystal
+            ? 0.1 + Math.random() * 0.12
+            : 0.028 + Math.random() * 0.03,
+        );
+      flake.setData("vx", -12 + Math.random() * 24);
+      flake.setData("vy", 16 + Math.random() * 26);
+      flake.setData("spin", (-0.5 + Math.random()) * 0.9);
+      this.snowflakes.push(flake);
+    }
+  }
+
+  private updateSnowfall(deltaMs: number): void {
+    const dt = Math.min(deltaMs, 50) / 1000;
+    const width = Math.max(1, this.cameras.main.width);
+    const height = Math.max(1, this.cameras.main.height);
+
+    for (const flake of this.snowflakes) {
+      flake.x += (flake.getData("vx") as number) * dt;
+      flake.y += (flake.getData("vy") as number) * dt;
+      flake.rotation += (flake.getData("spin") as number) * dt;
+
+      if (flake.y > height + 12) {
+        flake.y = -12;
+        flake.x = Math.random() * width;
+      } else if (flake.x < -12) {
+        flake.x = width + 12;
+      } else if (flake.x > width + 12) {
+        flake.x = -12;
+      }
+    }
   }
 
   private createDistanceHud(): Phaser.GameObjects.Text {
