@@ -57,16 +57,7 @@ export const jumpConfig: JumpConfig = Object.freeze({
   stopSpeed: 1,
 });
 
-const finiteFields = [
-  "startX",
-  "startY",
-  "rampSlope",
-  "lipX",
-  "lateBoundaryX",
-  "landingStartX",
-  "landingY",
-  "landingSlope",
-] as const satisfies readonly (keyof JumpConfig)[];
+const finiteFields = ["lateBoundaryX"] as const satisfies readonly (keyof JumpConfig)[];
 
 const positiveFields = [
   "initialSpeed",
@@ -100,8 +91,22 @@ export function assertValidTakeoffConfig(config: TakeoffConfig): void {
   }
 }
 
+export function assertValidTerrainConfig(config: TerrainConfig): void {
+  for (const field of [
+    "startX",
+    "startY",
+    "rampSlope",
+    "landingStartX",
+    "landingY",
+    "landingSlope",
+  ] as const) {
+    assertFinite(field, config[field]);
+  }
+}
+
 export function assertValidJumpConfig(config: JumpConfig): void {
   assertValidTakeoffConfig(config);
+  assertValidTerrainConfig(config);
   for (const field of finiteFields) {
     assertFinite(field, config[field]);
   }

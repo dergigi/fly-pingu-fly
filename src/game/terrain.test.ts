@@ -47,4 +47,31 @@ describe("terrain sampling", () => {
 
     expect(stepJump(state, null, 1 / 120, jumpConfig).phase).toBe("flight");
   });
+
+  it("clamps descending motion to the first terrain contact", () => {
+    const dt = 1 / 120;
+    const surface = sampleLanding(jumpConfig.landingStartX, jumpConfig);
+    const state: FlightState = {
+      phase: "flight",
+      x: jumpConfig.landingStartX,
+      y: surface.y - 1,
+      vx: 0,
+      vy: 240,
+      speed: 0,
+      elapsed: 1,
+      airtime: 0.5,
+    };
+    const nextY =
+      state.y + state.vy * dt + 0.5 * jumpConfig.gravity * dt * dt;
+    const fraction = crossingFraction(
+      state.y - surface.y,
+      nextY - surface.y,
+    );
+    const landed = stepJump(state, null, dt, jumpConfig);
+
+    expect(landed.phase).toBe("slide");
+    expect(landed.y).toBe(surface.y);
+    expect(landed.elapsed).toBeCloseTo(state.elapsed + dt * fraction, 12);
+    expect(landed.airtime).toBeCloseTo(state.airtime + dt * fraction, 12);
+  });
 });

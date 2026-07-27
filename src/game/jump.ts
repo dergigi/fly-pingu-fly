@@ -1,5 +1,6 @@
 import { assertValidJumpConfig, type JumpConfig } from "./config";
 import { launchFromQuality, takeoffQuality } from "./takeoff";
+import { crossingFraction, sampleLanding, sampleRamp } from "./terrain";
 
 export type JumpPhase = "ramp" | "flight" | "slide" | "resting";
 export type PressCommand = { pressedAtMs: number } | null;
@@ -19,19 +20,6 @@ export type FlightState = MotionState & { phase: "flight" };
 export type SlideState = MotionState & { phase: "slide" };
 export type RestingState = MotionState & { phase: "resting" };
 export type JumpState = RampState | FlightState | SlideState | RestingState;
-
-const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
-
-function rampY(x: number, config: JumpConfig): number {
-  return config.startY + (x - config.startX) * config.rampSlope;
-}
-
-function landingY(x: number, config: JumpConfig): number {
-  return (
-    config.landingY +
-    Math.max(0, x - config.landingStartX) * config.landingSlope
-  );
-}
 
 export function createInitialJumpState(config: JumpConfig): JumpState {
   assertValidJumpConfig(config);
@@ -82,13 +70,15 @@ function stepRamp(
 
   const speed = state.speed + config.rampAcceleration * dt;
   const x = state.x + speed * dt;
+  const ramp = sampleRamp(x, config);
+  const tangentLength = Math.hypot(1, ramp.slope);
   const next: JumpState & { phase: "ramp" } = {
     ...state,
     x,
-    y: rampY(x, config),
+    y: ramp.y,
     speed,
-    vx: speed / Math.hypot(1, config.rampSlope),
-    vy: (speed * config.rampSlope) / Math.hypot(1, config.rampSlope),
+    vx: speed / tangentLength,
+    vy: (speed * ramp.slope) / tangentLength,
     elapsed: state.elapsed + dt,
   };
 
@@ -110,28 +100,28 @@ function stepFlight(
   const nextAirtime = state.airtime + dt;
 
   if (nextVy > 0) {
-    const previousGap = state.y - landingY(state.x, config);
-    const nextGap = nextY - landingY(nextX, config);
+    const previousSurface = sampleLanding(state.x, config);
+    const nextSurface = sampleLanding(nextX, config);
+    const previousGap = state.y - previousSurface.y;
+    const nextGap = nextY - nextSurface.y;
 
     if (previousGap <= 0 && nextGap >= 0) {
-      const denominator = nextGap - previousGap;
-      const fraction =
-        denominator === 0 ? 0 : clamp01(-previousGap / denominator);
+      const fraction = crossingFraction(previousGap, nextGap);
       const contactX = state.x + (nextX - state.x) * fraction;
-      const contactY = landingY(contactX, config);
+      const contact = sampleLanding(contactX, config);
       const contactVy = state.vy + config.gravity * dt * fraction;
-      const tangentLength = Math.hypot(1, config.landingSlope);
+      const tangentLength = Math.hypot(1, contact.slope);
       const slideSpeed = Math.max(
         0,
-        (state.vx + contactVy * config.landingSlope) / tangentLength,
+        (state.vx + contactVy * contact.slope) / tangentLength,
       );
 
       return {
         phase: "slide",
         x: contactX,
-        y: contactY,
+        y: contact.y,
         vx: slideSpeed / tangentLength,
-        vy: (slideSpeed * config.landingSlope) / tangentLength,
+        vy: (slideSpeed * contact.slope) / tangentLength,
         speed: slideSpeed,
         elapsed: state.elapsed + dt * fraction,
         airtime: state.airtime + dt * fraction,
@@ -156,16 +146,18 @@ function stepSlide(
 ): JumpState {
   const speed = Math.max(0, state.speed - config.slideDeceleration * dt);
   const averageSpeed = (state.speed + speed) / 2;
-  const tangentLength = Math.hypot(1, config.landingSlope);
+  const surface = sampleLanding(state.x, config);
+  const tangentLength = Math.hypot(1, surface.slope);
   const x = state.x + (averageSpeed / tangentLength) * dt;
+  const nextSurface = sampleLanding(x, config);
   const resting = speed <= config.stopSpeed;
 
   return {
     phase: resting ? "resting" : "slide",
     x,
-    y: landingY(x, config),
+    y: nextSurface.y,
     vx: resting ? 0 : speed / tangentLength,
-    vy: resting ? 0 : (speed * config.landingSlope) / tangentLength,
+    vy: resting ? 0 : (speed * nextSurface.slope) / tangentLength,
     speed: resting ? 0 : speed,
     elapsed: state.elapsed + dt,
     airtime: state.airtime,

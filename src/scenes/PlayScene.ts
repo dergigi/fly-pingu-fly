@@ -10,15 +10,15 @@ import {
   createInitialJumpState,
   stepJump,
   type JumpState,
-  type PressCommand,
 } from "../game/jump";
+import { InputLatch } from "../game/inputLatch";
 
 const WORLD_WIDTH = 2200;
 const WORLD_HEIGHT = 720;
 
 export class PlayScene extends Phaser.Scene {
   private jumpState: JumpState = createInitialJumpState(jumpConfig);
-  private pendingPress: PressCommand = null;
+  private readonly inputLatch = new InputLatch();
   private accumulator = 0;
   private simulationTimeMs = 0;
   private penguin!: Phaser.GameObjects.Container;
@@ -49,13 +49,17 @@ export class PlayScene extends Phaser.Scene {
       steps < MAX_CATCH_UP_STEPS
     ) {
       this.simulationTimeMs += FIXED_STEP * 1000;
-      const command = this.consumePressThrough(this.simulationTimeMs);
+      const command = this.inputLatch.consumeThrough(this.simulationTimeMs);
+      const previousPhase = this.jumpState.phase;
       this.jumpState = stepJump(
         this.jumpState,
         command,
         FIXED_STEP,
         jumpConfig,
       );
+      if (previousPhase === "ramp" && this.jumpState.phase !== "ramp") {
+        this.inputLatch.seal();
+      }
       this.accumulator -= FIXED_STEP;
       steps += 1;
     }
@@ -70,7 +74,8 @@ export class PlayScene extends Phaser.Scene {
   private bindInput(): void {
     this.input.on(
       "pointerdown",
-      (pointer: Phaser.Input.Pointer) => this.tryQueuePress(pointer.downTime),
+      (pointer: Phaser.Input.Pointer) =>
+        this.inputLatch.tryQueuePress(pointer.downTime),
     );
 
     const keyboard = this.input.keyboard;
@@ -86,35 +91,10 @@ export class PlayScene extends Phaser.Scene {
     for (const key of keys) {
       key.on("down", (event: KeyboardEvent) => {
         if (!event.repeat) {
-          this.tryQueuePress(event.timeStamp);
+          this.inputLatch.tryQueuePress(event.timeStamp);
         }
       });
     }
-  }
-
-  private tryQueuePress(pressedAtMs: number): void {
-    if (
-      this.jumpState.phase !== "ramp" ||
-      this.pendingPress !== null ||
-      !Number.isFinite(pressedAtMs)
-    ) {
-      return;
-    }
-
-    this.pendingPress = { pressedAtMs };
-  }
-
-  private consumePressThrough(simulationTimeMs: number): PressCommand {
-    if (
-      this.pendingPress === null ||
-      this.pendingPress.pressedAtMs > simulationTimeMs
-    ) {
-      return null;
-    }
-
-    const command = this.pendingPress;
-    this.pendingPress = null;
-    return command;
   }
 
   private drawWorld(): void {
