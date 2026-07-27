@@ -588,9 +588,9 @@ export class PlayScene extends Phaser.Scene {
   private placeJumpGapScenery(): void {
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
     const land = sampleLanding(jumpConfig.landingStartX, jumpConfig);
-    const rampCeiling = Math.min(lip.y, land.y) + 40;
+    const rampCeiling = Math.min(lip.y, land.y) + 12;
     const tipX = (jumpConfig.lipX + jumpConfig.landingStartX) / 2;
-    const tipY = rampCeiling + 110;
+    const tipY = rampCeiling + 90;
     const baseY = WORLD_HEIGHT + 20;
     const tipHalfW = 28;
     const baseHalfW = 560;
