@@ -1,0 +1,92 @@
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+
+import { afterEach, describe, expect, test } from "vitest";
+
+import { checkRequiredAssets } from "./check-assets.mjs";
+
+const ASSET_DIR = "public/assets/sprites";
+const REQUIRED_ASSETS = [
+  "sprite_penguin.png",
+  "winter-forest.webp",
+  "snow-pile.webp",
+] as const;
+const fixtureRoots: string[] = [];
+
+async function createReadyFixture(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "fly-pingu-assets-"));
+  fixtureRoots.push(root);
+
+  for (const asset of REQUIRED_ASSETS) {
+    const source = resolve(ASSET_DIR, asset);
+    const destination = join(root, ASSET_DIR, asset);
+    await mkdir(dirname(destination), { recursive: true });
+    await writeFile(destination, await readFile(source));
+  }
+
+  return root;
+}
+
+function assetPath(root: string, asset: (typeof REQUIRED_ASSETS)[number]): string {
+  return join(root, ASSET_DIR, asset);
+}
+
+afterEach(async () => {
+  await Promise.all(fixtureRoots.splice(0).map((root) => rm(root, {
+    force: true,
+    recursive: true,
+  })));
+});
+
+describe("required art readiness", () => {
+  test("accepts the three committed assets at their exact paths", async () => {
+    const root = await createReadyFixture();
+
+    expect(() => checkRequiredAssets(root)).not.toThrow();
+  });
+
+  test("reports every missing, empty, or signature-mismatched path", async () => {
+    const root = await createReadyFixture();
+    await rm(assetPath(root, "sprite_penguin.png"));
+    await writeFile(assetPath(root, "winter-forest.webp"), new Uint8Array());
+    await writeFile(assetPath(root, "snow-pile.webp"), "not a webp");
+
+    expect(() => checkRequiredAssets(root)).toThrowError(
+      /sprite_penguin\.png[\s\S]*winter-forest\.webp[\s\S]*snow-pile\.webp/,
+    );
+  });
+
+  test.each([
+    "sprite_penguin.png",
+    "winter-forest.webp",
+    "snow-pile.webp",
+  ] as const)("rejects a truncated %s container", async (asset) => {
+    const root = await createReadyFixture();
+    const bytes = await readFile(assetPath(root, asset));
+    await writeFile(assetPath(root, asset), bytes.subarray(0, 24));
+
+    expect(() => checkRequiredAssets(root)).toThrowError(new RegExp(asset));
+  });
+
+  test("requires the penguin sheet to decode as exactly 640x240", async () => {
+    const root = await createReadyFixture();
+    const path = assetPath(root, "sprite_penguin.png");
+    const bytes = await readFile(path);
+    bytes.writeUInt32BE(639, 16);
+    await writeFile(path, bytes);
+
+    expect(() => checkRequiredAssets(root)).toThrowError(
+      /sprite_penguin\.png[\s\S]*(640x240|corrupt)/,
+    );
+  });
+
+  test("wires prebuild ahead of the Vite production build", async () => {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+
+    expect(packageJson.scripts?.prebuild).toBe("node scripts/check-assets.mjs");
+    expect(packageJson.scripts?.build).toBe("vite build");
+  });
+});
