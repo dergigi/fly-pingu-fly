@@ -87,17 +87,8 @@ export class PlayScene extends Phaser.Scene {
       "/assets/sprites/pine-tree-snow-heavy.webp",
     );
     this.load.image(
-      "birch-tree",
-      "/assets/sprites/birch-tree-white.webp",
-    );
-    this.load.image("dead-tree", "/assets/sprites/dead-tree.webp");
-    this.load.image(
-      "twisted-dead-tree",
-      "/assets/sprites/twisted-dead-tree.webp",
-    );
-    this.load.image(
-      "snow-stump",
-      "/assets/sprites/snow-covered-tree-stump.webp",
+      "snow-packed",
+      "/assets/sprites/snow-packed.webp",
     );
     this.load.image(
       "waterfall",
@@ -351,48 +342,54 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private placeBackgroundTrees(): void {
-    this.add
-      .image(220, 200, "winter-forest")
-      .setScale(0.82)
-      .setAlpha(0.9)
-      .setDepth(-4);
-    this.add
-      .image(520, 255, "winter-forest")
-      .setScale(0.7)
-      .setAlpha(0.82)
-      .setDepth(-4);
-    this.add
-      .image(820, 310, "winter-forest")
-      .setScale(0.64)
-      .setAlpha(0.78)
-      .setDepth(-4);
-
-    const trees = [
-      { key: "pine-tree", x: 40, scale: 0.55, sink: 70, alpha: 0.92, depth: -2 },
-      { key: "birch-tree", x: 110, scale: 0.42, sink: 58, alpha: 0.88, depth: -2 },
-      { key: "pine-tree", x: 175, scale: 0.62, sink: 78, alpha: 0.95, depth: -1 },
-      { key: "dead-tree", x: 250, scale: 0.4, sink: 55, alpha: 0.85, depth: -2 },
-      { key: "pine-tree", x: 320, scale: 0.48, sink: 64, alpha: 0.9, depth: -2 },
-      { key: "birch-tree", x: 390, scale: 0.5, sink: 66, alpha: 0.9, depth: -1 },
-      { key: "pine-tree", x: 455, scale: 0.58, sink: 74, alpha: 0.93, depth: -1 },
-      { key: "twisted-dead-tree", x: 520, scale: 0.38, sink: 52, alpha: 0.84, depth: -2 },
-      { key: "pine-tree", x: 580, scale: 0.45, sink: 62, alpha: 0.9, depth: -2 },
-      { key: "birch-tree", x: 640, scale: 0.36, sink: 50, alpha: 0.86, depth: -2 },
-      { key: "pine-tree", x: 700, scale: 0.52, sink: 70, alpha: 0.92, depth: -1 },
-      { key: "dead-tree", x: 755, scale: 0.34, sink: 48, alpha: 0.82, depth: -2 },
-      { key: "pine-tree", x: 810, scale: 0.4, sink: 56, alpha: 0.88, depth: -2 },
-      { key: "snow-stump", x: 860, scale: 0.28, sink: 22, alpha: 0.9, depth: -1 },
-      { key: "pine-tree", x: 900, scale: 0.46, sink: 64, alpha: 0.9, depth: -1 },
+    const forests = [
+      { x: 120, y: 170, scale: 0.92, alpha: 0.88, depth: -5 },
+      { x: 310, y: 210, scale: 0.84, alpha: 0.9, depth: -5 },
+      { x: 500, y: 240, scale: 0.78, alpha: 0.86, depth: -5 },
+      { x: 690, y: 275, scale: 0.72, alpha: 0.84, depth: -5 },
+      { x: 860, y: 305, scale: 0.68, alpha: 0.8, depth: -5 },
+      { x: 200, y: 255, scale: 0.7, alpha: 0.82, depth: -4 },
+      { x: 420, y: 290, scale: 0.66, alpha: 0.8, depth: -4 },
+      { x: 640, y: 320, scale: 0.62, alpha: 0.78, depth: -4 },
+      { x: 800, y: 345, scale: 0.58, alpha: 0.76, depth: -4 },
     ] as const;
 
-    for (const tree of trees) {
-      const x = Math.min(tree.x, jumpConfig.lipX);
+    for (const forest of forests) {
+      this.add
+        .image(forest.x, forest.y, "winter-forest")
+        .setScale(forest.scale)
+        .setAlpha(forest.alpha)
+        .setDepth(forest.depth);
+    }
+
+    const props = [
+      { key: "snow-packed", x: 60, scale: 0.34, sink: 28, alpha: 0.9, depth: -3 },
+      { key: "pine-tree", x: 95, scale: 0.5, sink: 68, alpha: 0.92, depth: -2 },
+      { key: "pine-tree", x: 155, scale: 0.58, sink: 76, alpha: 0.94, depth: -1 },
+      { key: "snow-packed", x: 210, scale: 0.3, sink: 24, alpha: 0.88, depth: -3 },
+      { key: "pine-tree", x: 260, scale: 0.46, sink: 64, alpha: 0.9, depth: -2 },
+      { key: "pine-tree", x: 330, scale: 0.62, sink: 80, alpha: 0.95, depth: -1 },
+      { key: "snow-packed", x: 390, scale: 0.36, sink: 30, alpha: 0.9, depth: -3 },
+      { key: "pine-tree", x: 440, scale: 0.52, sink: 70, alpha: 0.92, depth: -2 },
+      { key: "pine-tree", x: 510, scale: 0.44, sink: 60, alpha: 0.9, depth: -2 },
+      { key: "snow-packed", x: 560, scale: 0.28, sink: 22, alpha: 0.86, depth: -3 },
+      { key: "pine-tree", x: 610, scale: 0.56, sink: 74, alpha: 0.93, depth: -1 },
+      { key: "pine-tree", x: 680, scale: 0.48, sink: 66, alpha: 0.9, depth: -2 },
+      { key: "snow-packed", x: 730, scale: 0.32, sink: 26, alpha: 0.88, depth: -3 },
+      { key: "pine-tree", x: 780, scale: 0.54, sink: 72, alpha: 0.92, depth: -1 },
+      { key: "pine-tree", x: 845, scale: 0.42, sink: 58, alpha: 0.88, depth: -2 },
+      { key: "snow-packed", x: 890, scale: 0.3, sink: 24, alpha: 0.86, depth: -3 },
+      { key: "pine-tree", x: 920, scale: 0.5, sink: 68, alpha: 0.9, depth: -1 },
+    ] as const;
+
+    for (const prop of props) {
+      const x = Math.min(prop.x, jumpConfig.lipX);
       const surface = sampleRamp(x, jumpConfig);
       this.add
-        .image(tree.x, surface.y - tree.sink, tree.key)
-        .setScale(tree.scale)
-        .setAlpha(tree.alpha)
-        .setDepth(tree.depth);
+        .image(prop.x, surface.y - prop.sink, prop.key)
+        .setScale(prop.scale)
+        .setAlpha(prop.alpha)
+        .setDepth(prop.depth);
     }
   }
 
