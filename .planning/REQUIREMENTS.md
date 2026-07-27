@@ -7,23 +7,23 @@
 
 ### Jump
 
-- [ ] **JUMP-01**: The penguin automatically accelerates down the same ski ramp at the start of every attempt.
+- [x] **JUMP-01**: The penguin automatically accelerates down the same ski ramp at the start of every attempt.
 - [ ] **JUMP-02**: The penguin's takeoff position determines launch quality through a forgiving, continuous timing curve.
-- [ ] **JUMP-03**: A missed takeoff input produces a safe weak jump rather than a crash or blocked attempt.
-- [ ] **JUMP-04**: The penguin follows a deterministic flight path independent of display size and refresh rate.
-- [ ] **JUMP-05**: The penguin lands safely, slides to a stop, and completes the attempt without another player input.
+- [x] **JUMP-03**: A missed takeoff input produces a safe weak jump rather than a crash or blocked attempt.
+- [x] **JUMP-04**: The penguin follows a deterministic flight path independent of display size and refresh rate.
+- [x] **JUMP-05**: The penguin lands safely, slides to a stop, and completes the attempt without another player input.
 
 ### Input
 
-- [ ] **INPT-01**: The player can trigger the single takeoff action with a screen tap, mouse click, or keyboard press.
-- [ ] **INPT-02**: The game consumes at most one takeoff action per attempt and ignores repeats or additional touches.
-- [ ] **INPT-03**: The game immediately acknowledges an accepted takeoff input through the penguin's pose and motion.
+- [x] **INPT-01**: The player can trigger the single takeoff action with a screen tap, mouse click, or keyboard press.
+- [x] **INPT-02**: The game consumes at most one takeoff action per attempt and ignores repeats or additional touches.
+- [x] **INPT-03**: The game immediately acknowledges an accepted takeoff input through the penguin's pose and motion.
 - [ ] **INPT-04**: The first attempt visually demonstrates when and how to press without requiring the player to read.
 
 ### Presentation
 
-- [ ] **PRES-01**: The game displays a bright snowy side-scrolling scene with a visible ramp edge and takeoff zone.
-- [ ] **PRES-02**: The camera keeps the penguin, upcoming ramp edge, flight, and landing area readable during their relevant phases.
+- [x] **PRES-01**: The game displays a bright snowy side-scrolling scene with a visible ramp edge and takeoff zone.
+- [x] **PRES-02**: The camera keeps the penguin, upcoming ramp edge, flight, and landing area readable during their relevant phases.
 - [ ] **PRES-03**: The penguin uses the provided sprite art with stable animation alignment and a consistent ground-contact point.
 - [ ] **PRES-04**: The game communicates all instructions, outcomes, and records visually without relying on audio or color alone.
 
@@ -75,17 +75,17 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| JUMP-01 | Phase 1 | Pending |
+| JUMP-01 | Phase 1 | Complete |
 | JUMP-02 | Phase 1 | Pending |
-| JUMP-03 | Phase 1 | Pending |
-| JUMP-04 | Phase 1 | Pending |
-| JUMP-05 | Phase 1 | Pending |
-| INPT-01 | Phase 1 | Pending |
-| INPT-02 | Phase 1 | Pending |
-| INPT-03 | Phase 1 | Pending |
+| JUMP-03 | Phase 1 | Complete |
+| JUMP-04 | Phase 1 | Complete |
+| JUMP-05 | Phase 1 | Complete |
+| INPT-01 | Phase 1 | Complete |
+| INPT-02 | Phase 1 | Complete |
+| INPT-03 | Phase 1 | Complete |
 | INPT-04 | Phase 2 | Pending |
-| PRES-01 | Phase 1 | Pending |
-| PRES-02 | Phase 1 | Pending |
+| PRES-01 | Phase 1 | Complete |
+| PRES-02 | Phase 1 | Complete |
 | PRES-03 | Phase 1 | Pending |
 | PRES-04 | Phase 2 | Pending |
 | RSLT-01 | Phase 3 | Pending |
@@ -100,6 +100,7 @@
 | BRWS-04 | Phase 2 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 23 total
 - Mapped to phases: 23
 - Unmapped: 0
