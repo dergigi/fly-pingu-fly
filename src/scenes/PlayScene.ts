@@ -353,22 +353,34 @@ export class PlayScene extends Phaser.Scene {
   private placeBackgroundTrees(): void {
     const hillEndX = jumpConfig.landingEndX;
     const runoutEndX = jumpConfig.landingRunoutEndX + 200;
+    const canopyFloorY = jumpConfig.startY + 8;
 
     let forestX = 40;
     while (forestX < hillEndX) {
       const n = this.forestNoise(forestX, 1);
       const surfaceY = this.forestSurfaceY(forestX);
       const near = n > 0.45;
-      this.add
-        .image(
-          forestX + (n - 0.5) * 40,
-          surfaceY - (near ? 120 + n * 50 : 160 + n * 70),
-          "winter-forest",
-        )
-        .setScale(0.42 + n * 0.55)
-        .setAlpha(0.68 + n * 0.22)
-        .setDepth(near ? -4 : -5);
-      forestX += 110 + Math.floor(n * 160);
+      const scale = 0.48 + n * 0.5;
+      const forestY = surfaceY - (near ? 100 + n * 40 : 130 + n * 55);
+      // winter-forest is 256px; keep the canopy top at or below the start height.
+      if (forestY - 128 * scale >= canopyFloorY) {
+        this.add
+          .image(forestX + (n - 0.5) * 28, forestY, "winter-forest")
+          .setScale(scale)
+          .setAlpha(0.74 + n * 0.2)
+          .setDepth(near ? -4 : -5);
+      }
+      const n2 = this.forestNoise(forestX, 7);
+      const scale2 = 0.38 + n2 * 0.42;
+      const forestY2 = surfaceY - (85 + n2 * 45);
+      if (n2 > 0.22 && forestY2 - 128 * scale2 >= canopyFloorY) {
+        this.add
+          .image(forestX + 55 + (n2 - 0.5) * 30, forestY2, "winter-forest")
+          .setScale(scale2)
+          .setAlpha(0.7 + n2 * 0.18)
+          .setDepth(-4);
+      }
+      forestX += 55 + Math.floor(n * 70);
     }
 
     let pineX = hillEndX + 40;
@@ -386,10 +398,14 @@ export class PlayScene extends Phaser.Scene {
         const cn = this.forestNoise(pineX + i * 17, 4 + i);
         const scale = 0.22 + cn * 0.58;
         const sink = 36 + scale * 55;
+        const treeY = surfaceY - sink;
+        if (treeY < canopyFloorY) {
+          continue;
+        }
         this.add
           .image(
             pineX + i * (18 + cn * 22) + (cn - 0.5) * 16,
-            surfaceY - sink,
+            treeY,
             "pine-tree",
           )
           .setScale(scale)
@@ -409,11 +425,14 @@ export class PlayScene extends Phaser.Scene {
         continue;
       }
       const surfaceY = this.forestSurfaceY(bankX);
-      this.add
-        .image(bankX + (n - 0.5) * 28, surfaceY - (18 + n * 16), "snow-packed")
-        .setScale(0.18 + n * 0.28)
-        .setAlpha(0.78 + n * 0.16)
-        .setDepth(-3);
+      const bankY = surfaceY - (18 + n * 16);
+      if (bankY >= canopyFloorY) {
+        this.add
+          .image(bankX + (n - 0.5) * 28, bankY, "snow-packed")
+          .setScale(0.18 + n * 0.28)
+          .setAlpha(0.78 + n * 0.16)
+          .setDepth(-3);
+      }
       bankX += step;
     }
   }
