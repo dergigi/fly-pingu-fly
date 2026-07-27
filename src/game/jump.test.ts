@@ -228,6 +228,26 @@ describe("jump tracer", () => {
     );
   });
 
+  it("slides farther on the landing hill while crouching", () => {
+    const initial = {
+      ...createInitialJumpState(jumpConfig),
+      phase: "slide" as const,
+      x: jumpConfig.landingCrestX + 80,
+      y: jumpConfig.landingCrestY + 40,
+      vx: 120,
+      vy: 20,
+      speed: 200,
+      elapsed: 2,
+      airtime: 1.1,
+      distance: 12,
+    };
+    const upright = stepJump(initial, null, FIXED_STEP, jumpConfig, false);
+    const crouched = stepJump(initial, null, FIXED_STEP, jumpConfig, true);
+    expect(upright.phase).toBe("slide");
+    expect(crouched.phase).toBe("slide");
+    expect(crouched.speed).toBeGreaterThan(upright.speed);
+  });
+
   it("ends the climb when squeezing on ascent, and glides only after the peak", () => {
     const climbing = {
       ...createInitialJumpState(jumpConfig),

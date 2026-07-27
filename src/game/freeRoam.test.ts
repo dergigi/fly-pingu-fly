@@ -77,8 +77,12 @@ describe("free roam hop/slide", () => {
       ...createFreeRoamState(200, 400, 1),
       vx: 220,
     };
-    const upright = stepFreeRoam(moving, 0.5, config, flatGround, false);
-    const crouched = stepFreeRoam(moving, 0.5, config, flatGround, true);
+    let upright = moving;
+    let crouched = moving;
+    for (let i = 0; i < 30; i += 1) {
+      upright = stepFreeRoam(upright, 1 / 60, config, flatGround, false);
+      crouched = stepFreeRoam(crouched, 1 / 60, config, flatGround, true);
+    }
     expect(crouched.vx).toBeGreaterThan(upright.vx);
     expect(crouched.x).toBeGreaterThan(upright.x);
   });
