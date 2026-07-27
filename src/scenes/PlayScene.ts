@@ -40,6 +40,7 @@ const LOG_SCALE = 0.36;
 /** Image-center offset so the snow seat sits under the ready-pose feet. */
 const LOG_READY_OFFSET_Y = 12;
 const SNOWFLAKE_COUNT = 26;
+const CLOUD_COUNT = 10;
 
 function browserStorage(): Storage | null {
   try {
@@ -68,6 +69,7 @@ export class PlayScene extends Phaser.Scene {
   private pauseText!: Phaser.GameObjects.Text;
   private takeoffPosePending = false;
   private readonly snowflakes: Phaser.GameObjects.Image[] = [];
+  private readonly clouds: Phaser.GameObjects.Image[] = [];
 
   constructor() {
     super("play");
@@ -117,6 +119,8 @@ export class PlayScene extends Phaser.Scene {
       "snow-flakes",
       "/assets/sprites/snow-fall-flakes.webp",
     );
+    this.load.image("cloud-solid", "/assets/sprites/cloud-solid.webp");
+    this.load.image("cloud-thin", "/assets/sprites/cloud-thin.webp");
   }
 
   create(): void {
@@ -143,6 +147,7 @@ export class PlayScene extends Phaser.Scene {
     this.scale.on("resize", this.layoutHud, this);
     this.layoutHud();
     this.createSnowfall();
+    this.createClouds();
     this.renderSnapshot();
   }
 
@@ -170,6 +175,7 @@ export class PlayScene extends Phaser.Scene {
     }
 
     this.updateSnowfall(deltaMs);
+    this.updateClouds(deltaMs);
 
     this.accumulator += Math.min(deltaMs / 1000, MAX_FRAME_DELTA);
     let steps = 0;
@@ -517,6 +523,58 @@ export class PlayScene extends Phaser.Scene {
         flake.x = width + 12;
       } else if (flake.x > width + 12) {
         flake.x = -12;
+      }
+    }
+  }
+
+  private createClouds(): void {
+    const width = Math.max(1, this.cameras.main.width);
+    const height = Math.max(1, this.cameras.main.height);
+    const skyBand = Math.max(120, height * 0.34);
+
+    for (let index = 0; index < CLOUD_COUNT; index += 1) {
+      const solid = index % 2 === 0;
+      const cloud = this.add
+        .image(
+          Math.random() * width,
+          20 + Math.random() * skyBand,
+          solid ? "cloud-solid" : "cloud-thin",
+        )
+        .setScrollFactor(0)
+        .setDepth(40)
+        .setAlpha(0.4 + Math.random() * 0.3)
+        .setScale(0.28 + Math.random() * 0.62);
+      const drift = (10 + Math.random() * 18) * (Math.random() < 0.5 ? -1 : 1);
+      cloud.setData("vx", drift);
+      cloud.setData("bob", 0.8 + Math.random() * 1.4);
+      cloud.setData("phase", Math.random() * Math.PI * 2);
+      cloud.setData("baseY", cloud.y);
+      this.clouds.push(cloud);
+    }
+  }
+
+  private updateClouds(deltaMs: number): void {
+    const dt = Math.min(deltaMs, 50) / 1000;
+    const width = Math.max(1, this.cameras.main.width);
+    const height = Math.max(1, this.cameras.main.height);
+    const skyBand = Math.max(120, height * 0.34);
+
+    for (const cloud of this.clouds) {
+      const phase =
+        ((cloud.getData("phase") as number) + dt * 0.35) % (Math.PI * 2);
+      cloud.setData("phase", phase);
+      cloud.x += (cloud.getData("vx") as number) * dt;
+      cloud.y =
+        (cloud.getData("baseY") as number) +
+        Math.sin(phase) * (cloud.getData("bob") as number);
+
+      const half = (cloud.displayWidth || 40) * 0.5;
+      if (cloud.x < -half - 20) {
+        cloud.x = width + half + 20;
+        cloud.setData("baseY", 20 + Math.random() * skyBand);
+      } else if (cloud.x > width + half + 20) {
+        cloud.x = -half - 20;
+        cloud.setData("baseY", 20 + Math.random() * skyBand);
       }
     }
   }

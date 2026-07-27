@@ -19,6 +19,7 @@ is not the selected character and must not be used as a substitute.
 - `snow-covered-waterfall-mini.webp` sits large in the cliff gap between takeoff
   and landing.
 - `snow-ice-crystal.png` and `snow-fall-flakes.webp` drive the light snowfall.
+- `cloud-solid.webp` and `cloud-thin.webp` drift gently across the sky.
 - `snow-covered-fallen-log.webp` is the start platform at the top of the ramp.
 - `snow-pile.webp`, `snow-village.webp`, `igloo-snow-block-dome.webp`,
   `snowman-carrot-nose-coal.webp`, and `lantern-post-snow-capped.webp`
