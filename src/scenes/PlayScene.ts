@@ -63,6 +63,9 @@ export class PlayScene extends Phaser.Scene {
   private takeoffKeys: Phaser.Input.Keyboard.Key[] = [];
   private crouchKey: Phaser.Input.Keyboard.Key | null = null;
   private resetKey: Phaser.Input.Keyboard.Key | null = null;
+  private pauseKey: Phaser.Input.Keyboard.Key | null = null;
+  private paused = false;
+  private pauseText!: Phaser.GameObjects.Text;
   private takeoffPosePending = false;
   private readonly snowflakes: Phaser.GameObjects.Image[] = [];
 
@@ -142,6 +145,7 @@ export class PlayScene extends Phaser.Scene {
     this.distanceText = this.createDistanceHud();
     this.airtimeText = this.createAirtimeHud();
     this.leaderboardText = this.createLeaderboardHud();
+    this.pauseText = this.createPauseHud();
     this.bindInput();
 
     this.cameras.main.setBounds(
@@ -164,14 +168,22 @@ export class PlayScene extends Phaser.Scene {
       this.simulationTimeMs = time;
     }
 
-    if (
-      this.takeoffKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))
-    ) {
-      this.queuePress();
+    if (this.pauseKey !== null && Phaser.Input.Keyboard.JustDown(this.pauseKey)) {
+      this.setPaused(!this.paused);
     }
 
     if (this.resetKey !== null && Phaser.Input.Keyboard.JustDown(this.resetKey)) {
       this.resetRun();
+    }
+
+    if (this.paused) {
+      return;
+    }
+
+    if (
+      this.takeoffKeys.some((key) => Phaser.Input.Keyboard.JustDown(key))
+    ) {
+      this.queuePress();
     }
 
     this.updateSnowfall(deltaMs);
@@ -226,7 +238,9 @@ export class PlayScene extends Phaser.Scene {
 
     this.input.on("pointerdown", () => {
       this.game.canvas.focus();
-      this.queuePress();
+      if (!this.paused) {
+        this.queuePress();
+      }
     });
 
     const keyboard = this.input.keyboard;
@@ -240,6 +254,7 @@ export class PlayScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.UP,
       Phaser.Input.Keyboard.KeyCodes.DOWN,
       Phaser.Input.Keyboard.KeyCodes.R,
+      Phaser.Input.Keyboard.KeyCodes.P,
     ]);
 
     this.takeoffKeys = [
@@ -249,9 +264,19 @@ export class PlayScene extends Phaser.Scene {
     ];
     this.crouchKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
     this.resetKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    this.pauseKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+  }
+
+  private setPaused(paused: boolean): void {
+    this.paused = paused;
+    this.pauseText.setVisible(paused);
+    if (paused) {
+      this.accumulator = 0;
+    }
   }
 
   private resetRun(): void {
+    this.setPaused(false);
     this.jumpState = createInitialJumpState(jumpConfig);
     this.inputLatch.reset();
     this.accumulator = 0;
@@ -571,12 +596,31 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(100);
   }
 
+  private createPauseHud(): Phaser.GameObjects.Text {
+    return this.add
+      .text(0, 0, "Pause", {
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
+        fontSize: "64px",
+        fontStyle: "bold",
+        color: "#0b4f73",
+        align: "center",
+        stroke: "#f4fbff",
+        strokeThickness: 12,
+      })
+      .setOrigin(0.5, 0.5)
+      .setScrollFactor(0)
+      .setDepth(120)
+      .setVisible(false);
+  }
+
   private layoutHud(): void {
     const centerX = this.cameras.main.width * 0.5;
+    const centerY = this.cameras.main.height * 0.5;
     const right = this.cameras.main.width - 28;
     this.distanceText.setPosition(centerX, 18);
     this.airtimeText.setPosition(centerX, 78);
     this.leaderboardText.setPosition(right, 18);
+    this.pauseText.setPosition(centerX, centerY);
     this.cameras.main.setFollowOffset(
       -Math.min(220, this.cameras.main.width * 0.14),
       -30,
