@@ -27,6 +27,7 @@ import {
 
 const WORLD_WIDTH = 4700;
 const WORLD_HEIGHT = 1000;
+const CAMERA_TOP_PAD = 140;
 const PENGUIN_SCALE = 0.68;
 const LOG_SCALE = 0.72;
 
@@ -66,10 +67,15 @@ export class PlayScene extends Phaser.Scene {
     this.hudText = this.createHud();
     this.bindInput();
 
-    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    this.cameras.main.setFollowOffset(-180, 40);
+    this.cameras.main.setBounds(
+      0,
+      -CAMERA_TOP_PAD,
+      WORLD_WIDTH,
+      WORLD_HEIGHT + CAMERA_TOP_PAD,
+    );
+    this.cameras.main.setFollowOffset(-180, -30);
     this.cameras.main.startFollow(this.penguin, true, 0.14, 0.14);
-    this.cameras.main.centerOn(this.penguin.x + 180, this.penguin.y - 40);
+    this.cameras.main.centerOn(this.penguin.x + 180, this.penguin.y + 80);
     this.renderSnapshot();
   }
 

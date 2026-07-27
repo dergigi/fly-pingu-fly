@@ -25,11 +25,11 @@ export const PENGUIN_FRAMES: Readonly<Record<PenguinPose, PenguinFrame>> =
   Object.freeze({
     ready: {
       x: 91,
-      y: 92,
+      y: 88,
       width: 66,
-      height: 74,
+      height: 78,
       contactX: 33,
-      contactY: 68,
+      contactY: 72,
     },
     drop: {
       x: 396,
@@ -74,11 +74,11 @@ export const PENGUIN_FRAMES: Readonly<Record<PenguinPose, PenguinFrame>> =
     },
     resting: {
       x: 91,
-      y: 92,
+      y: 88,
       width: 66,
-      height: 74,
+      height: 78,
       contactX: 33,
-      contactY: 68,
+      contactY: 72,
     },
   });
 
