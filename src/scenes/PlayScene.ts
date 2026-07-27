@@ -359,24 +359,25 @@ export class PlayScene extends Phaser.Scene {
 
   private createLeaderboardHud(): Phaser.GameObjects.Text {
     return this.add
-      .text(24, 20, formatLeaderboard(this.leaderboard), {
+      .text(0, 20, formatLeaderboard(this.leaderboard), {
         fontFamily: "Trebuchet MS, Arial, sans-serif",
         fontSize: "22px",
         fontStyle: "bold",
         color: "#0b4f73",
-        align: "left",
+        align: "right",
         stroke: "#f4fbff",
         strokeThickness: 6,
         lineSpacing: 4,
       })
-      .setOrigin(0, 0)
+      .setOrigin(1, 0)
       .setScrollFactor(0)
       .setDepth(100);
   }
 
   private layoutHud(): void {
-    this.hudText.setPosition(this.cameras.main.width - 28, 22);
-    this.leaderboardText.setPosition(24, 20);
+    const right = this.cameras.main.width - 28;
+    this.hudText.setPosition(right, 22);
+    this.leaderboardText.setPosition(right, 110);
     this.cameras.main.setFollowOffset(
       -Math.min(220, this.cameras.main.width * 0.14),
       -30,
