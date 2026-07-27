@@ -5,7 +5,7 @@
 
 **Date:** 2026-07-27
 **Phase:** 01-playable-jump
-**Areas discussed:** Takeoff timing, asset organization
+**Areas discussed:** Takeoff timing, asset organization, first-level art
 
 ---
 
@@ -76,9 +76,22 @@
 
 ---
 
+## First-Level Art
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Snow level with selected penguin | Use the linked *Where's My Egg?* penguin and a few supplied snow assets | ✓ |
+| Use all supplied sprites | Mix every available sprite into the first level | |
+
+**User's choice:** Keep the first level simple and snowy, use the linked penguin, and use only some snow sprites for scenery.
+**Notes:** `snowball-penguin.webp` is not the chosen player character. Unrelated assets stay available but unused.
+
+---
+
 ## Claude's Discretion
 
 - Exact physics values, timing-window width, camera easing, and animation details.
+- Which small subset of snow scenery best supports the ramp without clutter.
 
 ## Deferred Ideas
 

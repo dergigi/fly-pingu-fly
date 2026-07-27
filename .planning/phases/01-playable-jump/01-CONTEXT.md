@@ -21,10 +21,14 @@ Phase 1 delivers one complete playable jump: the penguin automatically descends 
 
 ### Asset Organization
 - **D-05:** User-provided sprite files belong in `public/assets/sprites/`, where they can be loaded directly by the browser game.
+- **D-06:** The first level is a snow level.
+- **D-07:** Use the penguin from the linked *Where's My Egg?* sprite sheet as the player character. Do not substitute `snowball-penguin.webp`.
+- **D-08:** Keep the scene simple by using only a small curated subset of the supplied snow assets. Leave unrelated fantasy, animal, and vegetation sprites unused.
 
 ### Claude's Discretion
 - Exact timing-window width, curve coefficients, launch speed, launch angle, gravity, and slide friction should be tuned during implementation while preserving D-01 through D-04.
 - Flight feel, camera easing, sprite-state selection, and landing animation details may use the simplest approach that satisfies the roadmap success criteria.
+- Choose the smallest useful combination of snow scenery. Prefer `winter-forest.webp`, `pine-tree-snow-heavy.webp`, `snow-covered-rock-cluster.webp`, and `snow-pile.webp` before adding more.
 
 </decisions>
 
@@ -47,7 +51,11 @@ No external specifications or ADRs apply to this phase.
 ## Existing Code Insights
 
 ### Reusable Assets
-- `public/assets/sprites/`: Drop-in location for the user's penguin and environment sprite files.
+- `public/assets/sprites/winter-forest.webp`: Compact snowy forest backdrop.
+- `public/assets/sprites/pine-tree-snow-heavy.webp`: Foreground or midground snow-covered tree.
+- `public/assets/sprites/snow-covered-rock-cluster.webp`: Small terrain decoration.
+- `public/assets/sprites/snow-pile.webp`: Small terrain decoration.
+- `public/assets/sprites/`: Contains additional source art that should remain unused unless the basic snow scene needs it.
 
 ### Established Patterns
 - No application code exists yet. Phase 1 establishes the project structure and initial game patterns.
@@ -64,7 +72,8 @@ No external specifications or ADRs apply to this phase.
 - The takeoff should feel forgiving rather than precise or punitive.
 - Every takeoff outcome should remain visibly safe and complete, including very early input and no input.
 - The ideal press is physically tied to the ramp lip, not a separate timing meter.
-- The provided sprites come from https://www.spriters-resource.com/mobile/wheresmyegg/asset/213843/ and are used with the user's stated reuse permission.
+- The player penguin comes from https://www.spriters-resource.com/mobile/wheresmyegg/asset/213843/ and is used with the user's stated reuse permission.
+- The current asset folder contains a standalone `snowball-penguin.webp`, but it is not the selected player character.
 
 </specifics>
 
