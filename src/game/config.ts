@@ -20,6 +20,9 @@ export type TerrainConfig = Readonly<{
   landingStartX: number;
   landingY: number;
   landingSlope: number;
+  landingEndX: number;
+  landingEndY: number;
+  landingEndSlope: number;
 }>;
 
 export type JumpConfig = Readonly<
@@ -39,27 +42,30 @@ export type JumpConfig = Readonly<
 >;
 
 export const jumpConfig: JumpConfig = Object.freeze({
-  startX: 120,
-  startY: 150,
+  startX: 80,
+  startY: 65,
   initialSpeed: 70,
   rampAcceleration: 80,
-  rampStartSlope: 1,
-  takeoffStartX: 460,
-  lipX: 520,
-  lipY: 364,
-  lipSlope: -0.1,
-  lateBoundaryX: 520,
+  rampStartSlope: 1.35,
+  takeoffStartX: 820,
+  lipX: 980,
+  lipY: 455,
+  lipSlope: -0.06,
+  lateBoundaryX: 980,
   minimumQuality: 0.35,
-  earlySpan: 180,
-  lateSpan: 60,
+  earlySpan: 280,
+  lateSpan: 80,
   minimumLaunchX: 420,
   maximumLaunchX: 600,
   minimumLaunchY: 300,
   maximumLaunchY: 460,
   gravity: 700,
-  landingStartX: 560,
-  landingY: 430,
-  landingSlope: 0.18,
+  landingStartX: 1080,
+  landingY: 525,
+  landingSlope: 0.72,
+  landingEndX: 2350,
+  landingEndY: 790,
+  landingEndSlope: 0.035,
   slideDeceleration: 95,
   stopSpeed: 1,
 });
@@ -109,6 +115,9 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
     "landingStartX",
     "landingY",
     "landingSlope",
+    "landingEndX",
+    "landingEndY",
+    "landingEndSlope",
   ] as const) {
     assertFinite(field, config[field]);
   }
@@ -118,6 +127,12 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
     config.takeoffStartX >= config.lipX
   ) {
     throw new RangeError("takeoffStartX must lie inside the ramp");
+  }
+  if (config.landingStartX <= config.lipX) {
+    throw new RangeError("landingStartX must be beyond the takeoff lip");
+  }
+  if (config.landingEndX <= config.landingStartX) {
+    throw new RangeError("landingEndX must be beyond landingStartX");
   }
 }
 

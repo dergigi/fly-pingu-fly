@@ -39,6 +39,9 @@ const fieldInvariants = {
   landingStartX: "finite",
   landingY: "finite",
   landingSlope: "finite",
+  landingEndX: "finite",
+  landingEndY: "finite",
+  landingEndSlope: "finite",
   slideDeceleration: "positive",
   stopSpeed: "positive",
 } satisfies Record<NumericField, Invariant>;
@@ -64,13 +67,13 @@ describe("takeoff quality", () => {
   });
 
   it("falls monotonically over broad early and short late spans", () => {
-    expect(config.earlySpan).toBe(180);
-    expect(config.lateSpan).toBe(60);
+    expect(config.earlySpan).toBe(280);
+    expect(config.lateSpan).toBe(80);
 
-    const early = Array.from({ length: 181 }, (_, offset) =>
+    const early = Array.from({ length: config.earlySpan + 1 }, (_, offset) =>
       takeoffQuality(config.lipX - offset, config),
     );
-    const late = Array.from({ length: 61 }, (_, offset) =>
+    const late = Array.from({ length: config.lateSpan + 1 }, (_, offset) =>
       takeoffQuality(config.lipX + offset, config),
     );
 

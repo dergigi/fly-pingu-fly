@@ -5,6 +5,7 @@ import { stepJump, type FlightState } from "./jump";
 import {
   crossingFraction,
   sampleLanding,
+  sampleLandingCurve,
   sampleRamp,
   sampleRampCurve,
 } from "./terrain";
@@ -57,15 +58,41 @@ describe("terrain sampling", () => {
     );
   });
 
-  it("samples landing surfaces in world units", () => {
-    const landing = sampleLanding(
-      jumpConfig.landingStartX + 100,
+  it("uses a rounded landing hill that eases into a shallow runout", () => {
+    const start = sampleLanding(jumpConfig.landingStartX, jumpConfig);
+    const middle = sampleLanding(
+      (jumpConfig.landingStartX + jumpConfig.landingEndX) / 2,
       jumpConfig,
     );
-    expect(landing).toEqual({
-      y: jumpConfig.landingY + 100 * jumpConfig.landingSlope,
+    const end = sampleLanding(jumpConfig.landingEndX, jumpConfig);
+    const runout = sampleLanding(jumpConfig.landingEndX + 100, jumpConfig);
+
+    expect(start).toEqual({
+      y: jumpConfig.landingY,
       slope: jumpConfig.landingSlope,
     });
+    expect(middle.y).toBeGreaterThan(start.y);
+    expect(middle.y).toBeLessThan(end.y);
+    expect(middle.slope).toBeLessThan(start.slope);
+    expect(middle.slope).toBeGreaterThan(end.slope);
+    expect(end).toEqual({
+      y: jumpConfig.landingEndY,
+      slope: jumpConfig.landingEndSlope,
+    });
+    expect(runout.y).toBeCloseTo(
+      jumpConfig.landingEndY + 100 * jumpConfig.landingEndSlope,
+      12,
+    );
+  });
+
+  it("keeps the rendered landing curve on the collision surface", () => {
+    const points = sampleLandingCurve(jumpConfig, 10, 3000);
+    for (const point of points) {
+      expect(point).toEqual({
+        x: point.x,
+        ...sampleLanding(point.x, jumpConfig),
+      });
+    }
   });
 
   it("interpolates the first above-to-below crossing", () => {

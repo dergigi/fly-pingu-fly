@@ -17,11 +17,16 @@ import {
   poseForJumpPhase,
   type PenguinPose,
 } from "../game/penguinFrames";
-import { sampleLanding, sampleRamp, sampleRampCurve } from "../game/terrain";
+import {
+  sampleLanding,
+  sampleLandingCurve,
+  sampleRamp,
+  sampleRampCurve,
+} from "../game/terrain";
 
-const WORLD_WIDTH = 2200;
-const WORLD_HEIGHT = 720;
-const PENGUIN_SCALE = 1.15;
+const WORLD_WIDTH = 4700;
+const WORLD_HEIGHT = 1000;
+const PENGUIN_SCALE = 0.68;
 
 export class PlayScene extends Phaser.Scene {
   private jumpState: JumpState = createInitialJumpState(jumpConfig);
@@ -150,18 +155,25 @@ export class PlayScene extends Phaser.Scene {
     }
     scenery.strokePath();
 
+    const landingPoints = sampleLandingCurve(jumpConfig, 10, WORLD_WIDTH);
     scenery.fillStyle(0xf8fdff);
     scenery.beginPath();
-    scenery.moveTo(jumpConfig.landingStartX, jumpConfig.landingY);
-    scenery.lineTo(
-      WORLD_WIDTH,
-      jumpConfig.landingY +
-        (WORLD_WIDTH - jumpConfig.landingStartX) * jumpConfig.landingSlope,
-    );
+    scenery.moveTo(landingPoints[0]!.x, landingPoints[0]!.y);
+    for (const point of landingPoints.slice(1)) {
+      scenery.lineTo(point.x, point.y);
+    }
     scenery.lineTo(WORLD_WIDTH, WORLD_HEIGHT);
     scenery.lineTo(jumpConfig.landingStartX, WORLD_HEIGHT);
     scenery.closePath();
     scenery.fillPath();
+
+    scenery.lineStyle(7, 0xd9f5ff, 1);
+    scenery.beginPath();
+    scenery.moveTo(landingPoints[0]!.x, landingPoints[0]!.y);
+    for (const point of landingPoints.slice(1)) {
+      scenery.lineTo(point.x, point.y);
+    }
+    scenery.strokePath();
 
     const takeoff = sampleRamp(jumpConfig.takeoffStartX, jumpConfig);
     const lip = sampleRamp(jumpConfig.lipX, jumpConfig);
@@ -172,9 +184,9 @@ export class PlayScene extends Phaser.Scene {
     scenery.lineStyle(3, 0x55b9dd, 1);
     scenery.lineBetween(lip.x + 4, lip.y + 8, lip.x + 4, lip.y + 34);
 
-    const pileSurface = sampleLanding(1120, jumpConfig);
+    const pileSurface = sampleLanding(2200, jumpConfig);
     this.add
-      .image(1120, pileSurface.y - 23, "snow-pile")
+      .image(2200, pileSurface.y - 23, "snow-pile")
       .setScale(0.35)
       .setDepth(2);
   }
@@ -202,6 +214,7 @@ export class PlayScene extends Phaser.Scene {
         "ramp",
       )
       .setScale(PENGUIN_SCALE)
+      .setFlipX(true)
       .setDepth(10);
   }
 
@@ -242,5 +255,21 @@ export class PlayScene extends Phaser.Scene {
       state.phase === "resting"
         ? targetX
         : Phaser.Math.Linear(this.cameras.main.scrollX, targetX, 0.08);
+
+    const focusY =
+      state.phase === "ramp"
+        ? state.y
+        : state.phase === "flight"
+          ? state.y + 80
+          : state.y + 120;
+    const targetY = Phaser.Math.Clamp(
+      focusY - this.cameras.main.height * 0.55,
+      0,
+      WORLD_HEIGHT - this.cameras.main.height,
+    );
+    this.cameras.main.scrollY =
+      state.phase === "resting"
+        ? targetY
+        : Phaser.Math.Linear(this.cameras.main.scrollY, targetY, 0.08);
   }
 }

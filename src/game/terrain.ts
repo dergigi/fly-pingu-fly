@@ -16,6 +16,37 @@ export type SurfaceSample = Readonly<{
   slope: number;
 }>;
 
+function sampleHermite(
+  x: number,
+  startX: number,
+  startY: number,
+  startSlope: number,
+  endX: number,
+  endY: number,
+  endSlope: number,
+): SurfaceSample {
+  const span = endX - startX;
+  const t = (x - startX) / span;
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const startTangent = startSlope * span;
+  const endTangent = endSlope * span;
+
+  return {
+    y:
+      (2 * t3 - 3 * t2 + 1) * startY +
+      (t3 - 2 * t2 + t) * startTangent +
+      (-2 * t3 + 3 * t2) * endY +
+      (t3 - t2) * endTangent,
+    slope:
+      ((6 * t2 - 6 * t) * startY +
+        (3 * t2 - 4 * t + 1) * startTangent +
+        (-6 * t2 + 6 * t) * endY +
+        (3 * t2 - 2 * t) * endTangent) /
+      span,
+  };
+}
+
 function assertFiniteCoordinate(name: string, value: number): void {
   if (!Number.isFinite(value)) {
     throw new RangeError(`${name} must be finite`);
@@ -42,28 +73,19 @@ export function sampleRamp(
     };
   }
 
-  const span = config.takeoffStartX - config.startX;
-  const t = (x - config.startX) / span;
-  const t2 = t * t;
-  const t3 = t2 * t;
-  const startTangent = config.rampStartSlope * span;
-  const endTangent = config.lipSlope * span;
-  const y =
-    (2 * t3 - 3 * t2 + 1) * config.startY +
-    (t3 - 2 * t2 + t) * startTangent +
-    (-2 * t3 + 3 * t2) * takeoffY +
-    (t3 - t2) * endTangent;
-  const slope =
-    ((6 * t2 - 6 * t) * config.startY +
-      (3 * t2 - 4 * t + 1) * startTangent +
-      (-6 * t2 + 6 * t) * takeoffY +
-      (3 * t2 - 2 * t) * endTangent) /
-    span;
+  const curve = sampleHermite(
+    x,
+    config.startX,
+    config.startY,
+    config.rampStartSlope,
+    config.takeoffStartX,
+    takeoffY,
+    config.lipSlope,
+  );
 
   return {
     x: progress,
-    y,
-    slope,
+    ...curve,
   };
 }
 
@@ -91,12 +113,50 @@ export function sampleLanding(
   assertValidTerrainConfig(config);
   assertFiniteCoordinate("landing position", x);
 
+  if (x <= config.landingStartX) {
+    return { y: config.landingY, slope: config.landingSlope };
+  }
+
+  if (x < config.landingEndX) {
+    return sampleHermite(
+      x,
+      config.landingStartX,
+      config.landingY,
+      config.landingSlope,
+      config.landingEndX,
+      config.landingEndY,
+      config.landingEndSlope,
+    );
+  }
+
   return {
     y:
-      config.landingY +
-      Math.max(0, x - config.landingStartX) * config.landingSlope,
-    slope: config.landingSlope,
+      config.landingEndY +
+      (x - config.landingEndX) * config.landingEndSlope,
+    slope: config.landingEndSlope,
   };
+}
+
+export function sampleLandingCurve(
+  config: TerrainConfig,
+  step: number,
+  endX: number,
+): readonly RampSample[] {
+  assertValidTerrainConfig(config);
+  if (!Number.isFinite(step) || step <= 0) {
+    throw new RangeError("landing curve step must be greater than zero");
+  }
+  assertFiniteCoordinate("landing curve end", endX);
+  if (endX < config.landingStartX) {
+    throw new RangeError("landing curve end must follow landingStartX");
+  }
+
+  const points: RampSample[] = [];
+  for (let x = config.landingStartX; x < endX; x += step) {
+    points.push({ x, ...sampleLanding(x, config) });
+  }
+  points.push({ x: endX, ...sampleLanding(endX, config) });
+  return points;
 }
 
 export function crossingFraction(
