@@ -68,8 +68,11 @@ export class PlayScene extends Phaser.Scene {
   private crouchKey: Phaser.Input.Keyboard.Key | null = null;
   private resetKey: Phaser.Input.Keyboard.Key | null = null;
   private pauseKey: Phaser.Input.Keyboard.Key | null = null;
+  private escapeKey: Phaser.Input.Keyboard.Key | null = null;
   private paused = false;
-  private pauseText!: Phaser.GameObjects.Text;
+  private pauseBackdrop!: Phaser.GameObjects.Rectangle;
+  private pauseTitle!: Phaser.GameObjects.Text;
+  private pauseHint!: Phaser.GameObjects.Text;
   private takeoffPosePending = false;
   private readonly snowflakes: Phaser.GameObjects.Image[] = [];
   private readonly clouds: Phaser.GameObjects.Image[] = [];
@@ -152,7 +155,7 @@ export class PlayScene extends Phaser.Scene {
     this.leaderboard = storage === null ? [] : readLeaderboard(storage);
     this.distanceText = this.createDistanceHud();
     this.leaderboardText = this.createLeaderboardHud();
-    this.pauseText = this.createPauseHud();
+    this.createPauseMenu();
     this.bindInput();
 
     this.cameras.main.setBounds(
@@ -176,7 +179,10 @@ export class PlayScene extends Phaser.Scene {
       this.simulationTimeMs = time;
     }
 
-    if (this.pauseKey !== null && Phaser.Input.Keyboard.JustDown(this.pauseKey)) {
+    if (
+      (this.pauseKey !== null && Phaser.Input.Keyboard.JustDown(this.pauseKey)) ||
+      (this.escapeKey !== null && Phaser.Input.Keyboard.JustDown(this.escapeKey))
+    ) {
       this.setPaused(!this.paused);
     }
 
@@ -248,9 +254,11 @@ export class PlayScene extends Phaser.Scene {
 
     this.input.on("pointerdown", () => {
       this.game.canvas.focus();
-      if (!this.paused) {
-        this.queuePress();
+      if (this.paused) {
+        this.setPaused(false);
+        return;
       }
+      this.queuePress();
     });
 
     const keyboard = this.input.keyboard;
@@ -265,6 +273,7 @@ export class PlayScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.DOWN,
       Phaser.Input.Keyboard.KeyCodes.R,
       Phaser.Input.Keyboard.KeyCodes.P,
+      Phaser.Input.Keyboard.KeyCodes.ESC,
     ]);
 
     this.takeoffKeys = [
@@ -275,11 +284,14 @@ export class PlayScene extends Phaser.Scene {
     this.crouchKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
     this.resetKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     this.pauseKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+    this.escapeKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
   }
 
   private setPaused(paused: boolean): void {
     this.paused = paused;
-    this.pauseText.setVisible(paused);
+    this.pauseBackdrop.setVisible(paused);
+    this.pauseTitle.setVisible(paused);
+    this.pauseHint.setVisible(paused);
     if (paused) {
       this.accumulator = 0;
     }
@@ -980,18 +992,41 @@ export class PlayScene extends Phaser.Scene {
       .setDepth(100);
   }
 
-  private createPauseHud(): Phaser.GameObjects.Text {
-    return this.add
-      .text(0, 0, "Pause", {
+  private createPauseMenu(): void {
+    this.pauseBackdrop = this.add
+      .rectangle(0, 0, 100, 100, 0x083a56, 0.55)
+      .setOrigin(0.5, 0.5)
+      .setScrollFactor(0)
+      .setDepth(115)
+      .setVisible(false);
+
+    this.pauseTitle = this.add
+      .text(0, 0, "Paused", {
         fontFamily: "Trebuchet MS, Arial, sans-serif",
         fontSize: "64px",
         fontStyle: "bold",
-        color: "#0b4f73",
+        color: "#f4fbff",
         align: "center",
-        stroke: "#f4fbff",
-        strokeThickness: 12,
+        stroke: "#0b4f73",
+        strokeThickness: 10,
       })
       .setOrigin(0.5, 0.5)
+      .setScrollFactor(0)
+      .setDepth(120)
+      .setVisible(false);
+
+    this.pauseHint = this.add
+      .text(0, 0, "ESC or tap  ·  play\nR  ·  retry", {
+        fontFamily: "Trebuchet MS, Arial, sans-serif",
+        fontSize: "28px",
+        fontStyle: "bold",
+        color: "#e8f6ff",
+        align: "center",
+        stroke: "#0b4f73",
+        strokeThickness: 6,
+        lineSpacing: 10,
+      })
+      .setOrigin(0.5, 0)
       .setScrollFactor(0)
       .setDepth(120)
       .setVisible(false);
@@ -1003,7 +1038,13 @@ export class PlayScene extends Phaser.Scene {
     const right = this.cameras.main.width - 28;
     this.distanceText.setPosition(centerX, 18);
     this.leaderboardText.setPosition(right, 18);
-    this.pauseText.setPosition(centerX, centerY);
+    this.pauseBackdrop.setPosition(centerX, centerY);
+    this.pauseBackdrop.setSize(
+      this.cameras.main.width + 40,
+      this.cameras.main.height + 40,
+    );
+    this.pauseTitle.setPosition(centerX, centerY - 36);
+    this.pauseHint.setPosition(centerX, centerY + 28);
     this.cameras.main.setFollowOffset(
       -Math.min(220, this.cameras.main.width * 0.14),
       -30,
