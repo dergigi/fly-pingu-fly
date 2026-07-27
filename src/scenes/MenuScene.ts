@@ -9,18 +9,10 @@ const PIXEL_FONT =
 const SNOWFLAKE_COUNT = 42;
 const SNOW_SCALE_MIN = 0.03;
 const SNOW_SCALE_SPAN = 0.07;
-
-const PALETTE = {
-  skyTop: 0x0b1026,
-  skyMid: 0x1a2744,
-  skyLow: 0x3d5a80,
-  horizon: 0x7eb8d4,
-  snow: 0xe8f4ff,
-  snowShade: 0xb8d4e8,
-  ice: 0x7ec8ff,
-  title: 0xffe566,
-  star: 0xffffff,
-} as const;
+const SKY = 0x8ed8f8;
+const SNOW_FILL = 0xffffff;
+const SNOW_EDGE = 0xd9f5ff;
+const PINE_ORIGIN_Y = 233 / 256;
 
 function browserStorage(): Storage | null {
   try {
@@ -30,18 +22,30 @@ function browserStorage(): Storage | null {
   }
 }
 
+function forestNoise(x: number, salt: number): number {
+  const n = Math.sin(x * 0.017 + salt * 12.9898) * 43758.5453;
+  return n - Math.floor(n);
+}
+
 export class MenuScene extends Phaser.Scene {
   private backdrop!: Phaser.GameObjects.Graphics;
-
   private penguin!: Phaser.GameObjects.Sprite;
   private playPrompt!: Phaser.GameObjects.Text;
   private animTimer = 0;
   private started = false;
+  private groundY = 0;
   private readonly flakes: Phaser.GameObjects.Image[] = [];
-  private readonly stars: Array<{
-    rect: Phaser.GameObjects.Rectangle;
+  private readonly clouds: Phaser.GameObjects.Image[] = [];
+  private readonly forest: Phaser.GameObjects.Image[] = [];
+  private readonly fog: Array<{
+    image: Phaser.GameObjects.Image;
+    baseX: number;
+    baseY: number;
     phase: number;
-    speed: number;
+    drift: number;
+    bob: number;
+    range: number;
+    baseAlpha: number;
   }> = [];
 
   constructor() {
@@ -50,24 +54,29 @@ export class MenuScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image("penguin-sheet", "/assets/sprites/sprite_penguin.png");
-    this.load.image("menu-pine", "/assets/sprites/pine-tree-snow-heavy.webp");
+    this.load.image("winter-forest", "/assets/sprites/winter-forest.webp");
+    this.load.image("pine-tree", "/assets/sprites/pine-tree-snow-heavy.webp");
     this.load.image("snow-flakes", "/assets/sprites/snow-fall-flakes.webp");
+    this.load.image("cloud-solid", "/assets/sprites/cloud-solid.webp");
+    this.load.image("cloud-thin", "/assets/sprites/cloud-thin.webp");
   }
 
   create(): void {
     this.started = false;
-    this.cameras.main.setBackgroundColor(PALETTE.skyTop);
+    this.cameras.main.setBackgroundColor(SKY);
     this.registerPenguinFrames();
-    this.drawBackdrop();
-    this.spawnStars();
+    this.ensureFogTexture();
+    this.backdrop = this.add.graphics().setDepth(0).setScrollFactor(0);
+    this.placeClouds();
+    this.placeForest();
+    this.placeFog();
+    this.placeForegroundPines();
     this.spawnSnow();
-    this.placeDecor();
     this.createTitle();
     this.createPenguin();
     this.createPlayPrompt();
     this.createBestScore();
     this.createControlsHint();
-    this.createScanlines();
     this.bindInput();
     this.scale.on("resize", this.layout, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -82,16 +91,10 @@ export class MenuScene extends Phaser.Scene {
     }
 
     this.animTimer += delta;
-
-    for (const star of this.stars) {
-      star.rect.setAlpha(
-        0.35 + 0.65 * (0.5 + 0.5 * Math.sin(this.animTimer * star.speed + star.phase)),
-      );
-    }
-
+    const dt = Math.min(delta, 50) / 1000;
     const h = this.cameras.main.height;
     const w = this.cameras.main.width;
-    const dt = Math.min(delta, 50) / 1000;
+
     for (const flake of this.flakes) {
       flake.x += (flake.getData("vx") as number) * dt;
       flake.y += (flake.getData("vy") as number) * dt;
@@ -105,6 +108,33 @@ export class MenuScene extends Phaser.Scene {
         flake.x = -20;
       }
     }
+
+    for (const cloud of this.clouds) {
+      const phase =
+        ((cloud.getData("phase") as number) + dt * 0.18) % (Math.PI * 2);
+      cloud.setData("phase", phase);
+      cloud.x += (cloud.getData("vx") as number) * dt;
+      cloud.y =
+        (cloud.getData("baseY") as number) +
+        Math.sin(phase) * (cloud.getData("bob") as number);
+      if (cloud.x < -220) {
+        cloud.x = w + 180;
+      } else if (cloud.x > w + 220) {
+        cloud.x = -180;
+      }
+    }
+
+    for (const wisp of this.fog) {
+      wisp.phase = (wisp.phase + dt * 0.7) % (Math.PI * 2);
+      wisp.image.x =
+        wisp.baseX +
+        Math.sin(wisp.phase) * wisp.range +
+        wisp.drift * Math.sin(wisp.phase * 0.55);
+      wisp.image.y = wisp.baseY + Math.cos(wisp.phase * 0.9) * wisp.bob;
+      wisp.image.setAlpha(
+        wisp.baseAlpha * (0.75 + 0.25 * Math.sin(wisp.phase * 1.4)),
+      );
+    }
   }
 
   private registerPenguinFrames(): void {
@@ -116,90 +146,186 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  private drawBackdrop(): void {
-    this.backdrop = this.add.graphics().setDepth(0).setScrollFactor(0);
-    this.paintBackdrop(
-      this.cameras.main.width,
-      this.cameras.main.height,
-    );
+  private ensureFogTexture(): void {
+    if (this.textures.exists("ramp-fog-wisp")) {
+      return;
+    }
+    const graphics = this.make.graphics({ x: 0, y: 0 });
+    for (let ring = 6; ring >= 1; ring -= 1) {
+      graphics.fillStyle(0xffffff, 0.045 * ring);
+      graphics.fillEllipse(80, 48, 22 * ring, 13 * ring);
+    }
+    graphics.generateTexture("ramp-fog-wisp", 160, 96);
+    graphics.destroy();
   }
 
   private paintBackdrop(w: number, h: number): void {
     const g = this.backdrop;
     g.clear();
-    const bands: Array<[number, number, number]> = [
-      [PALETTE.skyTop, 0, 0.38],
-      [PALETTE.skyMid, 0.38, 0.58],
-      [PALETTE.skyLow, 0.58, 0.72],
-      [PALETTE.horizon, 0.72, 0.8],
-      [PALETTE.snowShade, 0.8, 0.88],
-      [PALETTE.snow, 0.88, 1],
-    ];
-    for (const [color, y0, y1] of bands) {
-      g.fillStyle(color, 1);
-      g.fillRect(0, h * y0, w, h * (y1 - y0) + 2);
-    }
+    g.fillStyle(SKY, 1);
+    g.fillRect(0, 0, w, h);
 
-    g.fillStyle(0x2a3f66, 1);
-    this.drawPixelHill(g, -40, h * 0.74, w * 0.45, h * 0.16, 18);
-    this.drawPixelHill(g, w * 0.28, h * 0.72, w * 0.5, h * 0.18, 22);
-    this.drawPixelHill(g, w * 0.62, h * 0.75, w * 0.45, h * 0.15, 16);
-    g.fillStyle(0x4a6f8a, 1);
-    this.drawPixelHill(g, w * 0.05, h * 0.78, w * 0.55, h * 0.17, 20);
-    this.drawPixelHill(g, w * 0.48, h * 0.8, w * 0.5, h * 0.16, 18);
+    const snowTop = this.groundY;
+    g.fillStyle(SNOW_FILL, 1);
+    g.beginPath();
+    g.moveTo(0, snowTop + 18);
+    g.lineTo(w * 0.18, snowTop - 6);
+    g.lineTo(w * 0.42, snowTop + 10);
+    g.lineTo(w * 0.68, snowTop - 4);
+    g.lineTo(w, snowTop + 14);
+    g.lineTo(w, h + 4);
+    g.lineTo(0, h + 4);
+    g.closePath();
+    g.fillPath();
 
-    g.fillStyle(PALETTE.snow, 1);
-    g.fillRect(0, h * 0.86, w, h * 0.14 + 4);
-    g.fillStyle(PALETTE.snowShade, 1);
-    const stepCount = Math.ceil(w / 48) + 2;
-    for (let i = 0; i < stepCount; i += 1) {
-      const x = i * 48;
-      const step = (i % 3) * 6;
-      g.fillRect(x, h * 0.86 - step, 40, 10 + step);
-    }
+    g.lineStyle(6, SNOW_EDGE, 1);
+    g.beginPath();
+    g.moveTo(0, snowTop + 18);
+    g.lineTo(w * 0.18, snowTop - 6);
+    g.lineTo(w * 0.42, snowTop + 10);
+    g.lineTo(w * 0.68, snowTop - 4);
+    g.lineTo(w, snowTop + 14);
+    g.strokePath();
   }
 
-  private drawPixelHill(
-    g: Phaser.GameObjects.Graphics,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    steps: number,
-  ): void {
-    const stepW = width / steps;
-    for (let i = 0; i < steps; i += 1) {
-      const t = i / (steps - 1);
-      const rise = Math.sin(t * Math.PI) * height;
-      const top = y - rise;
-      g.fillRect(x + i * stepW, top, stepW + 1, y + height - top);
+  private clearForest(): void {
+    for (const tree of this.forest) {
+      tree.destroy();
     }
+    this.forest.length = 0;
   }
 
-  private spawnStars(): void {
-    this.stars.length = 0;
+  private placeForest(): void {
+    this.clearForest();
     const w = this.cameras.main.width;
-    const h = this.cameras.main.height;
-    for (let i = 0; i < 42; i += 1) {
-      const size = i % 7 === 0 ? 4 : 2;
-      const rect = this.add
-        .rectangle(
-          Phaser.Math.Between(8, Math.max(16, w - 8)),
-          Phaser.Math.Between(8, Math.max(16, Math.floor(h * 0.45))),
-          size,
-          size,
-          PALETTE.star,
-          1,
-        )
-        .setOrigin(0, 0)
-        .setDepth(1)
+    const ground = this.groundY || this.cameras.main.height * 0.86;
+
+    let x = -40;
+    while (x < w + 80) {
+      const n = forestNoise(x, 1);
+      const scale = 0.55 + n * 0.55;
+      const sink = 36 + n * 28;
+      const tree = this.add
+        .image(x + (n - 0.5) * 18, ground + sink, "winter-forest")
+        .setOrigin(0.5, 1)
+        .setScale(scale)
+        .setAlpha(0.78 + n * 0.18)
+        .setDepth(-5)
         .setScrollFactor(0);
-      this.stars.push({
-        rect,
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.003 + Math.random() * 0.008,
+      this.forest.push(tree);
+
+      const n2 = forestNoise(x, 7);
+      const mid = this.add
+        .image(x + 42 + (n2 - 0.5) * 20, ground + 28 + n2 * 22, "winter-forest")
+        .setOrigin(0.5, 1)
+        .setScale(0.42 + n2 * 0.42)
+        .setAlpha(0.72 + n2 * 0.16)
+        .setDepth(-4)
+        .setScrollFactor(0);
+      this.forest.push(mid);
+
+      const n3 = forestNoise(x, 11);
+      if (n3 > 0.3) {
+        const far = this.add
+          .image(
+            x + 18 + (n3 - 0.5) * 14,
+            ground + 40 + n3 * 18,
+            "winter-forest",
+          )
+          .setOrigin(0.5, 1)
+          .setScale(0.34 + n3 * 0.34)
+          .setAlpha(0.7 + n3 * 0.12)
+          .setDepth(-6)
+          .setScrollFactor(0);
+        this.forest.push(far);
+      }
+
+      x += 48 + Math.floor(n * 36);
+    }
+  }
+
+  private placeFog(): void {
+    for (const wisp of this.fog) {
+      wisp.image.destroy();
+    }
+    this.fog.length = 0;
+
+    const w = this.cameras.main.width;
+    const ground = this.groundY || this.cameras.main.height * 0.86;
+    const count = Math.max(6, Math.floor(w / 180));
+    for (let i = 0; i < count; i += 1) {
+      const n = forestNoise(i * 97, 9);
+      const baseX = (i + 0.4) * (w / count) + (n - 0.5) * 40;
+      const baseY = ground - (22 + n * 28);
+      const baseAlpha = 0.1 + n * 0.08;
+      const image = this.add
+        .image(baseX, baseY, "ramp-fog-wisp")
+        .setDepth(6)
+        .setAlpha(baseAlpha)
+        .setScale(0.85 + n * 0.7)
+        .setScrollFactor(0);
+      this.fog.push({
+        image,
+        baseX,
+        baseY,
+        phase: n * Math.PI * 2,
+        drift: (14 + n * 16) * (i % 2 === 0 ? 1 : -1),
+        bob: 6 + n * 8,
+        range: 28 + n * 30,
+        baseAlpha,
       });
     }
+  }
+
+  private placeClouds(): void {
+    for (const cloud of this.clouds) {
+      cloud.destroy();
+    }
+    this.clouds.length = 0;
+
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+    const specs = [
+      { key: "cloud-solid", y: 0.12, scale: 0.55, alpha: 0.42, far: true },
+      { key: "cloud-thin", y: 0.18, scale: 0.9, alpha: 0.5, far: false },
+      { key: "cloud-solid", y: 0.1, scale: 0.35, alpha: 0.38, far: true },
+      { key: "cloud-thin", y: 0.22, scale: 0.48, alpha: 0.46, far: false },
+    ] as const;
+
+    specs.forEach((spec, index) => {
+      const baseY = h * spec.y;
+      const cloud = this.add
+        .image((index + 0.35) * (w / specs.length), baseY, spec.key)
+        .setScrollFactor(0)
+        .setDepth(spec.far ? -8 : -7)
+        .setAlpha(spec.alpha)
+        .setScale(spec.scale);
+      cloud.setData("vx", (2.2 + index * 0.4) * (index % 2 === 0 ? -1 : 1));
+      cloud.setData("bob", 0.4 + index * 0.12);
+      cloud.setData("phase", index * 1.3);
+      cloud.setData("baseY", baseY);
+      this.clouds.push(cloud);
+    });
+  }
+
+  private placeForegroundPines(): void {
+    this.add
+      .image(0, 0, "pine-tree")
+      .setOrigin(0.5, PINE_ORIGIN_Y)
+      .setScale(0.72)
+      .setAlpha(0.94)
+      .setDepth(8)
+      .setScrollFactor(0)
+      .setName("pine-left");
+    this.add
+      .image(0, 0, "pine-tree")
+      .setOrigin(0.5, PINE_ORIGIN_Y)
+      .setScale(0.82)
+      .setFlipX(true)
+      .setAlpha(0.94)
+      .setDepth(8)
+      .setScrollFactor(0)
+      .setName("pine-right");
   }
 
   private spawnSnow(): void {
@@ -222,29 +348,12 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  private placeDecor(): void {
-    this.add
-      .image(0, 0, "menu-pine")
-      .setOrigin(0.5, 1)
-      .setScale(0.28)
-      .setDepth(5)
-      .setScrollFactor(0)
-      .setName("pine-left");
-    this.add
-      .image(0, 0, "menu-pine")
-      .setOrigin(0.5, 1)
-      .setScale(0.34)
-      .setDepth(5)
-      .setScrollFactor(0)
-      .setName("pine-right");
-  }
-
   private createTitle(): void {
     this.add
       .text(0, 0, "FLY PINGU\nFLY", {
         fontFamily: PIXEL_FONT,
         fontSize: "52px",
-        color: "#1a0a40",
+        color: "#0b3a55",
         align: "center",
         lineSpacing: 18,
       })
@@ -259,8 +368,8 @@ export class MenuScene extends Phaser.Scene {
         fontSize: "52px",
         color: "#ffe566",
         align: "center",
-        stroke: "#ff6b4a",
-        strokeThickness: 6,
+        stroke: "#0b4f73",
+        strokeThickness: 8,
         lineSpacing: 18,
       })
       .setOrigin(0.5)
@@ -272,8 +381,10 @@ export class MenuScene extends Phaser.Scene {
       .text(0, 0, "SKI JUMP", {
         fontFamily: PIXEL_FONT,
         fontSize: "14px",
-        color: "#7ec8ff",
+        color: "#0b4f73",
         align: "center",
+        stroke: "#f4fbff",
+        strokeThickness: 4,
       })
       .setOrigin(0.5)
       .setDepth(11)
@@ -297,8 +408,10 @@ export class MenuScene extends Phaser.Scene {
       .text(0, 0, "press anything to play", {
         fontFamily: PIXEL_FONT,
         fontSize: "14px",
-        color: "#fff6e0",
+        color: "#0b4f73",
         align: "center",
+        stroke: "#f4fbff",
+        strokeThickness: 5,
       })
       .setOrigin(0.5)
       .setDepth(14)
@@ -318,8 +431,10 @@ export class MenuScene extends Phaser.Scene {
       .text(0, 0, label, {
         fontFamily: PIXEL_FONT,
         fontSize: "12px",
-        color: "#e8f4ff",
+        color: "#0b4f73",
         align: "center",
+        stroke: "#f4fbff",
+        strokeThickness: 4,
       })
       .setOrigin(0.5)
       .setDepth(12)
@@ -336,23 +451,16 @@ export class MenuScene extends Phaser.Scene {
         {
           fontFamily: PIXEL_FONT,
           fontSize: "9px",
-          color: "#b8d4e8",
+          color: "#3a6f8a",
           align: "center",
+          stroke: "#f4fbff",
+          strokeThickness: 3,
         },
       )
       .setOrigin(0.5)
       .setDepth(12)
       .setScrollFactor(0)
       .setName("controls");
-  }
-
-  private createScanlines(): void {
-    this.add
-      .graphics()
-      .setDepth(30)
-      .setAlpha(0.08)
-      .setScrollFactor(0)
-      .setName("scanlines");
   }
 
   private bindInput(): void {
@@ -367,7 +475,7 @@ export class MenuScene extends Phaser.Scene {
     this.started = true;
     this.input.keyboard?.off("keydown", this.startGame, this);
     this.input.off("pointerdown", this.startGame, this);
-    this.cameras.main.fadeOut(220, 11, 16, 38);
+    this.cameras.main.fadeOut(220, 142, 216, 248);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start("play");
     });
@@ -377,7 +485,11 @@ export class MenuScene extends Phaser.Scene {
     const w = this.cameras.main.width;
     const h = this.cameras.main.height;
     const cx = w * 0.5;
+    this.groundY = h * 0.86;
     this.paintBackdrop(w, h);
+    this.placeForest();
+    this.placeFog();
+    this.placeClouds();
 
     const title = this.children.getByName("title") as Phaser.GameObjects.Text | null;
     const shadow = this.children.getByName(
@@ -397,7 +509,7 @@ export class MenuScene extends Phaser.Scene {
       "pine-right",
     ) as Phaser.GameObjects.Image | null;
 
-    const titleY = Math.max(90, h * 0.2);
+    const titleY = Math.max(90, h * 0.18);
     const titleSize = Math.round(Phaser.Math.Clamp(w * 0.055, 28, 56));
     if (title && shadow) {
       title.setFontSize(titleSize);
@@ -408,33 +520,21 @@ export class MenuScene extends Phaser.Scene {
     subtitle?.setPosition(cx, titleY + titleSize * 1.55);
     best?.setPosition(cx, titleY + titleSize * 1.95);
 
-    const groundY = h * 0.86;
-    this.penguin.setPosition(cx, groundY);
+    this.penguin.setPosition(cx, this.groundY);
 
-    const playY = Math.min(groundY - 120, h * 0.68);
+    const playY = Math.min(this.groundY - 120, h * 0.68);
     const promptSize = Math.round(Phaser.Math.Clamp(w * 0.018, 10, 16));
     this.playPrompt.setFontSize(promptSize);
     this.playPrompt.setPosition(cx, playY);
-
     controls?.setPosition(cx, Math.min(h - 28, playY + 36));
 
-    pineLeft?.setPosition(cx - Math.min(420, w * 0.4), groundY + 6);
-    pineRight?.setPosition(cx + Math.min(360, w * 0.34), groundY + 6);
-
-    for (const star of this.stars) {
-      star.rect.x = Phaser.Math.Clamp(star.rect.x, 4, w - 8);
-      star.rect.y = Phaser.Math.Clamp(star.rect.y, 4, h * 0.45);
-    }
-
-    const scan = this.children.getByName(
-      "scanlines",
-    ) as Phaser.GameObjects.Graphics | null;
-    if (scan) {
-      scan.clear();
-      scan.fillStyle(0x000000, 1);
-      for (let y = 0; y < h; y += 3) {
-        scan.fillRect(0, y, w, 1);
-      }
-    }
+    pineLeft?.setPosition(
+      cx - Math.min(420, w * 0.38),
+      this.groundY + 150,
+    );
+    pineRight?.setPosition(
+      cx + Math.min(380, w * 0.36),
+      this.groundY + 158,
+    );
   };
 }

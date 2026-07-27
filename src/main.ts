@@ -12,7 +12,7 @@ new Phaser.Game({
   parent: "game",
   width: viewportWidth(),
   height: viewportHeight(),
-  backgroundColor: "#0b1026",
+  backgroundColor: "#8ed8f8",
   scene: [MenuScene, PlayScene],
   scale: {
     mode: Phaser.Scale.RESIZE,

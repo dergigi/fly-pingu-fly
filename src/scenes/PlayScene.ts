@@ -167,7 +167,7 @@ export class PlayScene extends Phaser.Scene {
     this.cameras.main.setFollowOffset(-Math.min(220, this.cameras.main.width * 0.14), -30);
     this.cameras.main.startFollow(this.penguin, true, 0.14, 0.14);
     this.cameras.main.centerOn(this.penguin.x + 180, this.penguin.y + 80);
-    this.cameras.main.fadeIn(280, 11, 16, 38);
+    this.cameras.main.fadeIn(280, 142, 216, 248);
     this.scale.on("resize", this.layoutHud, this);
     this.layoutHud();
     this.createSnowfall();
