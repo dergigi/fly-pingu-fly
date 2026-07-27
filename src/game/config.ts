@@ -14,8 +14,6 @@ export type TerrainConfig = Readonly<{
   startY: number;
   rampStartSlope: number;
   takeoffStartX: number;
-  takeoffStartY: number;
-  takeoffEntrySlope: number;
   lipX: number;
   lipY: number;
   lipSlope: number;
@@ -66,29 +64,27 @@ export const jumpConfig: JumpConfig = Object.freeze({
   initialSpeed: 170,
   rampAcceleration: 250,
   crouchRampAcceleration: 520,
-  rampStartSlope: 2.75,
-  takeoffStartX: 700,
-  takeoffStartY: 600,
-  takeoffEntrySlope: 0.5,
+  rampStartSlope: 2.25,
+  takeoffStartX: 800,
   lipX: 900,
-  lipY: 625,
-  lipSlope: 0.06,
+  lipY: 620,
+  lipSlope: -0.6,
   lateBoundaryX: 900,
   minimumQuality: 0.22,
   earlySpan: 220,
   lateSpan: 70,
-  minimumLaunchX: 400,
-  maximumLaunchX: 900,
-  minimumLaunchY: 220,
-  maximumLaunchY: 1020,
+  minimumLaunchX: 380,
+  maximumLaunchX: 860,
+  minimumLaunchY: 150,
+  maximumLaunchY: 980,
   gravity: 640,
   flightCrouchGravityScale: 0.55,
   flightCrouchAscentGravityScale: 1.85,
   landingStartX: 980,
   landingY: 690,
-  landingSlope: -0.45,
-  landingCrestX: 1550,
-  landingCrestY: 380,
+  landingSlope: -0.55,
+  landingCrestX: 1500,
+  landingCrestY: 320,
   landingCrestSlope: 0.02,
   landingEndX: 4900,
   landingEndY: 1720,
@@ -147,8 +143,6 @@ export function assertValidTerrainConfig(config: TerrainConfig): void {
     "startY",
     "rampStartSlope",
     "takeoffStartX",
-    "takeoffStartY",
-    "takeoffEntrySlope",
     "lipY",
     "lipSlope",
     "landingStartX",
