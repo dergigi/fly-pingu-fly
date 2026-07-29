@@ -6,7 +6,7 @@ current_phase: 1
 current_phase_name: Playable Jump
 status: verifying
 stopped_at: Completed quick task 260729-c5q idle respawn
-last_updated: "2026-07-29T09:15:58.705Z"
+last_updated: "2026-07-29T09:22:09.559Z"
 last_activity: 2026-07-29
 last_activity_desc: "Completed quick task 260729-c5q: Idle penguin respawns at top after 5s stillness"
 progress:
@@ -104,6 +104,7 @@ None yet.
 | 7 | Shrink idle respawn ring and tint blue | 2026-07-29 | 3fa4db8 | — |
 | 8 | Shrink idle ring and raise above penguin head | 2026-07-29 | e5395f8 | — |
 | 9 | Two-finger hold crouch on mobile | 2026-07-29 | f19105e | — |
+| 10 | Swipe up/down touch controls instead of two-finger crouch | 2026-07-29 | 2f74b75 | — |
 
 ## Deferred Items
 
