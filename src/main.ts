@@ -1,8 +1,11 @@
 import Phaser from "phaser";
+import { registerSW } from "virtual:pwa-register";
 
 import { MenuScene } from "./scenes/MenuScene";
 import { PlayScene } from "./scenes/PlayScene";
 import "./style.css";
+
+registerSW({ immediate: true });
 
 const viewportWidth = () => Math.max(1, window.innerWidth);
 const viewportHeight = () => Math.max(1, window.innerHeight);
