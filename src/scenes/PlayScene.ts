@@ -67,11 +67,13 @@ const WATCHTOWER_ORIGIN_Y = 230 / 256;
 const WATCHTOWER_SCALE = 0.92;
 const WATCHTOWER_SINK = 28;
 const WATCHTOWER_DEPTH = 12;
-/** Language-free idle countdown ring above the penguin head. */
-const IDLE_RING_RADIUS = 24;
-const IDLE_RING_LINE = 6;
+/** Language-free idle countdown ring above the penguin head (~52px diameter). */
+const IDLE_RING_RADIUS = 26;
+const IDLE_RING_LINE = 8;
 const IDLE_RING_DEPTH = 40;
-const IDLE_RING_OFFSET_Y = 72;
+/** World offset from contact pivot to ring center (above ready-pose head). */
+const IDLE_RING_OFFSET_Y =
+  PENGUIN_FRAMES.ready.contactY * PENGUIN_SCALE + IDLE_RING_RADIUS + 10;
 
 function browserStorage(): Storage | null {
   try {
@@ -472,21 +474,25 @@ export class PlayScene extends Phaser.Scene {
     }
     const cx = x;
     const cy = y - IDLE_RING_OFFSET_Y;
-    // Soft track + warm fill arc for the final warn window.
-    this.idleRing.lineStyle(IDLE_RING_LINE, 0xffffff, 0.35);
+    const start = -Math.PI / 2;
+    const end = start + warnProgress * Math.PI * 2;
+
+    // Soft track against snow, then warm pie + stroke filling 0→1.
+    this.idleRing.lineStyle(IDLE_RING_LINE, 0x2c5f7a, 0.28);
     this.idleRing.beginPath();
     this.idleRing.arc(cx, cy, IDLE_RING_RADIUS, 0, Math.PI * 2, false);
     this.idleRing.strokePath();
-    this.idleRing.lineStyle(IDLE_RING_LINE, 0xe67a2e, 0.95);
+
+    this.idleRing.fillStyle(0xe67a2e, 0.55);
     this.idleRing.beginPath();
-    this.idleRing.arc(
-      cx,
-      cy,
-      IDLE_RING_RADIUS,
-      -Math.PI / 2,
-      -Math.PI / 2 + warnProgress * Math.PI * 2,
-      false,
-    );
+    this.idleRing.moveTo(cx, cy);
+    this.idleRing.arc(cx, cy, IDLE_RING_RADIUS - IDLE_RING_LINE * 0.35, start, end, false);
+    this.idleRing.closePath();
+    this.idleRing.fillPath();
+
+    this.idleRing.lineStyle(IDLE_RING_LINE, 0xd35400, 1);
+    this.idleRing.beginPath();
+    this.idleRing.arc(cx, cy, IDLE_RING_RADIUS, start, end, false);
     this.idleRing.strokePath();
   }
 
