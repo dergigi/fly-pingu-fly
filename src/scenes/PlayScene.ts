@@ -477,20 +477,20 @@ export class PlayScene extends Phaser.Scene {
     const start = -Math.PI / 2;
     const end = start + warnProgress * Math.PI * 2;
 
-    // Soft track against snow, then warm pie + stroke filling 0→1.
+    // Soft track against snow, then blue pie + stroke filling 0→1.
     this.idleRing.lineStyle(IDLE_RING_LINE, 0x2c5f7a, 0.28);
     this.idleRing.beginPath();
     this.idleRing.arc(cx, cy, IDLE_RING_RADIUS, 0, Math.PI * 2, false);
     this.idleRing.strokePath();
 
-    this.idleRing.fillStyle(0xe67a2e, 0.55);
+    this.idleRing.fillStyle(0x4eb4e8, 0.55);
     this.idleRing.beginPath();
     this.idleRing.moveTo(cx, cy);
     this.idleRing.arc(cx, cy, IDLE_RING_RADIUS - IDLE_RING_LINE * 0.35, start, end, false);
     this.idleRing.closePath();
     this.idleRing.fillPath();
 
-    this.idleRing.lineStyle(IDLE_RING_LINE, 0xd35400, 1);
+    this.idleRing.lineStyle(IDLE_RING_LINE, 0x1a7fb8, 1);
     this.idleRing.beginPath();
     this.idleRing.arc(cx, cy, IDLE_RING_RADIUS, start, end, false);
     this.idleRing.strokePath();
