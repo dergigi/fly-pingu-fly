@@ -12,6 +12,7 @@ import {
 import { PENGUIN_FRAMES } from "../game/penguinFrames";
 import { formatLeaderboard, readLeaderboard } from "../game/leaderboard";
 import { GAME_VERSION } from "../game/version";
+import { ensureMultiTouch, isMultiTouchHeld } from "../game/touchInput";
 
 const PIXEL_FONT =
   '"Press Start 2P", "Courier New", Courier, monospace';
@@ -223,7 +224,10 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private isCrouching(): boolean {
-    return this.crouchKey !== null && this.crouchKey.isDown;
+    return (
+      (this.crouchKey !== null && this.crouchKey.isDown) ||
+      isMultiTouchHeld(this.input)
+    );
   }
 
   private renderPenguin(crouching = this.isCrouching()): void {
@@ -557,7 +561,7 @@ export class MenuScene extends Phaser.Scene {
 
   private createControlsHint(): void {
     this.add
-      .text(0, 0, "← → turn   ·   ↑ jump   ·   ↓ crouch", {
+      .text(0, 0, "← → turn   ·   ↑ jump   ·   ↓ / 2 fingers crouch", {
         fontFamily: PIXEL_FONT,
         fontSize: "9px",
         color: "#3a6f8a",
@@ -632,6 +636,7 @@ export class MenuScene extends Phaser.Scene {
   private bindInput(): void {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
+    ensureMultiTouch(this.input);
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (
         this.creditLink
@@ -641,6 +646,10 @@ export class MenuScene extends Phaser.Scene {
         return;
       }
       this.game.canvas.focus();
+      // Second+ finger is crouch only; skip turn / jump for that contact.
+      if (isMultiTouchHeld(this.input)) {
+        return;
+      }
       const x = pointer.x;
       const w = this.cameras.main.width;
       if (x < w * 0.33) {

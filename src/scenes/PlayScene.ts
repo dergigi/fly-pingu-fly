@@ -28,6 +28,7 @@ import {
 } from "../game/idleRespawn";
 import { formatDistanceHud, jumpHudStats, worldDistanceToMeters } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
+import { ensureMultiTouch, isMultiTouchHeld } from "../game/touchInput";
 import {
   formatLeaderboard,
   readLeaderboard,
@@ -298,11 +299,16 @@ export class PlayScene extends Phaser.Scene {
   private bindInput(): void {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
+    ensureMultiTouch(this.input);
 
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       this.game.canvas.focus();
       if (this.paused) {
         this.setPaused(false);
+        return;
+      }
+      // Second+ finger is crouch only; skip turn / jump / takeoff for that contact.
+      if (isMultiTouchHeld(this.input)) {
         return;
       }
       if (this.roam !== null) {
@@ -313,7 +319,11 @@ export class PlayScene extends Phaser.Scene {
         } else if (x > w * 0.66) {
           this.roam = setFreeRoamFacing(this.roam, 1);
         } else {
-          this.roam = tryFreeRoamJump(this.roam, freeRoamDefaults);
+          this.roam = tryFreeRoamJump(
+            this.roam,
+            freeRoamDefaults,
+            this.isCrouching(),
+          );
         }
         return;
       }
@@ -549,13 +559,17 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private isCrouching(): boolean {
+    const canCrouch =
+      this.jumpState.phase === "ramp" ||
+      this.jumpState.phase === "flight" ||
+      this.jumpState.phase === "slide" ||
+      this.roam !== null;
+    if (!canCrouch) {
+      return false;
+    }
     return (
-      (this.jumpState.phase === "ramp" ||
-        this.jumpState.phase === "flight" ||
-        this.jumpState.phase === "slide" ||
-        this.roam !== null) &&
-      this.crouchKey !== null &&
-      this.crouchKey.isDown
+      (this.crouchKey !== null && this.crouchKey.isDown) ||
+      isMultiTouchHeld(this.input)
     );
   }
 
@@ -1268,7 +1282,7 @@ export class PlayScene extends Phaser.Scene {
         0,
         [
           "Tap / Space / Up  ·  jump",
-          "Down  ·  crouch for speed",
+          "Down / 2 fingers  ·  crouch for speed",
           "ESC  ·  pause or play",
           "R  ·  retry",
           "After stop  ·  ← → turn, ↑ jump",
