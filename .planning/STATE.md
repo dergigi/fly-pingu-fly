@@ -6,7 +6,7 @@ current_phase: 1
 current_phase_name: Playable Jump
 status: verifying
 stopped_at: Completed quick task 260729-c5q idle respawn
-last_updated: "2026-07-29T06:51:48.249Z"
+last_updated: "2026-07-29T06:53:22.254Z"
 last_activity: 2026-07-29
 last_activity_desc: "Completed quick task 260729-c5q: Idle penguin respawns at top after 5s stillness"
 progress:
@@ -99,6 +99,7 @@ None yet.
 | 2 | Place candy-lollipop-tree as far-left menu blocker | 2026-07-29 | 272c91f | — |
 | 260729-c5q | Idle penguin respawns at top after 5s stillness with language-free UI countdown | 2026-07-29 | 26fc9a4 | [260729-c5q-idle-penguin-respawns-at-top-after-5s-st](./quick/260729-c5q-idle-penguin-respawns-at-top-after-5s-st/) |
 | 4 | Shrink candy lollipop tree and move inward | 2026-07-29 | 15e2864 | — |
+| 5 | Further shrink candy tree and nudge right | 2026-07-29 | c073319 | — |
 
 ## Deferred Items
 
