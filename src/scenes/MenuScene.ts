@@ -27,7 +27,7 @@ const PENGUIN_SCALE = 0.72;
 const PENGUIN_CROUCH_SCALE_Y = 0.72;
 const FLAG_TOUCH_RADIUS = 48;
 /** Candy tree sits at the far-left edge and clamps free-roam past its trunk. */
-const CANDY_TREE_SCALE = 1.45;
+const CANDY_TREE_SCALE = 0.725;
 const CANDY_TREE_SINK = 10;
 const CANDY_TREE_HALF_WIDTH = 64 * CANDY_TREE_SCALE;
 
@@ -739,7 +739,7 @@ export class MenuScene extends Phaser.Scene {
     this.flagMark.lineTo(flagX + 28, this.groundY + 4);
     this.flagMark.strokePath();
 
-    const candyX = Math.max(52, Math.min(88, w * 0.07));
+    const candyX = Math.max(110, Math.min(160, w * 0.13));
     candyTree?.setPosition(candyX, this.groundY + CANDY_TREE_SINK);
     // Clamp at the trunk's right edge; freeRoam adds its own margin on top.
     this.leftBlockX = Math.max(
