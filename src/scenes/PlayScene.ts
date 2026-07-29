@@ -67,9 +67,9 @@ const WATCHTOWER_ORIGIN_Y = 230 / 256;
 const WATCHTOWER_SCALE = 0.92;
 const WATCHTOWER_SINK = 28;
 const WATCHTOWER_DEPTH = 12;
-/** Language-free idle countdown ring above the penguin head (~52px diameter). */
-const IDLE_RING_RADIUS = 26;
-const IDLE_RING_LINE = 8;
+/** Language-free idle countdown ring above the penguin head (~36px diameter). */
+const IDLE_RING_RADIUS = 18;
+const IDLE_RING_LINE = 5;
 const IDLE_RING_DEPTH = 40;
 /** World offset from contact pivot to ring center (above ready-pose head). */
 const IDLE_RING_OFFSET_Y =
