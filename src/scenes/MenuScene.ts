@@ -12,7 +12,14 @@ import {
 import { PENGUIN_FRAMES } from "../game/penguinFrames";
 import { formatLeaderboard, readLeaderboard } from "../game/leaderboard";
 import { GAME_VERSION } from "../game/version";
-import { ensureMultiTouch, isMultiTouchHeld } from "../game/touchInput";
+import {
+  beginTouchGesture,
+  createIdleTouchGesture,
+  endTouchGesture,
+  isTouchCrouching,
+  updateTouchGesture,
+  type TouchGestureState,
+} from "../game/touchInput";
 
 const PIXEL_FONT =
   '"Press Start 2P", "Courier New", Courier, monospace';
@@ -57,6 +64,7 @@ export class MenuScene extends Phaser.Scene {
   /** World x the penguin may not cross left of (candy-tree trunk). */
   private leftBlockX = 0;
   private roam: FreeRoamState = createFreeRoamState(0, 0, 1);
+  private touchGesture: TouchGestureState = createIdleTouchGesture();
   private leftKeys: Phaser.Input.Keyboard.Key[] = [];
   private rightKeys: Phaser.Input.Keyboard.Key[] = [];
   private jumpKeys: Phaser.Input.Keyboard.Key[] = [];
@@ -226,7 +234,7 @@ export class MenuScene extends Phaser.Scene {
   private isCrouching(): boolean {
     return (
       (this.crouchKey !== null && this.crouchKey.isDown) ||
-      isMultiTouchHeld(this.input)
+      isTouchCrouching(this.touchGesture)
     );
   }
 
@@ -561,7 +569,7 @@ export class MenuScene extends Phaser.Scene {
 
   private createControlsHint(): void {
     this.add
-      .text(0, 0, "← → turn   ·   ↑ jump   ·   ↓ / 2 fingers crouch", {
+      .text(0, 0, "swipe / ← → turn   ·   swipe up jump   ·   swipe down crouch", {
         fontFamily: PIXEL_FONT,
         fontSize: "9px",
         color: "#3a6f8a",
@@ -636,7 +644,7 @@ export class MenuScene extends Phaser.Scene {
   private bindInput(): void {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
-    ensureMultiTouch(this.input);
+
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (
         this.creditLink
@@ -646,15 +654,51 @@ export class MenuScene extends Phaser.Scene {
         return;
       }
       this.game.canvas.focus();
-      // Second+ finger is crouch only; skip turn / jump for that contact.
-      if (isMultiTouchHeld(this.input)) {
+      if (this.touchGesture.active || this.started) {
         return;
       }
-      const x = pointer.x;
+      this.touchGesture = beginTouchGesture(pointer.id, pointer.x, pointer.y);
+    });
+
+    this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+      if (
+        this.started ||
+        !this.touchGesture.active ||
+        pointer.id !== this.touchGesture.pointerId ||
+        !pointer.isDown
+      ) {
+        return;
+      }
+      const update = updateTouchGesture(
+        this.touchGesture,
+        pointer.x,
+        pointer.y,
+      );
+      this.touchGesture = update.state;
+      if (update.turn !== 0) {
+        this.roam = setFreeRoamFacing(this.roam, update.turn);
+      }
+      if (update.jump) {
+        this.tryJump();
+      }
+    });
+
+    this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+      if (
+        !this.touchGesture.active ||
+        pointer.id !== this.touchGesture.pointerId
+      ) {
+        return;
+      }
+      const ended = endTouchGesture(this.touchGesture, pointer.x, pointer.y);
+      this.touchGesture = ended.state;
+      if (this.started || !ended.tap) {
+        return;
+      }
       const w = this.cameras.main.width;
-      if (x < w * 0.33) {
+      if (ended.tapX < w * 0.33) {
         this.roam = setFreeRoamFacing(this.roam, -1);
-      } else if (x > w * 0.66) {
+      } else if (ended.tapX > w * 0.66) {
         this.roam = setFreeRoamFacing(this.roam, 1);
       } else {
         this.tryJump();

@@ -28,7 +28,14 @@ import {
 } from "../game/idleRespawn";
 import { formatDistanceHud, jumpHudStats, worldDistanceToMeters } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
-import { ensureMultiTouch, isMultiTouchHeld } from "../game/touchInput";
+import {
+  beginTouchGesture,
+  createIdleTouchGesture,
+  endTouchGesture,
+  isTouchCrouching,
+  updateTouchGesture,
+  type TouchGestureState,
+} from "../game/touchInput";
 import {
   formatLeaderboard,
   readLeaderboard,
@@ -109,6 +116,7 @@ export class PlayScene extends Phaser.Scene {
   private roam: FreeRoamState | null = null;
   private idleRespawn: IdleRespawnState | null = null;
   private idleRing!: Phaser.GameObjects.Graphics;
+  private touchGesture: TouchGestureState = createIdleTouchGesture();
   private readonly snowflakes: Phaser.GameObjects.Image[] = [];
   private readonly clouds: Phaser.GameObjects.Image[] = [];
   private readonly fogWisps: Array<{
@@ -299,7 +307,6 @@ export class PlayScene extends Phaser.Scene {
   private bindInput(): void {
     this.game.canvas.setAttribute("tabindex", "0");
     this.game.canvas.style.outline = "none";
-    ensureMultiTouch(this.input);
 
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       this.game.canvas.focus();
@@ -307,27 +314,48 @@ export class PlayScene extends Phaser.Scene {
         this.setPaused(false);
         return;
       }
-      // Second+ finger is crouch only; skip turn / jump / takeoff for that contact.
-      if (isMultiTouchHeld(this.input)) {
+      if (this.touchGesture.active) {
         return;
       }
-      if (this.roam !== null) {
-        const x = pointer.x;
-        const w = this.cameras.main.width;
-        if (x < w * 0.33) {
-          this.roam = setFreeRoamFacing(this.roam, -1);
-        } else if (x > w * 0.66) {
-          this.roam = setFreeRoamFacing(this.roam, 1);
-        } else {
-          this.roam = tryFreeRoamJump(
-            this.roam,
-            freeRoamDefaults,
-            this.isCrouching(),
-          );
-        }
+      this.touchGesture = beginTouchGesture(pointer.id, pointer.x, pointer.y);
+    });
+
+    this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+      if (
+        this.paused ||
+        !this.touchGesture.active ||
+        pointer.id !== this.touchGesture.pointerId ||
+        !pointer.isDown
+      ) {
         return;
       }
-      this.queuePress();
+      const update = updateTouchGesture(
+        this.touchGesture,
+        pointer.x,
+        pointer.y,
+      );
+      this.touchGesture = update.state;
+      if (update.turn !== 0 && this.roam !== null) {
+        this.roam = setFreeRoamFacing(this.roam, update.turn);
+      }
+      if (update.jump) {
+        this.handleTouchJump();
+      }
+    });
+
+    this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+      if (
+        !this.touchGesture.active ||
+        pointer.id !== this.touchGesture.pointerId
+      ) {
+        return;
+      }
+      const ended = endTouchGesture(this.touchGesture, pointer.x, pointer.y);
+      this.touchGesture = ended.state;
+      if (this.paused || !ended.tap) {
+        return;
+      }
+      this.handleTouchTap(ended.tapX);
     });
 
     const keyboard = this.input.keyboard;
@@ -380,6 +408,7 @@ export class PlayScene extends Phaser.Scene {
     this.setPaused(false);
     this.jumpState = createInitialJumpState(jumpConfig);
     this.roam = null;
+    this.touchGesture = createIdleTouchGesture();
     this.idleRespawn = null;
     this.clearIdleRing();
     this.inputLatch.reset();
@@ -569,8 +598,35 @@ export class PlayScene extends Phaser.Scene {
     }
     return (
       (this.crouchKey !== null && this.crouchKey.isDown) ||
-      isMultiTouchHeld(this.input)
+      isTouchCrouching(this.touchGesture)
     );
+  }
+
+  private handleTouchJump(): void {
+    if (this.roam !== null) {
+      this.roam = tryFreeRoamJump(
+        this.roam,
+        freeRoamDefaults,
+        this.isCrouching(),
+      );
+      return;
+    }
+    this.queuePress();
+  }
+
+  private handleTouchTap(tapX: number): void {
+    if (this.roam !== null) {
+      const w = this.cameras.main.width;
+      if (tapX < w * 0.33) {
+        this.roam = setFreeRoamFacing(this.roam, -1);
+      } else if (tapX > w * 0.66) {
+        this.roam = setFreeRoamFacing(this.roam, 1);
+      } else {
+        this.handleTouchJump();
+      }
+      return;
+    }
+    this.queuePress();
   }
 
   private queuePress(): void {
@@ -1281,11 +1337,11 @@ export class PlayScene extends Phaser.Scene {
         0,
         0,
         [
-          "Tap / Space / Up  ·  jump",
-          "Down / 2 fingers  ·  crouch for speed",
+          "Tap / swipe up / Space  ·  jump",
+          "Swipe down & hold / Down  ·  crouch",
           "ESC  ·  pause or play",
           "R  ·  retry",
-          "After stop  ·  ← → turn, ↑ jump",
+          "After stop  ·  ← → or swipe, ↑ jump",
         ].join("\n"),
         {
           fontFamily: "Trebuchet MS, Arial, sans-serif",
