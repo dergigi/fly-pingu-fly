@@ -20,6 +20,12 @@ import {
   tryFreeRoamJump,
   type FreeRoamState,
 } from "../game/freeRoam";
+import {
+  createIdleRespawnState,
+  idleRespawnDefaults,
+  stepIdleRespawn,
+  type IdleRespawnState,
+} from "../game/idleRespawn";
 import { formatDistanceHud, jumpHudStats, worldDistanceToMeters } from "../game/hudStats";
 import { InputLatch } from "../game/inputLatch";
 import {
@@ -61,6 +67,11 @@ const WATCHTOWER_ORIGIN_Y = 230 / 256;
 const WATCHTOWER_SCALE = 0.92;
 const WATCHTOWER_SINK = 28;
 const WATCHTOWER_DEPTH = 12;
+/** Language-free idle countdown ring above the penguin head. */
+const IDLE_RING_RADIUS = 24;
+const IDLE_RING_LINE = 6;
+const IDLE_RING_DEPTH = 40;
+const IDLE_RING_OFFSET_Y = 72;
 
 function browserStorage(): Storage | null {
   try {
@@ -93,6 +104,8 @@ export class PlayScene extends Phaser.Scene {
   private pauseHint!: Phaser.GameObjects.Text;
   private takeoffPosePending = false;
   private roam: FreeRoamState | null = null;
+  private idleRespawn: IdleRespawnState | null = null;
+  private idleRing!: Phaser.GameObjects.Graphics;
   private readonly snowflakes: Phaser.GameObjects.Image[] = [];
   private readonly clouds: Phaser.GameObjects.Image[] = [];
   private readonly fogWisps: Array<{
@@ -175,6 +188,7 @@ export class PlayScene extends Phaser.Scene {
     this.distanceText = this.createDistanceHud();
     this.leaderboardText = this.createLeaderboardHud();
     this.createPauseMenu();
+    this.idleRing = this.add.graphics().setDepth(IDLE_RING_DEPTH);
     this.bindInput();
 
     this.cameras.main.setBounds(
@@ -354,6 +368,8 @@ export class PlayScene extends Phaser.Scene {
     this.setPaused(false);
     this.jumpState = createInitialJumpState(jumpConfig);
     this.roam = null;
+    this.idleRespawn = null;
+    this.clearIdleRing();
     this.inputLatch.reset();
     this.accumulator = 0;
     this.scoreRecorded = false;
@@ -379,6 +395,8 @@ export class PlayScene extends Phaser.Scene {
       this.jumpState.y,
       facing,
     );
+    this.idleRespawn = createIdleRespawnState(this.roam.x, this.roam.y);
+    this.clearIdleRing();
   }
 
   private updateFreeRoam(deltaMs: number): void {
@@ -417,6 +435,59 @@ export class PlayScene extends Phaser.Scene {
       (x) => this.worldSurface(x),
       this.isCrouching(),
     );
+
+    if (this.idleRespawn === null) {
+      this.idleRespawn = createIdleRespawnState(this.roam.x, this.roam.y);
+    }
+
+    const idleResult = stepIdleRespawn(
+      this.idleRespawn,
+      {
+        eligible: true,
+        grounded: this.roam.grounded,
+        speed: Math.hypot(this.roam.vx, this.roam.vy),
+        x: this.roam.x,
+        y: this.roam.y,
+      },
+      Math.min(deltaMs, 50),
+      idleRespawnDefaults,
+    );
+    this.idleRespawn = idleResult.state;
+    this.drawIdleRing(this.roam.x, this.roam.y, idleResult.warnProgress);
+    if (idleResult.shouldRespawn) {
+      this.resetRun();
+    }
+  }
+
+  private clearIdleRing(): void {
+    if (this.idleRing !== undefined) {
+      this.idleRing.clear();
+    }
+  }
+
+  private drawIdleRing(x: number, y: number, warnProgress: number): void {
+    this.idleRing.clear();
+    if (warnProgress <= 0) {
+      return;
+    }
+    const cx = x;
+    const cy = y - IDLE_RING_OFFSET_Y;
+    // Soft track + warm fill arc for the final warn window.
+    this.idleRing.lineStyle(IDLE_RING_LINE, 0xffffff, 0.35);
+    this.idleRing.beginPath();
+    this.idleRing.arc(cx, cy, IDLE_RING_RADIUS, 0, Math.PI * 2, false);
+    this.idleRing.strokePath();
+    this.idleRing.lineStyle(IDLE_RING_LINE, 0xe67a2e, 0.95);
+    this.idleRing.beginPath();
+    this.idleRing.arc(
+      cx,
+      cy,
+      IDLE_RING_RADIUS,
+      -Math.PI / 2,
+      -Math.PI / 2 + warnProgress * Math.PI * 2,
+      false,
+    );
+    this.idleRing.strokePath();
   }
 
   private clampAgainstWatchtower(state: JumpState): JumpState {
