@@ -1338,7 +1338,7 @@ export class PlayScene extends Phaser.Scene {
         0,
         [
           "Tap / swipe up / Space  ·  jump",
-          "Swipe down & hold / Down  ·  crouch",
+          "Swipe down / Down  ·  crouch (swipe up stands)",
           "ESC  ·  pause or play",
           "R  ·  retry",
           "After stop  ·  ← → or swipe, ↑ jump",

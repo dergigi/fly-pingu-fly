@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Touch crouch follows swipe direction while holding: swipe down crouches, swipe up stands and jumps, swipe down again can crouch in flight
+
 ## [0.0.5] - 2026-07-29
 
 ### Added

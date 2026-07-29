@@ -569,7 +569,7 @@ export class MenuScene extends Phaser.Scene {
 
   private createControlsHint(): void {
     this.add
-      .text(0, 0, "swipe / ← → turn   ·   swipe up jump   ·   swipe down crouch", {
+      .text(0, 0, "hold & swipe ↓ crouch  ·  ↑ jump  ·  ← → turn", {
         fontFamily: PIXEL_FONT,
         fontSize: "9px",
         color: "#3a6f8a",
