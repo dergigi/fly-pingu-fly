@@ -739,7 +739,7 @@ export class MenuScene extends Phaser.Scene {
     this.flagMark.lineTo(flagX + 28, this.groundY + 4);
     this.flagMark.strokePath();
 
-    const candyX = Math.max(150, Math.min(220, w * 0.18));
+    const candyX = Math.max(130, Math.min(190, w * 0.15));
     candyTree?.setPosition(candyX, this.groundY + CANDY_TREE_SINK);
     // Clamp at the trunk's right edge; freeRoam adds its own margin on top.
     this.leftBlockX = Math.max(
