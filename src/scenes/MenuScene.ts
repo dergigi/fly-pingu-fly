@@ -26,6 +26,10 @@ const PINE_ORIGIN_Y = 233 / 256;
 const PENGUIN_SCALE = 0.72;
 const PENGUIN_CROUCH_SCALE_Y = 0.72;
 const FLAG_TOUCH_RADIUS = 48;
+/** Candy tree sits at the far-left edge and clamps free-roam past its trunk. */
+const CANDY_TREE_SCALE = 1.45;
+const CANDY_TREE_SINK = 10;
+const CANDY_TREE_HALF_WIDTH = 64 * CANDY_TREE_SCALE;
 
 function browserStorage(): Storage | null {
   try {
@@ -49,6 +53,8 @@ export class MenuScene extends Phaser.Scene {
   private creditLink!: Phaser.GameObjects.Text;
   private started = false;
   private groundY = 0;
+  /** World x the penguin may not cross left of (candy-tree trunk). */
+  private leftBlockX = 0;
   private roam: FreeRoamState = createFreeRoamState(0, 0, 1);
   private leftKeys: Phaser.Input.Keyboard.Key[] = [];
   private rightKeys: Phaser.Input.Keyboard.Key[] = [];
@@ -76,6 +82,10 @@ export class MenuScene extends Phaser.Scene {
     this.load.image("penguin-sheet", "/assets/sprites/sprite_penguin.png");
     this.load.image("winter-forest", "/assets/sprites/winter-forest.webp");
     this.load.image("pine-tree", "/assets/sprites/pine-tree-snow-heavy.webp");
+    this.load.image(
+      "candy-lollipop-tree",
+      "/assets/sprites/candy-lollipop-tree.png",
+    );
     this.load.image("snow-flakes", "/assets/sprites/snow-fall-flakes.webp");
     this.load.image("cloud-solid", "/assets/sprites/cloud-solid.webp");
     this.load.image("cloud-thin", "/assets/sprites/cloud-thin.webp");
@@ -125,7 +135,7 @@ export class MenuScene extends Phaser.Scene {
       dt,
       {
         ...freeRoamDefaults,
-        minX: 0,
+        minX: this.leftBlockX,
         maxX: this.cameras.main.width,
       },
       () => ({ y: this.groundY, slope: 0 }),
@@ -414,6 +424,13 @@ export class MenuScene extends Phaser.Scene {
 
   private placeForegroundPines(): void {
     this.add
+      .image(0, 0, "candy-lollipop-tree")
+      .setOrigin(0.5, 1)
+      .setScale(CANDY_TREE_SCALE)
+      .setDepth(9)
+      .setScrollFactor(0)
+      .setName("candy-lollipop-tree");
+    this.add
       .image(0, 0, "pine-tree")
       .setOrigin(0.5, PINE_ORIGIN_Y)
       .setScale(0.72)
@@ -699,6 +716,9 @@ export class MenuScene extends Phaser.Scene {
     const pineRight = this.children.getByName(
       "pine-right",
     ) as Phaser.GameObjects.Image | null;
+    const candyTree = this.children.getByName(
+      "candy-lollipop-tree",
+    ) as Phaser.GameObjects.Image | null;
 
     const titleY = Math.max(90, h * 0.18);
     const titleSize = Math.round(Phaser.Math.Clamp(w * 0.042, 18, 44));
@@ -719,10 +739,19 @@ export class MenuScene extends Phaser.Scene {
     this.flagMark.lineTo(flagX + 28, this.groundY + 4);
     this.flagMark.strokePath();
 
+    const candyX = Math.max(52, Math.min(88, w * 0.07));
+    candyTree?.setPosition(candyX, this.groundY + CANDY_TREE_SINK);
+    // Clamp at the trunk's right edge; freeRoam adds its own margin on top.
+    this.leftBlockX = Math.max(
+      0,
+      candyX + CANDY_TREE_HALF_WIDTH * 0.28 - freeRoamDefaults.margin,
+    );
+
     const spawnX = cx - Math.min(200, w * 0.2);
+    const leftLimit = this.leftBlockX + freeRoamDefaults.margin;
     const needsReset =
       this.roam.x === 0 ||
-      this.roam.x < 20 ||
+      this.roam.x < leftLimit ||
       this.roam.x > w - 20;
     if (needsReset) {
       this.roam = createFreeRoamState(spawnX, this.groundY, 1);

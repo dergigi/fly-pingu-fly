@@ -20,6 +20,7 @@ const REQUIRED_ASSETS = [
   { name: "ice-watchtower-spire.webp", format: "webp" },
   { name: "snowman-carrot-nose-coal.webp", format: "webp" },
   { name: "village-flag.png", format: "png" },
+  { name: "candy-lollipop-tree.png", format: "png" },
 ];
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
