@@ -6,7 +6,7 @@ current_phase: 1
 current_phase_name: Playable Jump
 status: verifying
 stopped_at: Completed quick task 260729-c1g PWA installability
-last_updated: "2026-07-29T06:45:00.000Z"
+last_updated: "2026-07-29T06:48:07.552Z"
 last_activity: 2026-07-29
 last_activity_desc: "Completed quick task 260729-c1g: Make Fly Pingu Fly installable as a PWA"
 progress:
@@ -95,6 +95,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260729-c1g | Make Fly Pingu Fly installable as a PWA (web app manifest + service worker) for Vercel static deploy | 2026-07-29 | 17e62f6 | [260729-c1g-make-fly-pingu-fly-installable-as-a-pwa-](./quick/260729-c1g-make-fly-pingu-fly-installable-as-a-pwa-/) |
+| 2 | Place candy-lollipop-tree as far-left menu blocker | 2026-07-29 | 272c91f | — |
 
 ## Deferred Items
 
