@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+const DAY_SECONDS = 60 * 60 * 24;
+
 export default defineConfig({
   plugins: [
     VitePWA({
@@ -34,6 +36,43 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
+          },
+        ],
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        navigateFallback: "index.html",
+        // App shell only — game media under /assets/ uses runtime caching.
+        globPatterns: [
+          "**/*.{js,css,html,webmanifest,ico,svg}",
+          "pwa-*.png",
+        ],
+        // Phaser + workbox-window hashed chunks can exceed the 2 MiB default.
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "pages-network-first",
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 16,
+                maxAgeSeconds: 7 * DAY_SECONDS,
+              },
+            },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith("/assets/"),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "game-assets-network-first",
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 64,
+                maxAgeSeconds: 7 * DAY_SECONDS,
+              },
+            },
           },
         ],
       },
