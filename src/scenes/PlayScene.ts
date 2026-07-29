@@ -67,13 +67,13 @@ const WATCHTOWER_ORIGIN_Y = 230 / 256;
 const WATCHTOWER_SCALE = 0.92;
 const WATCHTOWER_SINK = 28;
 const WATCHTOWER_DEPTH = 12;
-/** Language-free idle countdown ring above the penguin head (~36px diameter). */
-const IDLE_RING_RADIUS = 18;
-const IDLE_RING_LINE = 5;
+/** Language-free idle countdown ring above the penguin head (~26px diameter). */
+const IDLE_RING_RADIUS = 13;
+const IDLE_RING_LINE = 4;
 const IDLE_RING_DEPTH = 40;
 /** World offset from contact pivot to ring center (above ready-pose head). */
 const IDLE_RING_OFFSET_Y =
-  PENGUIN_FRAMES.ready.contactY * PENGUIN_SCALE + IDLE_RING_RADIUS + 10;
+  PENGUIN_FRAMES.ready.contactY * PENGUIN_SCALE + IDLE_RING_RADIUS + 24;
 
 function browserStorage(): Storage | null {
   try {
